@@ -1,0 +1,2 @@
+import keyboard   # pip
+import numpy as np   # conda
