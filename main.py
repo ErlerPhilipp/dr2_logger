@@ -11,45 +11,74 @@ import tkinter as tk
 from tkinter import filedialog
 import math
 
+# https://docs.google.com/spreadsheets/d/1eA518KHFowYw7tSMa-NxIFYpiWe5JXgVVQ_IMs7BVW0/edit?usp=drivesdk
 DATA_DICT = {
-    'run_time': 0,
-    'lap_time': 1,
-    'distance': 2,
-    'unknown_0': 3,
-    'pos_x': 4,
-    'pos_y': 5,
-    'pos_z': 6,
-    'speed_ms': 7,
-    'unknown_2': 8,
-    'unknown_3': 9,
-    'unknown_4': 10,
-    'unknown_5': 11,
-    'unknown_6': 12,
-    'unknown_7': 13,
-    'unknown_8': 14,
-    'unknown_9': 15,
-    'unknown_10': 16,
-    'susp_rl': 17,
-    'susp_rr': 18,
-    'susp_fl': 19,
-    'susp_fr': 20,
-    'unknown_11': 21,
-    'unknown_12': 22,
-    'unknown_13': 23,
-    'unknown_14': 24,
-    'wsp_rl': 25,
-    'wsp_rr': 26,
-    'wsp_fl': 27,
-    'wsp_fr': 28,
-    'throttle': 29,
-    'steering': 30,
-    'brakes': 31,
-    'clutch': 32,
-    'gear': 33,
-    'g_force_x': 34,
-    'g_force_y': 35,
-    'current_lap': 36,
-    'rpm': 37,
+    'run_time':            0,
+    'lap_time':            1,
+    'distance':            2,
+    'progress':            3,
+    'pos_x':               4,
+    'pos_y':               5,
+    'pos_z':               6,
+    'speed_ms':            7,
+    'vel_x':               8,
+    'vel_y':               9,
+    'vel_z':               10,
+    'roll_x':              11,
+    'roll_y':              12,
+    'roll_z':              13,
+    'pitch_x':             14,
+    'pitch_y':             15,
+    'pitch_z':             16,
+    'susp_rl':             17,
+    'susp_rr':             18,
+    'susp_fl':             19,
+    'susp_fr':             20,
+    'susp_vel_rl':         21,
+    'susp_vel_rr':         22,
+    'susp_vel_fl':         23,
+    'susp_vel_fr':         24,
+    'wsp_rl':              25,
+    'wsp_rr':              26,
+    'wsp_fl':              27,
+    'wsp_fr':              28,
+    'throttle':            29,
+    'steering':            30,
+    'brakes':              31,
+    'clutch':              32,
+    'gear':                33,
+    'g_force_x':           34,
+    'g_force_y':           35,
+    'current_lap':         36,
+    'rpm':                 37,
+    'sli_pro_support':     38,
+    'car_pos':             39,
+    'kers_level':          40,
+    'kers_max_level':      41,
+    'drs':                 42,
+    'traction_control':    43,
+    'anti_lock_brakes':    44,
+    'fuel_in_tank':        45,
+    'fuel_capacity':       46,
+    'in_pit':              47,
+    'sector':              48,
+    'sector_1_time':       49,
+    'sector_2_time':       50,
+    'brakes_temp':         51,
+    'wheels_pressure_psi': 52,
+    'team_info':           53,
+    'total_laps':          54,
+    'track_size':          55,
+    'last_lap_time':       56,
+    'max_rpm':             57,
+    'idle_rpm':            58,
+    'max_gears':           59,
+    'session_type':        60,
+    'drs_allowed':         61,
+    'track_number':        62,
+    'vehicle_fia_flags':   63,
+    'unknown_0':           64,
+    'unknown_1':           65,
 }
 
 
@@ -59,8 +88,11 @@ def cls():
 
 
 def bit_stream_to_float32(data, pos):
-
-    value = struct.unpack('f', data[pos:pos+4])
+    try:
+        value = struct.unpack('f', data[pos:pos+4])
+    except ValueError as e:
+        value = 0
+        print('Failed to get data item at pos {}'.format(pos))
     return value[0]
 
 
@@ -69,28 +101,28 @@ def receive(data):
     run_time = bit_stream_to_float32(data, 0)
     lap_time = bit_stream_to_float32(data, 4)
     distance = max(bit_stream_to_float32(data, 8), 0)
-    unknown_0 = bit_stream_to_float32(data, 12)
+    progress = bit_stream_to_float32(data, 12)  # 0-1
     pos_x = bit_stream_to_float32(data, 16)
     pos_y = bit_stream_to_float32(data, 20)
     pos_z = bit_stream_to_float32(data, 24)
     speed_ms = bit_stream_to_float32(data, 28)  # * 3.6  # * 3.6 for Km/h
-    unknown_2 = bit_stream_to_float32(data, 32)
-    unknown_3 = bit_stream_to_float32(data, 36)
-    unknown_4 = bit_stream_to_float32(data, 40)
-    unknown_5 = bit_stream_to_float32(data, 44)
-    unknown_6 = bit_stream_to_float32(data, 48)
-    unknown_7 = bit_stream_to_float32(data, 52)
-    unknown_8 = bit_stream_to_float32(data, 56)
-    unknown_9 = bit_stream_to_float32(data, 60)
-    unknown_10 = bit_stream_to_float32(data, 64)
+    vel_x = bit_stream_to_float32(data, 32)  # velocity in world space
+    vel_y = bit_stream_to_float32(data, 36)  # velocity in world space
+    vel_z = bit_stream_to_float32(data, 40)  # velocity in world space
+    roll_x = bit_stream_to_float32(data, 44)
+    roll_y = bit_stream_to_float32(data, 48)
+    roll_z = bit_stream_to_float32(data, 52)
+    pitch_x = bit_stream_to_float32(data, 56)
+    pitch_y = bit_stream_to_float32(data, 60)
+    pitch_z = bit_stream_to_float32(data, 64)
     susp_rl = bit_stream_to_float32(data, 68)  # Suspension travel aft left
     susp_rr = bit_stream_to_float32(data, 72)  # Suspension travel aft right
     susp_fl = bit_stream_to_float32(data, 76)  # Suspension travel fwd left
     susp_fr = bit_stream_to_float32(data, 80)  # Suspension travel fwd right
-    unknown_11 = bit_stream_to_float32(data, 84)
-    unknown_12 = bit_stream_to_float32(data, 88)
-    unknown_13 = bit_stream_to_float32(data, 92)
-    unknown_14 = bit_stream_to_float32(data, 96)
+    susp_vel_rl = bit_stream_to_float32(data, 84)
+    susp_vel_rr = bit_stream_to_float32(data, 88)
+    susp_vel_fl = bit_stream_to_float32(data, 92)
+    susp_vel_fr = bit_stream_to_float32(data, 96)
     wsp_rl = bit_stream_to_float32(data, 100)  # Wheel speed aft left
     wsp_rr = bit_stream_to_float32(data, 104)  # Wheel speed aft right
     wsp_fl = bit_stream_to_float32(data, 108)  # Wheel speed fwd left
@@ -104,12 +136,45 @@ def receive(data):
     g_force_y = bit_stream_to_float32(data, 140)
     current_lap = bit_stream_to_float32(data, 144)  # Current lap, starts at 0
     rpm = bit_stream_to_float32(data, 148) * 10  # RPM, requires * 10 for realistic values
+    sli_pro_support = bit_stream_to_float32(data, 152)
+    car_pos = bit_stream_to_float32(data, 156)
+    kers_level = bit_stream_to_float32(data, 160)
+    kers_max_level = bit_stream_to_float32(data, 164)
+    drs = bit_stream_to_float32(data, 168)
+    traction_control = bit_stream_to_float32(data, 172)
+    anti_lock_brakes = bit_stream_to_float32(data, 176)
+    fuel_in_tank = bit_stream_to_float32(data, 180)
+    fuel_capacity = bit_stream_to_float32(data, 184)
+    in_pit = bit_stream_to_float32(data, 188)
+    sector = bit_stream_to_float32(data, 192)
+    sector_1_time = bit_stream_to_float32(data, 196)
+    sector_2_time = bit_stream_to_float32(data, 200)
+    brakes_temp = bit_stream_to_float32(data, 204)
+    wheels_pressure_psi = bit_stream_to_float32(data, 208)
+    team_info = bit_stream_to_float32(data, 212)
+    total_laps = bit_stream_to_float32(data, 216)
+    track_size = bit_stream_to_float32(data, 220)
+    last_lap_time = bit_stream_to_float32(data, 224)
+    max_rpm = bit_stream_to_float32(data, 228)
+    idle_rpm = bit_stream_to_float32(data, 232)
+    max_gears = bit_stream_to_float32(data, 236)
+    session_type = bit_stream_to_float32(data, 240)
+    drs_allowed = bit_stream_to_float32(data, 244)
+    track_number = bit_stream_to_float32(data, 248)
+    vehicle_fia_flags = bit_stream_to_float32(data, 252)
+    unknown_0 = bit_stream_to_float32(data, 256)
+    unknown_1 = bit_stream_to_float32(data, 260)
 
     return np.array([
-        run_time, lap_time, distance, unknown_0, pos_x, pos_y, pos_z, speed_ms, unknown_2, unknown_3, unknown_4,
-        unknown_5, unknown_6, unknown_7, unknown_8, unknown_9, unknown_10, susp_rl, susp_rr, susp_fl, susp_fr,
-        unknown_11, unknown_12, unknown_13, unknown_14, wsp_rl, wsp_rr, wsp_fl, wsp_fr,
-        throttle, steering, brakes, clutch, gear, g_force_x, g_force_y, current_lap, rpm])
+        run_time, lap_time, distance, progress, pos_x, pos_y, pos_z, speed_ms, vel_x, vel_y, vel_z,
+        roll_x, roll_y, roll_z, pitch_x, pitch_y, pitch_z, susp_rl, susp_rr, susp_fl, susp_fr,
+        susp_vel_rl, susp_vel_rr, susp_vel_fl, susp_vel_fr, wsp_rl, wsp_rr, wsp_fl, wsp_fr,
+        throttle, steering, brakes, clutch, gear, g_force_x, g_force_y, current_lap, rpm, sli_pro_support, car_pos,
+        kers_level, kers_max_level, drs, traction_control, anti_lock_brakes, fuel_in_tank, fuel_capacity, in_pit,
+        sector, sector_1_time, sector_2_time, brakes_temp, wheels_pressure_psi, team_info, total_laps, track_size,
+        last_lap_time, max_rpm, idle_rpm, max_gears, session_type, drs_allowed, track_number, vehicle_fia_flags,
+        unknown_0, unknown_1
+    ])
 
 
 def get_port():
@@ -215,10 +280,11 @@ if __name__== "__main__":
             recording = True
         elif command == 'a':
             if session_collection.size > 0:
-                gear_scatter_plot_3d = True
-                gear_scatter_plot_2d = True
+                gear_scatter_plot_3d = False
+                gear_scatter_plot_2d = False
                 rpm_gear_histogram_plot = True
-                suspension_speed_scatter_plot = True
+                suspension_over_time = True
+                height_over_dist = False
 
                 # gather data from the collection
                 session_collection_t = session_collection.transpose()
@@ -304,8 +370,7 @@ if __name__== "__main__":
                         ax.set_title('Gear {}'.format(gear))
                     plt.show()
 
-                if suspension_speed_scatter_plot:
-                    fig, ax = plt.subplots()
+                if suspension_over_time:
                     lap_time = [d[DATA_DICT['lap_time']] for d in session_collection_t]
                     susp_fl = [d[DATA_DICT['susp_fl']] for d in session_collection_t]
                     susp_fr = [d[DATA_DICT['susp_fr']] for d in session_collection_t]
@@ -316,17 +381,29 @@ if __name__== "__main__":
                     susp_min = np.min(susp_data)
                     susp_diff = susp_max - susp_min
 
+                    #fig, ax = plt.subplots()
                     colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
                               'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
                     labels = ['susp_fl', 'susp_fr', 'susp_rl', 'susp_rr']
                     for i, susp in enumerate(susp_data):
-                        ax.scatter(x=lap_time, y=susp, c=colors[i], label=labels[i],
-                                   alpha=0.25, edgecolors='none')
-                    ax.legend()
-                    ax.grid(True)
+                        plt.plot(lap_time, susp, alpha=0.5)
+                    plt.legend(labels)
+                    plt.grid(True)
                     plt.ylim(susp_max + susp_diff * 0.1, susp_min - susp_diff * 0.1)  # invert y axis and pad
-                    plt.title('Suspension over lap time scatter plot')
+                    plt.title('Suspension over lap time')
                     plt.show()
+
+                if height_over_dist:
+                    distance = [d[DATA_DICT['distance']] for d in session_collection_t]
+                    height = [d[DATA_DICT['pos_y']] for d in session_collection_t]
+                    fig, ax = plt.subplots()
+                    ax.plot(distance, height, label='height')
+                    ax.set(xlabel='distance (m)', ylabel='height (m)',
+                           title='Height over time')
+                    ax.grid()
+                    # ax.legend()
+                    plt.show()
+
         elif command == 's':
             root = tk.Tk()
             root.withdraw()
