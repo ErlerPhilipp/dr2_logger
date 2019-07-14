@@ -113,9 +113,20 @@ def plot_suspension_over_time(session_data):
     susp_rl = [d[networking.fields['susp_rl']] for d in session_data]
     susp_rr = [d[networking.fields['susp_rr']] for d in session_data]
     susp_data = [susp_fl, susp_fr, susp_rl, susp_rr]
-    susp_max = np.max(susp_data)
-    susp_min = np.min(susp_data)
+
+    susp_arg_max_wheels = [np.argmax(l) for l in susp_data]
+    susp_max_wheels = [susp_data[i][a] for i, a in enumerate(susp_arg_max_wheels)]
+    susp_data_arg_max = np.argmax(susp_max_wheels)
+    susp_max = susp_max_wheels[susp_data_arg_max]
+
+    susp_arg_min_wheels = [np.argmin(l) for l in susp_data]
+    susp_min_wheels = [susp_data[i][a] for i, a in enumerate(susp_arg_min_wheels)]
+    susp_data_arg_min = np.argmin(susp_min_wheels)
+    susp_min = susp_min_wheels[susp_data_arg_min]
+
     susp_diff = susp_max - susp_min
+    time_susp_max = lap_time[susp_arg_max_wheels[susp_data_arg_max]]
+    time_susp_min = lap_time[susp_arg_min_wheels[susp_data_arg_min]]
 
     labels = ['susp_fl', 'susp_fr', 'susp_rl', 'susp_rr']
     plt.figure('Suspension over lap time')
@@ -127,6 +138,8 @@ def plot_suspension_over_time(session_data):
     plt.xlabel('lap time (s)')
     plt.ylabel('RPM')
     plt.title('Suspension over lap time')
+    plt.text(time_susp_max, susp_max, 'max: {}'.format(susp_max))
+    plt.text(time_susp_min, susp_min, 'min: {}'.format(susp_min))
     plt.show()
 
 
