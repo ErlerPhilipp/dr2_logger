@@ -299,6 +299,32 @@ def wheel_speed_over_time(session_data):
     plt.text(time_wsp_min, wsp_min, 'min: {}'.format(wsp_min))
 
 
+def drift_over_speed(session_data):
+
+    steering = [d[networking.fields['steering']] for i, d in enumerate(session_data)]
+    speed_ms = [d[networking.fields['speed_ms']] for i, d in enumerate(session_data)]
+
+    # forward dir
+    px = [d[networking.fields['pitch_x']] for i, d in enumerate(session_data)]
+    py = [d[networking.fields['pitch_z']] for i, d in enumerate(session_data)]
+    pxy_normalized = utils.normalize_2d_vectors(px, py)
+
+    # forward speed
+    vx = [d[networking.fields['vel_x']] for i, d in enumerate(session_data)]
+    vy = [d[networking.fields['vel_z']] for i, d in enumerate(session_data)]
+    vxy_normalized = utils.normalize_2d_vectors(vx, vy)
+
+    # dot(dir, speed) = drift
+    drift = list((pxy_normalized * vxy_normalized).sum(axis=0))
+    drift_angle = np.arccos(drift)
+
+    fig = plt.figure('Drift over speed (steering as color)')
+    plt.title('Drift over speed (steering as color)')
+    plt.scatter(x=speed_ms, y=drift_angle, c=steering, s=25, alpha=0.5, label='drift over steer')
+    plt.xlabel('speed (m/s)')
+    plt.ylabel('drift angle')
+
+
 def plot_main(session_data):
 
     if session_data.size > 0:
@@ -312,6 +338,7 @@ def plot_main(session_data):
         plot_v_over_rpm(session_data)
         forward_over_2d_pos(session_data)
         wheel_speed_over_time(session_data)
+        drift_over_speed(session_data)
 
         plt.show()
 
