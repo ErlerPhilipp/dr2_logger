@@ -12,6 +12,9 @@ import utils
 import plots
 
 
+debug = False
+
+
 if __name__ == "__main__":
 
     print('Dirt Rally 2.0 Race Logger by Philipp Erler')
@@ -20,10 +23,15 @@ if __name__ == "__main__":
 
     session_collection = np.zeros((len(networking.fields), 0))
     last_receive_results = None
-    recording = True
     end_program = False
 
-    print('Press "q" to quit the current race and start the analysis')
+    if not debug:
+        recording = True
+        print('Press "q" to quit the current race and start the analysis')
+    else:
+        recording = False
+        npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
+        session_collection = npz_file['arr_0']
 
     while not end_program:
         while recording:

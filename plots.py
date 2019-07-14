@@ -3,6 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 import networking
+import utils
 
 colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
           'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
@@ -44,7 +45,6 @@ def plot_gear_over_3d_pos(session_data):
     ax.set_zlim(z_middle - diff_max * 0.6, z_middle + diff_max * 0.6)
     plt.title('3D positions with gear as color, rpm')
     plt.set_cmap('plasma')
-    plt.show()
 
 
 def plot_gear_over_2d_pos(session_data):
@@ -77,7 +77,6 @@ def plot_gear_over_2d_pos(session_data):
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     plt.title('Gear at 2D positions')
-    plt.show()
 
 
 def plot_rpm_histogram_per_gear(session_data):
@@ -103,7 +102,6 @@ def plot_rpm_histogram_per_gear(session_data):
         ax.set_ylabel('Prob')
         ax.set_xlim(rpm_min, rpm_max)
         ax.set_title('Gear {}'.format(gear))
-    plt.show()
 
 
 def plot_suspension_over_time(session_data):
@@ -140,7 +138,6 @@ def plot_suspension_over_time(session_data):
     plt.title('Suspension over lap time')
     plt.text(time_susp_max, susp_max, 'max: {}'.format(susp_max))
     plt.text(time_susp_min, susp_min, 'min: {}'.format(susp_min))
-    plt.show()
 
 
 def plot_height_over_dist(session_data):
@@ -152,7 +149,6 @@ def plot_height_over_dist(session_data):
     ax.set(xlabel='distance (m)', ylabel='height (m)',
            title='Track Elevation')
     ax.grid()
-    plt.show()
 
 
 def plot_g_over_rpm(session_data):
@@ -179,7 +175,6 @@ def plot_g_over_rpm(session_data):
     ax.set_ylabel('G-force X')
     plt.title('G-force over RPM (full throttle)')
     ax.legend()
-    plt.show()
 
 
 def plot_g_over_throttle(session_data):
@@ -198,7 +193,6 @@ def plot_g_over_throttle(session_data):
     ax.set_ylabel('G-force X')
     plt.title('G-force X over throttle')
     ax.legend()
-    plt.show()
 
 
 def plot_v_over_rpm(session_data):
@@ -219,7 +213,90 @@ def plot_v_over_rpm(session_data):
     ax.set_ylabel('Speed (m/s)')
     ax.legend()
     plt.title('Speed over RPM (full throttle)')
-    plt.show()
+
+
+def forward_over_2d_pos(session_data):
+
+    # if we take all data points, the plot is too crowded
+    sample_rate = 10
+
+    x = [d[networking.fields['pos_x']] for i, d in enumerate(session_data) if i % sample_rate == 0]
+    y = [d[networking.fields['pos_z']] for i, d in enumerate(session_data) if i % sample_rate == 0]
+    x_min = min(x)
+    x_max = max(x)
+    x_middle = (x_max + x_min) * 0.5
+    y_min = min(y)
+    y_max = max(y)
+    y_middle = (y_max + y_min) * 0.5
+    diff = [x_max - x_min, y_max - y_min]
+    diff_max = max(diff)
+
+    # forward dir
+    px = [d[networking.fields['pitch_x']] for i, d in enumerate(session_data) if i % sample_rate == 0]
+    py = [d[networking.fields['pitch_z']] for i, d in enumerate(session_data) if i % sample_rate == 0]
+    pxy_normalized = utils.normalize_2d_vectors(px, py)
+
+    # forward speed
+    vx = [d[networking.fields['vel_x']] for i, d in enumerate(session_data) if i % sample_rate == 0]
+    vy = [d[networking.fields['vel_z']] for i, d in enumerate(session_data) if i % sample_rate == 0]
+    vxy_normalized = utils.normalize_2d_vectors(vx, vy)
+
+    # dot(dir, speed) = drift
+    drift = list((pxy_normalized * vxy_normalized).sum(axis=0))
+    drift_angle = np.arccos(drift)
+
+    fig, ax = plt.subplots()
+    plt.plot(x, y, c='k')
+    q = ax.quiver(x, y, pxy_normalized[0], pxy_normalized[1], drift_angle,
+                  angles='xy', scale_units='dots', scale=0.03, label='Forward dir', color='tab:purple')
+    p = ax.quiver(x, y, vx, vy,
+                  angles='xy', scale_units='xy', scale=5, label='Forward vel', color='tab:red')
+    ax.set_xlim(x_middle - diff_max * 0.6, x_middle + diff_max * 0.6)
+    ax.set_ylim(y_middle - diff_max * 0.6, y_middle + diff_max * 0.6)
+    ax.text(x[0], y[0], 'start')
+    ax.text(x[-1], y[-1], 'finish')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.legend()
+    plt.title('Drift at 2D positions (drift angle as color)')
+    fig.canvas.set_window_title('Drift at 2D positions')
+
+
+def wheel_speed_over_time(session_data):
+
+    lap_time = [d[networking.fields['lap_time']] for d in session_data]
+    wsp_fl = [d[networking.fields['wsp_fl']] for d in session_data]
+    wsp_fr = [d[networking.fields['wsp_fr']] for d in session_data]
+    wsp_rl = [d[networking.fields['wsp_rl']] for d in session_data]
+    wsp_rr = [d[networking.fields['wsp_rr']] for d in session_data]
+    wsp_data = [wsp_fl, wsp_fr, wsp_rl, wsp_rr]
+
+    wsp_arg_max_wheels = [np.argmax(l) for l in wsp_data]
+    wsp_max_wheels = [wsp_data[i][a] for i, a in enumerate(wsp_arg_max_wheels)]
+    wsp_data_arg_max = np.argmax(wsp_max_wheels)
+    wsp_max = wsp_max_wheels[wsp_data_arg_max]
+
+    wsp_arg_min_wheels = [np.argmin(l) for l in wsp_data]
+    wsp_min_wheels = [wsp_data[i][a] for i, a in enumerate(wsp_arg_min_wheels)]
+    wsp_data_arg_min = np.argmin(wsp_min_wheels)
+    wsp_min = wsp_min_wheels[wsp_data_arg_min]
+
+    wsp_diff = wsp_max - wsp_min
+    time_wsp_max = lap_time[wsp_arg_max_wheels[wsp_data_arg_max]]
+    time_wsp_min = lap_time[wsp_arg_min_wheels[wsp_data_arg_min]]
+
+    labels = ['wsp_fl', 'wsp_fr', 'wsp_rl', 'wsp_rr']
+    plt.figure('Wheel speed over lap time')
+    plt.title('Wheel speed over lap time')
+    for i, wsp in enumerate(wsp_data):
+        plt.plot(lap_time, wsp, alpha=0.5)
+    plt.legend(labels)
+    plt.grid(True)
+    plt.ylim(wsp_max + wsp_diff * 0.1, wsp_min - wsp_diff * 0.1)  # invert y axis and pad
+    plt.xlabel('lap time (s)')
+    plt.ylabel('wheel speed')
+    plt.text(time_wsp_max, wsp_max, 'max: {}'.format(wsp_max))
+    plt.text(time_wsp_min, wsp_min, 'min: {}'.format(wsp_min))
 
 
 def plot_main(session_data):
@@ -229,8 +306,12 @@ def plot_main(session_data):
         plot_gear_over_2d_pos(session_data)
         plot_rpm_histogram_per_gear(session_data)
         plot_suspension_over_time(session_data)
-        plot_height_over_dist(session_data)
-        plot_g_over_rpm(session_data)
-        plot_g_over_throttle(session_data)
+        #plot_height_over_dist(session_data)
+        #plot_g_over_rpm(session_data)
+        #plot_g_over_throttle(session_data)
         plot_v_over_rpm(session_data)
+        forward_over_2d_pos(session_data)
+        wheel_speed_over_time(session_data)
+
+        plt.show()
 
