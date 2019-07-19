@@ -9,6 +9,24 @@ colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
           'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
 
 
+def plot_main(session_data):
+
+    if session_data.size > 0:
+        #plot_gear_over_3d_pos(session_data)
+        plot_gear_over_2d_pos(session_data)
+        plot_rpm_histogram_per_gear(session_data)
+        plot_suspension_over_time(session_data)
+        #plot_height_over_dist(session_data)
+        #plot_g_over_rpm(session_data)
+        #plot_g_over_throttle(session_data)
+        plot_v_over_rpm(session_data)
+        forward_over_2d_pos(session_data)
+        wheel_speed_over_time(session_data)
+        drift_over_speed(session_data)
+
+        plt.show()
+
+
 def plot_gear_over_3d_pos(session_data):
     x = [d[networking.fields['pos_x']] for d in session_data]
     y = [d[networking.fields['pos_z']] for d in session_data]
@@ -134,7 +152,7 @@ def plot_suspension_over_time(session_data):
     plt.grid(True)
     plt.ylim(susp_max + susp_diff * 0.1, susp_min - susp_diff * 0.1)  # invert y axis and pad
     plt.xlabel('lap time (s)')
-    plt.ylabel('RPM')
+    plt.ylabel('suspension dislocation (mm)')
     plt.title('Suspension over lap time')
     plt.text(time_susp_max, susp_max, 'max: {}'.format(susp_max))
     plt.text(time_susp_min, susp_min, 'min: {}'.format(susp_min))
@@ -281,7 +299,6 @@ def wheel_speed_over_time(session_data):
     wsp_data_arg_min = np.argmin(wsp_min_wheels)
     wsp_min = wsp_min_wheels[wsp_data_arg_min]
 
-    wsp_diff = wsp_max - wsp_min
     time_wsp_max = lap_time[wsp_arg_max_wheels[wsp_data_arg_max]]
     time_wsp_min = lap_time[wsp_arg_min_wheels[wsp_data_arg_min]]
 
@@ -292,7 +309,6 @@ def wheel_speed_over_time(session_data):
         plt.plot(lap_time, wsp, alpha=0.5)
     plt.legend(labels)
     plt.grid(True)
-    plt.ylim(wsp_max + wsp_diff * 0.1, wsp_min - wsp_diff * 0.1)  # invert y axis and pad
     plt.xlabel('lap time (s)')
     plt.ylabel('wheel speed')
     plt.text(time_wsp_max, wsp_max, 'max: {}'.format(wsp_max))
@@ -301,7 +317,7 @@ def wheel_speed_over_time(session_data):
 
 def drift_over_speed(session_data):
 
-    steering = [d[networking.fields['steering']] for i, d in enumerate(session_data)]
+    steering = [abs(d[networking.fields['steering']]) for i, d in enumerate(session_data)]
     speed_ms = [d[networking.fields['speed_ms']] for i, d in enumerate(session_data)]
 
     # forward dir
@@ -318,27 +334,9 @@ def drift_over_speed(session_data):
     drift = list((pxy_normalized * vxy_normalized).sum(axis=0))
     drift_angle = np.arccos(drift)
 
-    fig = plt.figure('Drift over speed (steering as color)')
+    fig = plt.figure('Drift over speed')
     plt.title('Drift over speed (steering as color)')
     plt.scatter(x=speed_ms, y=drift_angle, c=steering, s=25, alpha=0.5, label='drift over steer')
     plt.xlabel('speed (m/s)')
-    plt.ylabel('drift angle')
-
-
-def plot_main(session_data):
-
-    if session_data.size > 0:
-        #plot_gear_over_3d_pos(session_data)
-        plot_gear_over_2d_pos(session_data)
-        plot_rpm_histogram_per_gear(session_data)
-        plot_suspension_over_time(session_data)
-        #plot_height_over_dist(session_data)
-        #plot_g_over_rpm(session_data)
-        #plot_g_over_throttle(session_data)
-        plot_v_over_rpm(session_data)
-        forward_over_2d_pos(session_data)
-        wheel_speed_over_time(session_data)
-        drift_over_speed(session_data)
-
-        plt.show()
+    plt.ylabel('drift angle (rad)')
 
