@@ -1,4 +1,4 @@
-import keyboard   # pip
-import numpy as np   # conda
-tkinter  # conda install -c anaconda tk
-mpl_toolkits  # conda install -c anaconda basemap
+keyboard   # pip
+numpy   # conda
+tk  # tkinter, conda install -c anaconda tk
+basemap  # mpl_toolkits, conda install -c anaconda basemap
