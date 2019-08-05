@@ -144,7 +144,7 @@ def plot_suspension_over_time(session_data):
     time_susp_max = lap_time[susp_arg_max_wheels[susp_data_arg_max]]
     time_susp_min = lap_time[susp_arg_min_wheels[susp_data_arg_min]]
 
-    labels = ['susp_fl', 'susp_fr', 'susp_rl', 'susp_rr']
+    labels = ['front left', 'front right', 'rear left', 'rear right']
     plt.figure('Suspension over lap time')
     for i, susp in enumerate(susp_data):
         plt.plot(lap_time, susp, alpha=0.5)
@@ -302,7 +302,7 @@ def wheel_speed_over_time(session_data):
     time_wsp_max = lap_time[wsp_arg_max_wheels[wsp_data_arg_max]]
     time_wsp_min = lap_time[wsp_arg_min_wheels[wsp_data_arg_min]]
 
-    labels = ['wsp_fl', 'wsp_fr', 'wsp_rl', 'wsp_rr']
+    labels = ['front left', 'front right', 'rear left', 'rear right']
     plt.figure('Wheel speed over lap time')
     plt.title('Wheel speed over lap time')
     for i, wsp in enumerate(wsp_data):

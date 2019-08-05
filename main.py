@@ -15,6 +15,33 @@ import plots
 debug = False
 
 
+def accept_new_data(receive_results, last_receive_results):
+    # no data, error in receive?
+    if receive_results is None:
+        return False
+
+    # same data again -> game is probably paused
+    if (receive_results == last_receive_results).any():
+        return False
+
+    # car is at origin -> probably in service area
+    if receive_results[networking.fields['pos_x']] == 0.0 and \
+        receive_results[networking.fields['pos_y']] == 0.0 and \
+        receive_results[networking.fields['pos_z']] == 0.0:
+        return False
+
+    # race has not yet started
+    if receive_results[networking.fields['lap_time']] == 0.0:
+        return False
+
+    # new race time is less than the previous -> race has ended and car is in service area or next race
+    if last_receive_results is not None and \
+            receive_results[networking.fields['lap_time']] < last_receive_results[networking.fields['lap_time']]:
+        return False
+
+    return True
+
+
 if __name__ == "__main__":
 
     print('Dirt Rally 2.0 Race Logger by Philipp Erler')
@@ -36,24 +63,18 @@ if __name__ == "__main__":
     while not end_program:
         while recording:
             receive_results = networking.receive(udp_socket)
-            if receive_results is not None and \
-                    (receive_results != last_receive_results).any():
-                if (receive_results[networking.fields['pos_x']] != 0.0 or
-                        receive_results[networking.fields['pos_y']] != 0.0 or
-                        receive_results[networking.fields['pos_z']] != 0.0) and \
-                        receive_results[networking.fields['lap_time']] != 0.0:
+            if accept_new_data(receive_results, last_receive_results):
+                sys.stdout.write('\rLap time: {}, speed: {} m/s, rpm {}'.format(
+                    receive_results[networking.fields['lap_time']],
+                    receive_results[networking.fields['speed_ms']],
+                    receive_results[networking.fields['rpm']]) + ' '*20)
+                sys.stdout.flush()
 
-                    sys.stdout.write('\rLap time: {}, speed: {} m/s, rpm {}'.format(
-                        receive_results[networking.fields['lap_time']],
-                        receive_results[networking.fields['speed_ms']],
-                        receive_results[networking.fields['rpm']]) + ' '*20)
-                    sys.stdout.flush()
-
-                    receive_results = np.expand_dims(receive_results, 1)
-                    if session_collection.size == 0:
-                        session_collection = receive_results
-                    else:
-                        session_collection = np.append(session_collection, receive_results, axis=1)
+                receive_results = np.expand_dims(receive_results, 1)
+                if session_collection.size == 0:
+                    session_collection = receive_results
+                else:
+                    session_collection = np.append(session_collection, receive_results, axis=1)
 
             if keyboard.is_pressed('q'):
                 recording = False
