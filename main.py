@@ -79,7 +79,7 @@ if __name__ == "__main__":
             if keyboard.is_pressed('q'):
                 recording = False
                 utils.cls()
-                print('Recording of race stopped. Collected {} data points.'.format(session_collection.shape[1]))
+                print('\nRecording of race stopped. Collected {} data points.'.format(session_collection.shape[1]))
 
         print('Press: \n'
               '"e" to exit the program\n'
@@ -90,7 +90,10 @@ if __name__ == "__main__":
               '"l" to load a saved run\n'
               '"p" to change the port\n')
 
-        command = input()
+        if debug:
+            command = 'a'
+        else:
+            command = input()
         if command == 'e':
             print('Ending...')
             end_program = True
@@ -103,7 +106,7 @@ if __name__ == "__main__":
             session_collection = np.zeros((len(networking.fields), 0))
             recording = True
         elif command == 'a':
-            plots.plot_main(session_data=session_collection.transpose())
+            plots.plot_main(session_data=session_collection)
         elif command == 's':
             root = tk.Tk()
             root.withdraw()

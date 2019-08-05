@@ -75,11 +75,14 @@ fields = {
 
 def bit_stream_to_float32(data, pos):
     try:
-        value = struct.unpack('f', data[pos:pos+4])
-    except ValueError as e:
+        value = struct.unpack('f', data[pos:pos+4])[0]
+    except struct.error as e:
+        value = 0
+        #print('Failed to get data item at pos {}'.format(pos))
+    except:
         value = 0
         print('Failed to get data item at pos {}'.format(pos))
-    return value[0]
+    return value
 
 
 def receive(udp_socket):
