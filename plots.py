@@ -17,16 +17,21 @@ def plot_main(session_data):
         #plot_gear_over_3d_pos(session_data)
         plot_gear_over_2d_pos(session_data)
         plot_rpm_histogram_per_gear(session_data)
+        plot_v_over_rpm(session_data)
+
         plot_suspension_over_time(session_data)
         plot_suspension_lr_fr_over_time(session_data)
-        #plot_height_over_dist(session_data)
+
         #plot_g_over_rpm(session_data)
         #plot_g_over_throttle(session_data)
-        plot_v_over_rpm(session_data)
         #forward_over_2d_pos(session_data)
+        #drift_over_speed(session_data)
+
         wheel_speed_over_time(session_data)
         wheel_speed_lr_fr_over_time(session_data)
-        #drift_over_speed(session_data)
+
+        #plot_height_over_dist(session_data)
+        plot_inputs_over_time(session_data)
 
         plt.show()
 
@@ -174,20 +179,32 @@ def plot_rpm_histogram_per_gear(session_data):
         ax.set_title('G{0}: {1:.1f}%'.format(int(gear), samples_gear_ratio * 100.0))
 
 
-def plot_suspension_over_time(session_data):
+def plot_inputs_over_time(session_data):
     lap_time = session_data[networking.fields['lap_time']]
     throttle = session_data[networking.fields['throttle']]
     brakes = session_data[networking.fields['brakes']]
     steering = session_data[networking.fields['steering']]
+    input_data = np.array([throttle, brakes, steering])
+
+    labels = ['throttle', 'brakes', 'steering']
+    y_points = input_data
+    x_points = np.array([lap_time] * y_points.shape[0])
+
+    line_plot(x_points=x_points, y_points=y_points, title='Inputs over lap time',
+              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Inputs', flip_y=True)
+
+
+def plot_suspension_over_time(session_data):
+    lap_time = session_data[networking.fields['lap_time']]
     susp_fl = session_data[networking.fields['susp_fl']]
     susp_fr = session_data[networking.fields['susp_fr']]
     susp_rl = session_data[networking.fields['susp_rl']]
     susp_rr = session_data[networking.fields['susp_rr']]
-    susp_data = [susp_fl, susp_fr, susp_rl, susp_rr, throttle, brakes, steering]
+    susp_data = np.array([susp_fl, susp_fr, susp_rl, susp_rr])
 
-    labels = ['front left', 'front right', 'rear left', 'rear right', 'throttle', 'brakes', 'steering']
-    x_points = np.array([lap_time] * len(susp_data))
-    y_points = np.array(susp_data)
+    labels = ['front left', 'front right', 'rear left', 'rear right']
+    y_points = susp_data
+    x_points = np.array([lap_time] * y_points.shape[0])
 
     line_plot(x_points=x_points, y_points=y_points, title='Suspension dislocation over lap time',
               labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Suspension dislocation (mm)', flip_y=True)
@@ -195,18 +212,15 @@ def plot_suspension_over_time(session_data):
 
 def plot_suspension_lr_fr_over_time(session_data):
     lap_time = session_data[networking.fields['lap_time']]
-    throttle = session_data[networking.fields['throttle']]
-    brakes = session_data[networking.fields['brakes']]
-    steering = session_data[networking.fields['steering']]
     susp_fl = session_data[networking.fields['susp_fl']]
     susp_fr = session_data[networking.fields['susp_fr']]
     susp_rl = session_data[networking.fields['susp_rl']]
     susp_rr = session_data[networking.fields['susp_rr']]
     susp_left_right = (susp_fl + susp_rl) * 0.5 - (susp_fr + susp_rr) * 0.5
     susp_front_rear = (susp_fl + susp_fr) * 0.5 - (susp_rl + susp_rr) * 0.5
-    susp_data = [susp_left_right, susp_front_rear, throttle, brakes, steering]
+    susp_data = [susp_left_right, susp_front_rear]
 
-    labels = ['left-right', 'front-rear', 'throttle', 'brakes', 'steering']
+    labels = ['left-right', 'front-rear']
     x_points = np.array([lap_time] * len(susp_data))
     y_points = np.array(susp_data)
 
@@ -360,16 +374,13 @@ def forward_over_2d_pos(session_data):
 def wheel_speed_over_time(session_data):
 
     lap_time = session_data[networking.fields['lap_time']]
-    throttle = session_data[networking.fields['throttle']]
-    brakes = session_data[networking.fields['brakes']]
-    steering = session_data[networking.fields['steering']]
     wsp_fl = session_data[networking.fields['wsp_fl']]
     wsp_fr = session_data[networking.fields['wsp_fr']]
     wsp_rl = session_data[networking.fields['wsp_rl']]
     wsp_rr = session_data[networking.fields['wsp_rr']]
-    wsp_data = [wsp_fl, wsp_fr, wsp_rl, wsp_rr, throttle, brakes, steering]
+    wsp_data = [wsp_fl, wsp_fr, wsp_rl, wsp_rr, ]
 
-    labels = ['front left', 'front right', 'rear left', 'rear right', 'throttle', 'brakes', 'steering']
+    labels = ['front left', 'front right', 'rear left', 'rear right']
     x_points = np.array([lap_time] * len(wsp_data))
     y_points = np.array(wsp_data)
 
@@ -380,18 +391,15 @@ def wheel_speed_over_time(session_data):
 def wheel_speed_lr_fr_over_time(session_data):
 
     lap_time = session_data[networking.fields['lap_time']]
-    throttle = session_data[networking.fields['throttle']]
-    brakes = session_data[networking.fields['brakes']]
-    steering = session_data[networking.fields['steering']]
     wsp_fl = session_data[networking.fields['wsp_fl']]
     wsp_fr = session_data[networking.fields['wsp_fr']]
     wsp_rl = session_data[networking.fields['wsp_rl']]
     wsp_rr = session_data[networking.fields['wsp_rr']]
     wsp_left_right = (wsp_fl + wsp_rl) * 0.5 - (wsp_fr + wsp_rr) * 0.5
     wsp_front_rear = (wsp_fl + wsp_fr) * 0.5 - (wsp_rl + wsp_rr) * 0.5
-    wsp_data = [wsp_left_right, wsp_front_rear, throttle, brakes, steering]
+    wsp_data = [wsp_left_right, wsp_front_rear]
 
-    labels = ['left-right', 'front-rear', 'throttle', 'brakes', 'steering']
+    labels = ['left-right', 'front-rear']
     x_points = np.array([lap_time] * len(wsp_data))
     y_points = np.array(wsp_data)
 
