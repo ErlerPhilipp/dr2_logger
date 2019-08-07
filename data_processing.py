@@ -42,4 +42,13 @@ def get_2d_coordinates(session_data):
         session_data[networking.fields['pos_z']])
 
 
+def get_min_middle_max(x):
+
+    x_min = x.min()
+    x_max = x.max()
+    x_middle = (x_max + x_min) * 0.5
+
+    return x_min, x_middle, x_max
+
+
 
