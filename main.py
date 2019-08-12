@@ -19,24 +19,39 @@ def accept_new_data(receive_results, last_receive_results):
     # no data, error in receive?
     if receive_results is None:
         return False
+    elif last_receive_results is None:
+        return True
 
-    # same data again -> game is probably paused
-    if np.any(receive_results == last_receive_results):
+    # same time again -> game is probably paused
+    if last_receive_results is not None and \
+            receive_results[networking.fields['lap_time']] == last_receive_results[networking.fields['lap_time']]:
+        sys.stdout.write('\rLap time: {}, ignore old data'.format(
+            receive_results[networking.fields['lap_time']]) + ' '*20)
+        sys.stdout.flush()
         return False
 
     # car is at origin -> probably in service area
     if receive_results[networking.fields['pos_x']] == 0.0 and \
         receive_results[networking.fields['pos_y']] == 0.0 and \
         receive_results[networking.fields['pos_z']] == 0.0:
+        sys.stdout.write('\rLap time: {}, ignore bad data'.format(
+            receive_results[networking.fields['lap_time']]) + ' '*20)
+        sys.stdout.flush()
         return False
 
     # race has not yet started
     if receive_results[networking.fields['lap_time']] == 0.0:
+        sys.stdout.write('\rLap time: {}, ignore pre-race'.format(
+            receive_results[networking.fields['lap_time']]) + ' '*20)
+        sys.stdout.flush()
         return False
 
     # new race time is less than the previous -> race has ended and car is in service area or next race
     if last_receive_results is not None and \
             receive_results[networking.fields['lap_time']] < last_receive_results[networking.fields['lap_time']]:
+        sys.stdout.write('\rLap time: {}, ignore bad data (service area?)'.format(
+            receive_results[networking.fields['lap_time']]) + ' '*20)
+        sys.stdout.flush()
         return False
 
     return True
@@ -45,8 +60,17 @@ def accept_new_data(receive_results, last_receive_results):
 if __name__ == "__main__":
 
     print('Dirt Rally 2.0 Race Logger by Philipp Erler')
+    print('''
+Enable UDP data in the hardware_settings_config.xml in .../documents/my games/Dirt Rally 2.0/hardwaresettings/
+<motion_platform>
+    <dbox enabled="true" />
+    <udp enabled="true" extradata="2" ip="127.0.0.1" port="20777" delay="1" />
+    <custom_udp enabled="true" filename="packet_data.xml" ip="127.0.0.1" port="20777" delay="1" />
+    <fanatec enabled="true" pedalVibrationScale="1.0" wheelVibrationScale="1.0" ledTrueForGearsFalseForSpeed="true" />
+</motion_platform>
+    ''')
 
-    udp_socket = networking.open_port(10001)
+    udp_socket = networking.open_port(networking.port_default)
 
     session_collection = np.zeros((len(networking.fields), 0))
     last_receive_results = None
@@ -78,7 +102,7 @@ if __name__ == "__main__":
                 else:
                     session_collection = np.append(session_collection, receive_results, axis=1)
 
-                last_receive_results = receive_results
+                last_receive_results = receive_results.copy()
 
             if keyboard.is_pressed('q'):
                 recording = False

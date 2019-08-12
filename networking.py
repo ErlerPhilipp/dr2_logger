@@ -2,6 +2,8 @@ import numpy as np
 import socket
 import struct
 
+port_default = 20777
+
 # https://docs.google.com/spreadsheets/d/1eA518KHFowYw7tSMa-NxIFYpiWe5JXgVVQ_IMs7BVW0/edit?usp=drivesdk
 fields = {
     'run_time':            0,
@@ -173,14 +175,14 @@ def receive(udp_socket):
 def get_port():
 
     try:
-        port_str = input('Enter port (default 10001): ')
+        port_str = input('Enter port (default {}): '.format(port_default))
         if port_str is None or port_str == '':
-            return 10001
+            return port_default
         else:
             port_int = int(port_str)
             return port_int
     except ValueError as e:
-        return 10001
+        return port_default
 
 
 def open_port(port):
