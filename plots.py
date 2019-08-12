@@ -14,40 +14,39 @@ def plot_main(session_data):
 
     session_data = session_data.copy()
     if session_data.size > 0:
-        fig, ax = plt.subplots(1, 1)
-        plot_gear_over_3d_pos(fig, session_data)
+        #fig, ax = plt.subplots(1, 1)
+        #plot_gear_over_3d_pos(fig, session_data)
 
-        fig, ax = plt.subplots(1, 1)
-        plot_gear_over_2d_pos(fig, ax, session_data)
+        fig, ax = plt.subplots(1, 2)
+        plot_height_over_dist(fig, ax[0], session_data)  # TODO: color by gears
+        plot_gear_over_2d_pos(fig, ax[1], session_data)
 
         plot_rpm_histogram_per_gear(session_data)
 
         fig, ax = plt.subplots(1, 1)
         plot_v_over_rpm(fig, ax, session_data)
 
-        fig, ax = plt.subplots(1, 1)
-        plot_g_over_rpm(fig, ax, session_data)
+        #fig, ax = plt.subplots(1, 1)
+        #plot_g_over_rpm(fig, ax, session_data)
 
-        fig, ax = plt.subplots(1, 1)
-        plot_g_over_throttle(fig, ax, session_data)
+        #fig, ax = plt.subplots(1, 1)
+        #plot_g_over_throttle(fig, ax, session_data)
 
-        fig, ax = plt.subplots(1, 1)
-        forward_over_2d_pos(fig, ax, session_data)
+        #fig, ax = plt.subplots(1, 1)
+        #forward_over_2d_pos(fig, ax, session_data)
 
-        fig, ax = plt.subplots(1, 1)
-        drift_over_speed(fig, ax, session_data)
+        #fig, ax = plt.subplots(1, 1)
+        #drift_over_speed(fig, ax, session_data)
 
-        fig, axes = plt.subplots(1, 2)
-        plot_suspension_over_time(fig, axes[0], session_data)
-        plot_suspension_lr_fr_over_time(fig, axes[1], session_data)
+        fig, ax = plt.subplots(3, 1, sharex=True)
+        plot_suspension_over_time(fig, ax[0], session_data)
+        plot_suspension_lr_fr_over_time(fig, ax[1], session_data)
+        plot_inputs_over_time(fig, ax[2], session_data)
 
-        fig, axes = plt.subplots(1, 2)
-        wheel_speed_over_time(fig, axes[0], session_data)
-        wheel_speed_lr_fr_over_time(fig, axes[1], session_data)
-
-        fig, axes = plt.subplots(1, 2)
-        plot_height_over_dist(fig, axes[0], session_data)
-        plot_inputs_over_time(fig, axes[1], session_data)
+        fig, ax = plt.subplots(3, 1, sharex=True)
+        wheel_speed_over_time(fig, ax[0], session_data)
+        wheel_speed_lr_fr_over_time(fig, ax[1], session_data)
+        plot_inputs_over_time(fig, ax[2], session_data)
 
         plt.show()
 
