@@ -14,29 +14,45 @@ def plot_main(session_data):
 
     session_data = session_data.copy()
     if session_data.size > 0:
-        #plot_gear_over_3d_pos(session_data)
-        plot_gear_over_2d_pos(session_data)
+        fig, ax = plt.subplots(1, 1)
+        plot_gear_over_3d_pos(fig, session_data)
+
+        fig, ax = plt.subplots(1, 1)
+        plot_gear_over_2d_pos(fig, ax, session_data)
+
         plot_rpm_histogram_per_gear(session_data)
-        plot_v_over_rpm(session_data)
 
-        plot_suspension_over_time(session_data)
-        plot_suspension_lr_fr_over_time(session_data)
+        fig, ax = plt.subplots(1, 1)
+        plot_v_over_rpm(fig, ax, session_data)
 
-        #plot_g_over_rpm(session_data)
-        #plot_g_over_throttle(session_data)
-        #forward_over_2d_pos(session_data)
-        #drift_over_speed(session_data)
+        fig, ax = plt.subplots(1, 1)
+        plot_g_over_rpm(fig, ax, session_data)
 
-        wheel_speed_over_time(session_data)
-        wheel_speed_lr_fr_over_time(session_data)
+        fig, ax = plt.subplots(1, 1)
+        plot_g_over_throttle(fig, ax, session_data)
 
-        #plot_height_over_dist(session_data)
-        plot_inputs_over_time(session_data)
+        fig, ax = plt.subplots(1, 1)
+        forward_over_2d_pos(fig, ax, session_data)
+
+        fig, ax = plt.subplots(1, 1)
+        drift_over_speed(fig, ax, session_data)
+
+        fig, axes = plt.subplots(1, 2)
+        plot_suspension_over_time(fig, axes[0], session_data)
+        plot_suspension_lr_fr_over_time(fig, axes[1], session_data)
+
+        fig, axes = plt.subplots(1, 2)
+        wheel_speed_over_time(fig, axes[0], session_data)
+        wheel_speed_lr_fr_over_time(fig, axes[1], session_data)
+
+        fig, axes = plt.subplots(1, 2)
+        plot_height_over_dist(fig, axes[0], session_data)
+        plot_inputs_over_time(fig, axes[1], session_data)
 
         plt.show()
 
 
-def plot_over_3d_pos(session_data, scale, color, title, slicing):
+def plot_over_3d_pos(fig, session_data, scale, color, title, slicing):
 
     x, y, z = data_processing.get_3d_coordinates(session_data)
     x_min, x_middle, x_max = data_processing.get_min_middle_max(x)
@@ -45,10 +61,9 @@ def plot_over_3d_pos(session_data, scale, color, title, slicing):
 
     diff = np.array([x_max - x_min, y_max - y_min, z_max - z_min])
     diff_max = diff.max()
-    fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.scatter(x[::slicing], y[::slicing], z[::slicing], marker='o',
-               s=scale[::slicing], c=color[::slicing])
+               s=scale[::slicing], c=color[::slicing], cmap='plasma')
     ax.set_xlabel('X')
     ax.set_ylabel('Z')
     ax.set_zlabel('Y')
@@ -57,11 +72,10 @@ def plot_over_3d_pos(session_data, scale, color, title, slicing):
     ax.set_xlim(x_middle - diff_max * 0.6, x_middle + diff_max * 0.6)
     ax.set_ylim(y_middle - diff_max * 0.6, y_middle + diff_max * 0.6)
     ax.set_zlim(z_middle - diff_max * 0.1, z_middle + diff_max * 1.1)
-    plt.title(title)
-    plt.set_cmap('plasma')
+    fig.canvas.set_window_title(title)
 
 
-def plot_over_2d_pos(session_data, lines_x, lines_y, scale, alpha, title, labels):
+def plot_over_2d_pos(fig, ax, session_data, lines_x, lines_y, scale, alpha, title, labels):
     x, y = data_processing.get_2d_coordinates(session_data)
     x_min, x_middle, x_max = data_processing.get_min_middle_max(x)
     y_min, y_middle, y_max = data_processing.get_min_middle_max(y)
@@ -69,8 +83,7 @@ def plot_over_2d_pos(session_data, lines_x, lines_y, scale, alpha, title, labels
     diff = np.array([x_max - x_min, y_max - y_min])
     diff_max = diff.max()
 
-    fig = plt.figure(title)
-    ax = fig.add_subplot(111)
+    fig.canvas.set_window_title(title)
     for i, g in enumerate(lines_x):
         ax.scatter(x=lines_x[i], y=lines_y[i], s=scale, alpha=alpha, label=labels[i])
     ax.set_xlim(x_middle - diff_max * 0.6, x_middle + diff_max * 0.6)
@@ -81,44 +94,57 @@ def plot_over_2d_pos(session_data, lines_x, lines_y, scale, alpha, title, labels
     ax.text(x[-1], y[-1], 'finish')
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
-    plt.title(title)
 
 
-def scatter_plot(x_points, y_points, title, labels, colors, scales, alphas, x_label, y_label):
+def scatter_plot(fig, ax, x_points, y_points, title, labels, colors, scales, alphas, x_label, y_label):
 
-    fig = plt.figure(title)
-    ax = fig.add_subplot(111)
+    fig.canvas.set_window_title(title)
     for i, g in enumerate(x_points):
         ax.scatter(x=x_points[i], y=y_points[i], c=colors[i], s=scales[i], alpha=alphas[i], label=labels[i])
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    plt.title(title)
+    ax.set_title(title)
     if len(labels) > 1:
         ax.legend()
 
 
-def line_plot(x_points, y_points, title, labels, alpha, x_label, y_label, flip_y=False):
+def line_plot(fig, ax, x_points, y_points, title, labels, alpha, x_label, y_label,
+              flip_y=False, min_max_annotations=True):
 
     arg_y_max = np.unravel_index(np.argmax(y_points), y_points.shape)
     arg_y_min = np.unravel_index(np.argmin(y_points), y_points.shape)
 
-    plt.figure(title)
+    fig.canvas.set_window_title(title)
     for i, g in enumerate(x_points):
-        plt.plot(x_points[i], y_points[i], alpha=alpha)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
+        ax.plot(x_points[i], y_points[i], alpha=alpha)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
     if len(labels) > 1:
-        plt.legend(labels)
-    plt.grid(True)
-    plt.title(title)
-    plt.text(x_points[arg_y_max], y_points[arg_y_max], 'max: {:.2f}'.format(y_points[arg_y_max]))
-    plt.text(x_points[arg_y_min], y_points[arg_y_min], 'min: {:.2f}'.format(y_points[arg_y_min]))
-    if flip_y:
-        y_diff = y_points[arg_y_max] - y_points[arg_y_min]
-        plt.ylim(y_points[arg_y_max] + y_diff * 0.1, y_points[arg_y_min] - y_diff * 0.1)  # invert y axis and pad
+        ax.legend(labels)
+    ax.grid(True)
+    ax.set_title(title)
+
+    if min_max_annotations:
+        x_offset = 32
+        y_offset = 20
+        if flip_y:
+            y_offset = -y_offset
+        bbox = dict(boxstyle="round", fc="0.8")
+        arrow_props = dict(arrowstyle="->", connectionstyle="angle,angleA=0,angleB=90,rad=10")
+        ax.annotate('max: {:.2f}'.format(y_points[arg_y_max]), (x_points[arg_y_max], y_points[arg_y_max]),
+                    xytext=(x_offset, y_offset), textcoords='offset points', bbox=bbox, arrowprops=arrow_props)
+        ax.annotate('min: {:.2f}'.format(y_points[arg_y_min]), (x_points[arg_y_min], y_points[arg_y_min]),
+                    xytext=(x_offset, -y_offset), textcoords='offset points', bbox=bbox, arrowprops=arrow_props)
+
+    # invert y axis and pad
+    y_diff = y_points[arg_y_max] - y_points[arg_y_min]
+    if not flip_y:
+        ax.set_ylim(y_points[arg_y_min] - y_diff * 0.1, y_points[arg_y_max] + y_diff * 0.1)
+    else:
+        ax.set_ylim(y_points[arg_y_max] + y_diff * 0.1, y_points[arg_y_min] - y_diff * 0.1)
 
 
-def plot_gear_over_3d_pos(session_data):
+def plot_gear_over_3d_pos(fig, session_data):
 
     rpm = session_data[networking.fields['rpm']]
     rpm_max = rpm.max()
@@ -128,11 +154,11 @@ def plot_gear_over_3d_pos(session_data):
     gear_max = max(gear)
     gear_normalized_scaled = gear / gear_max
 
-    plot_over_3d_pos(session_data=session_data, scale=rpm_normalized_scaled, color=gear_normalized_scaled,
+    plot_over_3d_pos(fig, session_data=session_data, scale=rpm_normalized_scaled, color=gear_normalized_scaled,
                      title='3D positions (gear as color)', slicing=100)
 
 
-def plot_gear_over_2d_pos(session_data):
+def plot_gear_over_2d_pos(fig, ax, session_data):
 
     gear = session_data[networking.fields['gear']]
     range_gears = np.unique(gear)
@@ -147,7 +173,7 @@ def plot_gear_over_2d_pos(session_data):
         lines_x += [pos_x]
         lines_y += [pos_y]
 
-    plot_over_2d_pos(session_data=session_data, lines_x=lines_x, lines_y=lines_y,
+    plot_over_2d_pos(fig, ax, session_data=session_data, lines_x=lines_x, lines_y=lines_y,
                      scale=10, alpha=0.5, title='Gear at 2D positions', labels=labels)
 
 
@@ -179,7 +205,7 @@ def plot_rpm_histogram_per_gear(session_data):
         ax.set_title('G{0}: {1:.1f}%'.format(int(gear), samples_gear_ratio * 100.0))
 
 
-def plot_inputs_over_time(session_data):
+def plot_inputs_over_time(fig, ax, session_data):
     lap_time = session_data[networking.fields['lap_time']]
     throttle = session_data[networking.fields['throttle']]
     brakes = session_data[networking.fields['brakes']]
@@ -190,11 +216,11 @@ def plot_inputs_over_time(session_data):
     y_points = input_data
     x_points = np.array([lap_time] * y_points.shape[0])
 
-    line_plot(x_points=x_points, y_points=y_points, title='Inputs over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Inputs', flip_y=True)
+    line_plot(fig, ax, x_points=x_points, y_points=y_points, title='Inputs over lap time',
+              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Inputs')
 
 
-def plot_suspension_over_time(session_data):
+def plot_suspension_over_time(fig, ax, session_data):
     lap_time = session_data[networking.fields['lap_time']]
     susp_fl = session_data[networking.fields['susp_fl']]
     susp_fr = session_data[networking.fields['susp_fr']]
@@ -206,11 +232,12 @@ def plot_suspension_over_time(session_data):
     y_points = susp_data
     x_points = np.array([lap_time] * y_points.shape[0])
 
-    line_plot(x_points=x_points, y_points=y_points, title='Suspension dislocation over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Suspension dislocation (mm)', flip_y=True)
+    line_plot(fig, ax, x_points=x_points, y_points=y_points, title='Suspension dislocation over lap time',
+              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Suspension dislocation (mm)',
+              flip_y=True, min_max_annotations=True)
 
 
-def plot_suspension_lr_fr_over_time(session_data):
+def plot_suspension_lr_fr_over_time(fig, ax, session_data):
     lap_time = session_data[networking.fields['lap_time']]
     susp_fl = session_data[networking.fields['susp_fl']]
     susp_fr = session_data[networking.fields['susp_fr']]
@@ -224,15 +251,14 @@ def plot_suspension_lr_fr_over_time(session_data):
     x_points = np.array([lap_time] * len(susp_data))
     y_points = np.array(susp_data)
 
-    line_plot(x_points=x_points, y_points=y_points, title='Suspension dislocation difference over lap time',
+    line_plot(fig, ax, x_points=x_points, y_points=y_points, title='Suspension dislocation difference over lap time',
               labels=labels, alpha=0.5, x_label='Lap time (s)',
-              y_label='Suspension dislocation difference (mm)', flip_y=True)
+              y_label='Suspension dislocation difference (mm)', flip_y=True, min_max_annotations=True)
 
 
-def plot_height_over_dist(session_data):
+def plot_height_over_dist(fig, ax, session_data):
     distance = session_data[networking.fields['distance']]
     height = session_data[networking.fields['pos_y']]
-    fig, ax = plt.subplots()
     fig.canvas.set_window_title('Track Elevation')
     ax.plot(distance, height, label='height')
     ax.set(xlabel='distance (m)', ylabel='height (m)',
@@ -240,7 +266,7 @@ def plot_height_over_dist(session_data):
     ax.grid()
 
 
-def plot_g_over_rpm(session_data):
+def plot_g_over_rpm(fig, ax, session_data):
 
     data_gear = session_data[networking.fields['gear']]
     range_gears = list(set(data_gear))
@@ -268,11 +294,11 @@ def plot_g_over_rpm(session_data):
         y_points += [g_force_lon]
         scales += [throttle_scaled]
 
-    scatter_plot(x_points=x_points, y_points=y_points, title='G-force over RPM (full throttle)',
+    scatter_plot(fig, ax, x_points=x_points, y_points=y_points, title='G-force over RPM (full throttle)',
                  labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='RPM', y_label='G-force X')
 
 
-def plot_g_over_throttle(session_data):
+def plot_g_over_throttle(fig, ax, session_data):
 
     data_gear = session_data[networking.fields['gear']]
     range_gears = list(set(data_gear))
@@ -294,11 +320,11 @@ def plot_g_over_throttle(session_data):
         x_points += [throttle]
         y_points += [g_force_lon]
 
-    scatter_plot(x_points=x_points, y_points=y_points, title='G-force X over throttle',
+    scatter_plot(fig, ax, x_points=x_points, y_points=y_points, title='G-force X over throttle',
                  labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='throttle', y_label='G-force X')
 
 
-def plot_v_over_rpm(session_data):
+def plot_v_over_rpm(fig, ax, session_data):
 
     data_gear = session_data[networking.fields['gear']]
     range_gears = list(set(data_gear))
@@ -322,11 +348,11 @@ def plot_v_over_rpm(session_data):
         x_points += [rpm]
         y_points += [speed_ms]
 
-    scatter_plot(x_points=x_points, y_points=y_points, title='Speed over RPM (full throttle)',
-                   labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='RPM', y_label='Speed (m/s)')
+    scatter_plot(fig, ax, x_points=x_points, y_points=y_points, title='Speed over RPM (full throttle)',
+                 labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='RPM', y_label='Speed (m/s)')
 
 
-def forward_over_2d_pos(session_data):
+def forward_over_2d_pos(fig, ax, session_data):
 
     # if we take all data points, the plot is too crowded
     sample_rate = 10
@@ -354,8 +380,7 @@ def forward_over_2d_pos(session_data):
     drift = list((pxy_normalized * vxy_normalized).sum(axis=0))
     drift_angle = np.arccos(drift)
 
-    fig, ax = plt.subplots()
-    plt.plot(x, y, c='k')
+    l = ax.plot(x, y, c='k')
     q = ax.quiver(x, y, pxy_normalized[0], pxy_normalized[1], drift_angle,
                   angles='xy', scale_units='dots', scale=0.03, label='Forward dir', color='tab:purple')
     p = ax.quiver(x, y, vx, vy,
@@ -367,11 +392,10 @@ def forward_over_2d_pos(session_data):
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.legend()
-    plt.title('Drift at 2D positions (drift angle as color)')
-    fig.canvas.set_window_title('Drift at 2D positions')
+    fig.canvas.set_window_title('Drift at 2D positions (drift angle as color)')
 
 
-def wheel_speed_over_time(session_data):
+def wheel_speed_over_time(fig, ax, session_data):
 
     lap_time = session_data[networking.fields['lap_time']]
     wsp_fl = session_data[networking.fields['wsp_fl']]
@@ -384,11 +408,11 @@ def wheel_speed_over_time(session_data):
     x_points = np.array([lap_time] * len(wsp_data))
     y_points = np.array(wsp_data)
 
-    line_plot(x_points=x_points, y_points=y_points, title='Wheel speed over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Wheel speed (m/s)')
+    line_plot(fig, ax, x_points=x_points, y_points=y_points, title='Wheel speed over lap time',
+              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Wheel speed (m/s)', min_max_annotations=True)
 
 
-def wheel_speed_lr_fr_over_time(session_data):
+def wheel_speed_lr_fr_over_time(fig, ax, session_data):
 
     lap_time = session_data[networking.fields['lap_time']]
     wsp_fl = session_data[networking.fields['wsp_fl']]
@@ -403,11 +427,11 @@ def wheel_speed_lr_fr_over_time(session_data):
     x_points = np.array([lap_time] * len(wsp_data))
     y_points = np.array(wsp_data)
 
-    line_plot(x_points=x_points, y_points=y_points, title='Wheel speed difference over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Wheel speed difference (m/s)')
+    line_plot(fig, ax, x_points=x_points, y_points=y_points, title='Wheel speed difference over lap time',
+              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Wheel speed difference (m/s)', min_max_annotations=True)
 
 
-def drift_over_speed(session_data):
+def drift_over_speed(fig, ax, session_data):
 
     steering = np.abs(session_data[networking.fields['steering']])
     speed_ms = session_data[networking.fields['speed_ms']]
@@ -425,14 +449,21 @@ def drift_over_speed(session_data):
     # dot(dir, speed) = drift
     drift = list((pxy_normalized * vxy_normalized).sum(axis=0))
     drift_angle = np.arccos(drift)
+    drift_angle_deg = np.rad2deg(drift_angle)
+
+    # filter very slow parts
+    fast_enough = speed_ms > 1.0  # m/s
+    steering = steering[fast_enough]
+    speed_ms = speed_ms[fast_enough]
+    drift_angle_deg = drift_angle_deg[fast_enough]
 
     colors = [steering]
     scales = [25]
     alphas = [0.5]
     labels = ['drift over steer']
     x_points = [speed_ms]
-    y_points = [drift_angle]
+    y_points = [drift_angle_deg]
 
-    scatter_plot(x_points=x_points, y_points=y_points, title='Drift over speed (steering as color)',
+    scatter_plot(fig, ax, x_points=x_points, y_points=y_points, title='Drift over speed (steering as color)',
                  labels=labels, colors=colors, scales=scales, alphas=alphas,
-                 x_label='Speed (m/s)', y_label='Drift angle (rad)')
+                 x_label='Speed (m/s)', y_label='Drift angle (deg)')

@@ -12,7 +12,7 @@ import utils
 import plots
 
 
-debug = False
+debug = True
 
 
 def accept_new_data(receive_results, last_receive_results):
@@ -21,7 +21,7 @@ def accept_new_data(receive_results, last_receive_results):
         return False
 
     # same data again -> game is probably paused
-    if (receive_results == last_receive_results).any():
+    if np.any(receive_results == last_receive_results):
         return False
 
     # car is at origin -> probably in service area
@@ -57,7 +57,9 @@ if __name__ == "__main__":
         print('Press "q" to quit the current race and start the analysis')
     else:
         recording = False
-        npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
+        #npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
+        npz_file = np.load('C:/Users/pherl/Desktop/dr2_logger/camaro_nz.npz')
+
         session_collection = npz_file['arr_0']
 
     while not end_program:
@@ -75,6 +77,8 @@ if __name__ == "__main__":
                     session_collection = receive_results
                 else:
                     session_collection = np.append(session_collection, receive_results, axis=1)
+
+                last_receive_results = receive_results
 
             if keyboard.is_pressed('q'):
                 recording = False
