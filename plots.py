@@ -216,7 +216,7 @@ def plot_inputs_over_time(fig, ax, session_data):
     x_points = np.array([lap_time] * y_points.shape[0])
 
     line_plot(fig, ax, x_points=x_points, y_points=y_points, title='Inputs over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Inputs')
+              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Inputs', min_max_annotations=False)
 
 
 def plot_suspension_over_time(fig, ax, session_data):

@@ -15,33 +15,27 @@ import plots
 debug = False
 
 
-def accept_new_data(receive_results, last_receive_results):
+def accept_new_data(receive_results, last_receive_results, num_samples):
     # no data, error in receive?
     if receive_results is None:
         return False
     elif last_receive_results is None:
         return True
 
-    # same time again -> game is probably paused
-    if last_receive_results is not None and \
-            receive_results[networking.fields['lap_time']] == last_receive_results[networking.fields['lap_time']]:
-        sys.stdout.write('\rLap time: {}, ignore old data'.format(
-            receive_results[networking.fields['lap_time']]) + ' '*20)
-        sys.stdout.flush()
-        return False
-
     # car is at origin -> probably in service area
     if receive_results[networking.fields['pos_x']] == 0.0 and \
         receive_results[networking.fields['pos_y']] == 0.0 and \
         receive_results[networking.fields['pos_z']] == 0.0:
-        sys.stdout.write('\rLap time: {}, ignore bad data'.format(
+        sys.stdout.write('\rSamples {}, lap time: {}, ignore bad data (in finish?)'.format(
+            num_samples,
             receive_results[networking.fields['lap_time']]) + ' '*20)
         sys.stdout.flush()
         return False
 
     # race has not yet started
     if receive_results[networking.fields['lap_time']] == 0.0:
-        sys.stdout.write('\rLap time: {}, ignore pre-race'.format(
+        sys.stdout.write('\rSamples {}, lap time: {}, ignore pre-race'.format(
+            num_samples,
             receive_results[networking.fields['lap_time']]) + ' '*20)
         sys.stdout.flush()
         return False
@@ -49,7 +43,17 @@ def accept_new_data(receive_results, last_receive_results):
     # new race time is less than the previous -> race has ended and car is in service area or next race
     if last_receive_results is not None and \
             receive_results[networking.fields['lap_time']] < last_receive_results[networking.fields['lap_time']]:
-        sys.stdout.write('\rLap time: {}, ignore bad data (service area?)'.format(
+        sys.stdout.write('\rSamples {}, lap time: {}, ignore bad data (service area?)'.format(
+            num_samples,
+            receive_results[networking.fields['lap_time']]) + ' '*20)
+        sys.stdout.flush()
+        return False
+
+    # same time again -> game is probably paused
+    if last_receive_results is not None and \
+            receive_results[networking.fields['lap_time']] == last_receive_results[networking.fields['lap_time']]:
+        sys.stdout.write('\rSamples {}, lap time: {}, ignore old data'.format(
+            num_samples,
             receive_results[networking.fields['lap_time']]) + ' '*20)
         sys.stdout.flush()
         return False
@@ -61,7 +65,7 @@ if __name__ == "__main__":
 
     print('Dirt Rally 2.0 Race Logger by Philipp Erler')
     print('''
-Enable UDP data in the hardware_settings_config.xml in .../documents/my games/Dirt Rally 2.0/hardwaresettings/
+Make sure, UDP data is enabled in the hardware_settings_config.xml in .../documents/my games/Dirt Rally 2.0/hardwaresettings/
 <motion_platform>
     <dbox enabled="true" />
     <udp enabled="true" extradata="2" ip="127.0.0.1" port="20777" delay="1" />
@@ -89,11 +93,12 @@ Enable UDP data in the hardware_settings_config.xml in .../documents/my games/Di
     while not end_program:
         while recording:
             receive_results = networking.receive(udp_socket)
-            if accept_new_data(receive_results, last_receive_results):
-                sys.stdout.write('\rLap time: {}, speed: {} m/s, rpm {}'.format(
+            if accept_new_data(receive_results, last_receive_results, session_collection.shape[1]):
+                sys.stdout.write('\rSamples {}, lap time: {}, speed: {} m/s, rpm {}'.format(
+                    session_collection.shape[1],
                     receive_results[networking.fields['lap_time']],
                     receive_results[networking.fields['speed_ms']],
-                    receive_results[networking.fields['rpm']]) + ' '*20)
+                    receive_results[networking.fields['rpm']],) + ' '*20)
                 sys.stdout.flush()
 
                 receive_results = np.expand_dims(receive_results, 1)
@@ -112,7 +117,7 @@ Enable UDP data in the hardware_settings_config.xml in .../documents/my games/Di
         print('Press: \n'
               '"e" to exit the program\n'
               '"r" to resume the race\n'
-              '"n" for the next race\n'
+              '"n" for the next race (delete data from current run)\n'
               '"a" for analysis\n'
               '"s" to save the current run\n'
               '"l" to load a saved run\n'
@@ -132,6 +137,7 @@ Enable UDP data in the hardware_settings_config.xml in .../documents/my games/Di
             print('Prepare for next race...')
             print('Press "q" to quit the current race and start the analysis')
             session_collection = np.zeros((len(networking.fields), 0))
+            last_receive_results = None
             recording = True
         elif command == 'a':
             plots.plot_main(session_data=session_collection)
