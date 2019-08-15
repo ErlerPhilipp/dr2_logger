@@ -1,7 +1,13 @@
 import numpy as np
 
 import networking
-import utils
+
+
+def normalize_2d_vectors(x, y):
+    xy = np.array([x, y])
+    xy_len = np.linalg.norm(xy, axis=0, keepdims=True)
+    xy_normalized = xy / xy_len
+    return xy_normalized
 
 
 def convert_coordinate_system_3d(x, y, z):
@@ -51,4 +57,36 @@ def get_min_middle_max(x):
     return x_min, x_middle, x_max
 
 
+def derive(x, num_samples_per_second):
+    x_prev = np.concatenate((np.array([x[0]]), x[:-1]))
+    x_derived = x - x_prev
+    x_derived *= num_samples_per_second
+    return x_derived
+
+
+def get_forward_dir_2d(session_data):
+    px = session_data[networking.fields['pitch_x']]
+    py = -session_data[networking.fields['pitch_z']]
+    pxy_normalized = normalize_2d_vectors(px, py)
+    return pxy_normalized
+
+
+def get_forward_vel_2d(session_data):
+    vx = session_data[networking.fields['vel_x']]
+    vy = -session_data[networking.fields['vel_z']]
+    vxy_normalized = normalize_2d_vectors(vx, vy)
+    return vxy_normalized
+
+
+def get_drift_angle(session_data):
+
+    pxy_normalized = get_forward_dir_2d(session_data)
+    vxy_normalized = get_forward_vel_2d(session_data)
+
+    # dot(dir, speed) = drift
+    drift = list((pxy_normalized * vxy_normalized).sum(axis=0))
+    drift_angle = np.arccos(drift)
+    drift_angle_deg = np.rad2deg(drift_angle)
+
+    return drift_angle_deg
 
