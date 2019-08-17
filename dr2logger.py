@@ -85,8 +85,8 @@ Make sure, UDP data is enabled in the hardware_settings_config.xml in .../docume
         print('Press "q" to quit the current race and start the analysis')
     else:
         recording = False
-        npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
-        #npz_file = np.load('C:/Users/pherl/Desktop/dr2_logger/camaro_nz.npz')
+        #npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
+        npz_file = np.load('C:/Users/pherl/Desktop/dr2_logger/evo6_po.npz')
 
         session_collection = npz_file['arr_0']
 
