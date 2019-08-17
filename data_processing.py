@@ -64,10 +64,13 @@ def get_min_middle_max(x):
     return x_min, x_middle, x_max
 
 
-def derive(x, num_samples_per_second):
+def derive(x, time_steps):
+    time_prev = np.concatenate((np.array([x[0]]), x[:-1]))
+    time_diff = time_steps - time_prev
+
     x_prev = np.concatenate((np.array([x[0]]), x[:-1]))
     x_derived = x - x_prev
-    x_derived *= num_samples_per_second
+    x_derived /= time_diff
     return x_derived
 
 
