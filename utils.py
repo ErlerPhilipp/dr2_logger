@@ -1,5 +1,6 @@
 import os
 
+
 def cls():
     print('\n' * 1000)  # for pycharm
     os.system('cls' if os.name == 'nt' else 'clear')

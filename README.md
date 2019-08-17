@@ -2,6 +2,8 @@
 
 This is a logging and analysis tool for car setups in Codemasters' Dirt Rally 2.0 written by Philipp Erler in 2019.
 
+[Download Executable](./releases/dr2logger_1_0.zip)
+
 ## How to Use ##
 
 1. Enable UDP data for Dirt Rally 2.0
@@ -15,12 +17,12 @@ This is a logging and analysis tool for car setups in Codemasters' Dirt Rally 2.
         ```xml
         <motion_platform>
             <dbox enabled="false" />
-            <udp enabled="true" extradata="3" ip="127.0.0.1" port="20777" delay="1" />
+            <udp enabled="True" extradata="2" ip="127.0.0.1" port="20777" delay="1" />
             <custom_udp enabled="false" filename="packet_data.xml" ip="127.0.0.1" port="20777" delay="1" />
             <fanatec enabled="false" pedalVibrationScale="1.0" wheelVibrationScale="1.0" ledTrueForGearsFalseForSpeed="true" />
         </motion_platform>
         ```
-1. Unzip dr2logger.zip archive
+1. Download and unzip dr2logger.zip archive
 1. Run the dr2logger.exe while you play DR2
 1. After each race, switch to the logger to save the log and see the plots
 

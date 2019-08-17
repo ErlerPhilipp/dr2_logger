@@ -67,10 +67,10 @@ if __name__ == "__main__":
     print('''
 Make sure, UDP data is enabled in the hardware_settings_config.xml in .../documents/my games/Dirt Rally 2.0/hardwaresettings/
 <motion_platform>
-    <dbox enabled="true" />
-    <udp enabled="true" extradata="2" ip="127.0.0.1" port="20777" delay="1" />
-    <custom_udp enabled="true" filename="packet_data.xml" ip="127.0.0.1" port="20777" delay="1" />
-    <fanatec enabled="true" pedalVibrationScale="1.0" wheelVibrationScale="1.0" ledTrueForGearsFalseForSpeed="true" />
+    <dbox enabled="false" />
+    <udp enabled="True" extradata="2" ip="127.0.0.1" port="20777" delay="1" />
+    <custom_udp enabled="false" filename="packet_data.xml" ip="127.0.0.1" port="20777" delay="1" />
+    <fanatec enabled="false" pedalVibrationScale="1.0" wheelVibrationScale="1.0" ledTrueForGearsFalseForSpeed="true" />
 </motion_platform>
     ''')
 
@@ -112,7 +112,7 @@ Make sure, UDP data is enabled in the hardware_settings_config.xml in .../docume
             if keyboard.is_pressed('q'):
                 recording = False
                 utils.cls()
-                print('\nRecording of race stopped. Collected {} data points.'.format(session_collection.shape[1]))
+                print('\nRecording of race stopped. Collected {} data points.\n'.format(session_collection.shape[1]))
 
         print('Press: \n'
               '"e" to exit the program\n'
