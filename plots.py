@@ -25,9 +25,9 @@ def plot_main(session_data):
 
         plot_rpm_histogram_per_gear(session_data)
 
-        #fig, ax = plt.subplots(1, 1)
-        #fig.canvas.set_window_title('Speed over RPM')
-        #plot_v_over_rpm(ax, session_data)
+        fig, ax = plt.subplots(1, 1)
+        fig.canvas.set_window_title('Speed over RPM')
+        plot_v_over_rpm(ax, session_data)
 
         #fig, ax = plt.subplots(2, 1)
         #fig.canvas.set_window_title('G-Force')
