@@ -64,13 +64,30 @@ def get_min_middle_max(x):
     return x_min, x_middle, x_max
 
 
-def derive(x, time_steps):
-    time_prev = np.concatenate((np.array([x[0]]), x[:-1]))
-    time_diff = time_steps - time_prev
-
+def differences(x):
     x_prev = np.concatenate((np.array([x[0]]), x[:-1]))
-    x_derived = x - x_prev
-    x_derived /= time_diff
+    x_diff = x - x_prev
+    return x_diff
+
+
+def derive_nan(x, time_steps):
+    time_diff = differences(time_steps)
+    x_diff = differences(x)
+    x_derived = x_diff / time_diff
+    return x_derived
+
+
+def derive_no_nan(x, time_steps):
+    """
+    Prevent nan
+    :param x:
+    :param time_steps:
+    :return:
+    """
+    time_diff = differences(time_steps)
+    time_diff[time_diff == 0.0] = np.finfo(time_diff.dtype).eps
+    x_diff = differences(x)
+    x_derived = x_diff / time_diff
     return x_derived
 
 

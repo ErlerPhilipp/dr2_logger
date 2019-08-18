@@ -41,11 +41,10 @@ def plot_main(session_data):
         drift_angle_change_histogram(ax[2], session_data)
         #drift_over_speed(ax[1][1], session_data)
 
-        fig, ax = plt.subplots(3, 1, sharex=True)
+        fig, ax = plt.subplots(2, 1, sharex=True)
         fig.canvas.set_window_title('Suspension')
-        suspension_over_time(ax[0], session_data)
-        suspension_lr_fr_over_time(ax[1], session_data)
-        inputs_over_time(ax[2], session_data)
+        suspension_histogram(ax[0], session_data)
+        suspension_l_r_f_r_histogram(ax[1], session_data)
 
         fig, ax = plt.subplots(3, 1, sharex=True)
         fig.canvas.set_window_title('Wheel Speed')
@@ -53,10 +52,11 @@ def plot_main(session_data):
         wheel_speed_lr_fr_over_time(ax[1], session_data)
         inputs_over_time(ax[2], session_data)
 
-        fig, ax = plt.subplots(2, 1, sharex=True)
+        fig, ax = plt.subplots(3, 1, sharex=True)
         fig.canvas.set_window_title('Rotation vs Suspension')
         rotation_over_time(ax[0], session_data)
         suspension_lr_fr_angles_over_time(ax[1], session_data)
+        suspension_l_r_f_r_over_time(ax[2], session_data)
 
         plt.show()
 
@@ -96,7 +96,7 @@ def plot_over_2d_pos(ax, session_data, lines_x, lines_y, scale, alpha, title, la
         ax.scatter(x=lines_x[i], y=lines_y[i], s=scale, alpha=alpha, label=labels[i])
     ax.set_xlim(x_middle - diff_max * 0.6, x_middle + diff_max * 0.6)
     ax.set_ylim(y_middle - diff_max * 0.6, y_middle + diff_max * 0.6)
-    if len(labels) > 1:
+    if labels is not None and len(labels) > 1:
         ax.legend()
     ax.text(x[0], y[0], 'start')
     ax.text(x[-1], y[-1], 'finish')
@@ -112,7 +112,7 @@ def scatter_plot(ax, x_points, y_points, title, labels, colors, scales, alphas, 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     ax.set_title(title)
-    if len(labels) > 1:
+    if labels is not None and len(labels) > 1:
         ax.legend()
 
 
@@ -126,7 +126,7 @@ def line_plot(ax, x_points, y_points, title, labels, alpha, x_label, y_label,
         ax.plot(x_points[i], y_points[i], alpha=alpha)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    if len(labels) > 1:
+    if labels is not None and len(labels) > 1:
         ax.legend(labels)
     ax.grid(True)
     ax.set_title(title)
@@ -151,16 +151,18 @@ def line_plot(ax, x_points, y_points, title, labels, alpha, x_label, y_label,
         ax.set_ylim(y_points[arg_y_max] + y_diff * 0.1, y_points[arg_y_min] - y_diff * 0.1)
 
 
-def histogram_plot(ax, samples, title, x_label, y_label, min=None, max=None, num_bins=20, color='g'):
+def histogram_plot(ax, samples, title, x_label, y_label, labels=None, min=None, max=None, num_bins=20, color=None):
 
         if min is None:
             min = samples.min()
         if max is None:
             max = samples.max()
-        n, bins, patches = ax.hist(samples, num_bins, facecolor=color)
+        n, bins, patches = ax.hist(list(samples), num_bins, color=color, label=labels)
         ax.set_xlabel(x_label)
         ax.set_ylabel(y_label)
         ax.set_xlim(min, max)
+        if labels is not None and len(labels) > 1:
+            ax.legend(labels)
         ax.set_title(title)
 
 
@@ -223,7 +225,7 @@ def plot_rpm_histogram_per_gear(session_data):
 
         histogram_plot(ax=a[i], samples=rpm_per_gear,
                        title='G{0}: {1:.1f}%'.format(int(gear), samples_gear_ratio * 100.0),
-                       x_label='RPM', y_label='Samples (~time)', min=rpm_min, max=rpm_max, num_bins=20, color='g')
+                       x_label='RPM', y_label='Samples (~time)', labels=None, min=rpm_min, max=rpm_max, num_bins=20)
 
 
 def inputs_over_time(ax, session_data):
@@ -266,7 +268,7 @@ def suspension_lr_fr_over_time(ax, session_data):
     susp_rr = session_data[networking.fields['susp_rr']]
     susp_left_right = (susp_fl + susp_rl) * 0.5 - (susp_fr + susp_rr) * 0.5
     susp_front_rear = (susp_fl + susp_fr) * 0.5 - (susp_rl + susp_rr) * 0.5
-    susp_data = [susp_left_right, susp_front_rear]
+    susp_data = np.array([susp_left_right, susp_front_rear])
 
     labels = ['left-right', 'front-rear']
     x_points = np.array([lap_time] * len(susp_data))
@@ -275,6 +277,71 @@ def suspension_lr_fr_over_time(ax, session_data):
     line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension dislocation difference over lap time',
               labels=labels, alpha=0.5, x_label='Lap time (s)',
               y_label='Suspension dislocation difference (mm)', flip_y=True, min_max_annotations=True)
+
+
+def suspension_l_r_f_r_over_time(ax, session_data):
+
+    lap_time = session_data[networking.fields['lap_time']]
+    susp_fl = session_data[networking.fields['susp_fl']]
+    susp_fr = session_data[networking.fields['susp_fr']]
+    susp_rl = session_data[networking.fields['susp_rl']]
+    susp_rr = session_data[networking.fields['susp_rr']]
+    susp_left = (susp_fl + susp_rl) * 0.5
+    susp_right = (susp_fr + susp_rr) * 0.5
+    susp_front = (susp_fl + susp_fr) * 0.5
+    susp_rear = (susp_rl + susp_rr) * 0.5
+    susp_data = np.array([susp_left, susp_right, susp_front, susp_rear])
+
+    labels = ['left', 'right', 'front', 'rear']
+    x_points = np.array([lap_time] * len(susp_data))
+    y_points = np.array(susp_data)
+
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Average suspension dislocation over lap time',
+              labels=labels, alpha=0.5, x_label='Lap time (s)',
+              y_label='Suspension dislocation (mm)', flip_y=True, min_max_annotations=True)
+
+
+def suspension_histogram(ax, session_data):
+
+    time_differences = data_processing.differences(session_data[networking.fields['lap_time']])
+    susp_fl = session_data[networking.fields['susp_fl']]
+    susp_fr = session_data[networking.fields['susp_fr']]
+    susp_rl = session_data[networking.fields['susp_rl']]
+    susp_rr = session_data[networking.fields['susp_rr']]
+    susp_data = np.array([susp_fl, susp_fr, susp_rl, susp_rr])
+    susp_min = susp_data.min()
+    susp_max = susp_data.max()
+    susp_min_ids = (susp_min == susp_data)
+    susp_max_ids = (susp_max == susp_data)
+    labels = ['front left', 'front right', 'rear left', 'rear right']
+    labels = [l + ', bump min: {:.2f}s, bump max: {:.2f}s'.format(
+        time_differences[susp_min_ids[li]].sum(), time_differences[susp_max_ids[li]].sum())
+              for li, l in enumerate(labels)]
+
+    histogram_plot(ax, samples=susp_data,
+                   title='Suspension dislocation histogram, min: {} mm, max: {} mm'.format(susp_min, susp_max),
+                   x_label='Suspension dislocation (mm)', y_label='Samples (~time)',
+                   labels=labels, min=susp_min, max=susp_max, num_bins=20)
+
+
+def suspension_l_r_f_r_histogram(ax, session_data):
+
+    susp_fl = session_data[networking.fields['susp_fl']]
+    susp_fr = session_data[networking.fields['susp_fr']]
+    susp_rl = session_data[networking.fields['susp_rl']]
+    susp_rr = session_data[networking.fields['susp_rr']]
+    susp_left = (susp_fl + susp_rl) * 0.5
+    susp_right = (susp_fr + susp_rr) * 0.5
+    susp_front = (susp_fl + susp_fr) * 0.5
+    susp_rear = (susp_rl + susp_rr) * 0.5
+    susp_data = np.array([susp_left, susp_right, susp_front, susp_rear])
+    susp_min = susp_data.min()
+    susp_max = susp_data.max()
+    labels = ['left', 'right', 'front', 'rear']
+
+    histogram_plot(ax, samples=susp_data, title='Average Suspension Dislocation Histogram',
+                   x_label='Average Suspension Dislocation (mm)', y_label='Samples (~time)',
+                   labels=labels, min=susp_min, max=susp_max, num_bins=20)
 
 
 def plot_height_over_dist(ax, session_data):
@@ -416,7 +483,7 @@ def wheel_speed_over_time(ax, session_data):
     wsp_fr = session_data[networking.fields['wsp_fr']]
     wsp_rl = session_data[networking.fields['wsp_rl']]
     wsp_rr = session_data[networking.fields['wsp_rr']]
-    wsp_data = [wsp_fl, wsp_fr, wsp_rl, wsp_rr, ]
+    wsp_data = np.array([wsp_fl, wsp_fr, wsp_rl, wsp_rr])
 
     labels = ['front left', 'front right', 'rear left', 'rear right']
     x_points = np.array([lap_time] * len(wsp_data))
@@ -435,7 +502,7 @@ def wheel_speed_lr_fr_over_time(ax, session_data):
     wsp_rr = session_data[networking.fields['wsp_rr']]
     wsp_left_right = (wsp_fl + wsp_rl) * 0.5 - (wsp_fr + wsp_rr) * 0.5
     wsp_front_rear = (wsp_fl + wsp_fr) * 0.5 - (wsp_rl + wsp_rr) * 0.5
-    wsp_data = [wsp_left_right, wsp_front_rear]
+    wsp_data = np.array([wsp_left_right, wsp_front_rear])
 
     labels = ['left-right', 'front-rear']
     x_points = np.array([lap_time] * len(wsp_data))
@@ -450,7 +517,7 @@ def drift_over_speed(ax, session_data):
     steering = np.abs(session_data[networking.fields['steering']])
     speed_ms = session_data[networking.fields['speed_ms']]
     drift_angle_deg = data_processing.get_drift_angle(session_data)
-    drift_angle_deg_der = data_processing.derive(
+    drift_angle_deg_der = data_processing.derive_no_nan(
         drift_angle_deg, time_steps=session_data[networking.fields['lap_time']])
 
     # filter very slow parts
@@ -491,7 +558,7 @@ def drift_angle_histogram(ax, session_data):
 def drift_angle_change_histogram(ax, session_data):
     speed_ms = session_data[networking.fields['speed_ms']]
     drift_angle_deg = data_processing.get_drift_angle(session_data)
-    drift_angle_deg_der = data_processing.derive(
+    drift_angle_deg_der = data_processing.derive_no_nan(
         drift_angle_deg, time_steps=session_data[networking.fields['lap_time']])
 
     # filter very slow parts
@@ -500,7 +567,7 @@ def drift_angle_change_histogram(ax, session_data):
     drift_angle_deg_der = np.abs(drift_angle_deg_der)
 
     # filter out rare extreme values
-    outlier_threshold = np.percentile(drift_angle_deg_der, 99)
+    outlier_threshold = np.nanpercentile(drift_angle_deg_der, 99)
     usual_values = drift_angle_deg_der < outlier_threshold
     drift_angle_deg_der = drift_angle_deg_der[usual_values]
 
@@ -533,7 +600,7 @@ def rotation_over_time(ax, session_data):
     y_points = np.array([sideward_angle_deg, forward_angle_deg])
 
     line_plot(ax, x_points=x_points, y_points=y_points,
-              title='Rotation Angles',
+              title='Rotation Angles over Lap Time',
               labels=labels, alpha=0.5, x_label='Lap Time (s)',
               y_label='Angle (deg)', min_max_annotations=True)
 
@@ -555,7 +622,7 @@ def suspension_lr_fr_angles_over_time(ax, session_data):
     angle_left_right = height_diff_to_angle(susp_left_right / 1000.0, 1.800)
     angle_front_rear = height_diff_to_angle(susp_front_rear / 1000.0, 2.200)
 
-    angle_data = [-angle_left_right, -angle_front_rear]
+    angle_data = np.array([-angle_left_right, -angle_front_rear])
 
     labels = ['left-right angle', 'front-rear angle']
     x_points = np.array([lap_time] * len(angle_data))

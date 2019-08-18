@@ -54,7 +54,7 @@ This plot shows the speed at varying RPM. The blue series of points in the lower
 
 ![Drift](img/drift.png)
 
-In this plot, you can see the forward direction of the car and its movement direction. The more these vectors disagree, the more your car is drifting. The histogram in the middle shows how often you drifted how much while the right histogram shows how fast the drift angle changed. The Evo VI is a rather easy to control car. The histograms tell that the drift angle was mostly below 20 degree and the angular velocity was rather low all the time. This supports the claim that the car can be controlled with the current setup. 
+In this plot, you can see the forward direction of the car and its movement direction. The more these vectors disagree, the more your car is drifting. The histogram in the middle shows how often you drifted how much while the right histogram shows how fast the drift angle changed. The Evo VI is a rather easy to control car. The histograms tell that the drift angle was mostly below 20 degree. The angular velocity was also mostly below 20 degrees per second and therefore quite controlled. This supports the claim that the car can be controlled with the current setup. 
 
 ![Wheel Speed](img/wheel_speed.png)
 
@@ -66,9 +66,9 @@ Let's analyze the 'bubble' in the middle of the upper graph in more detail. Here
 
 ![Suspension](img/suspension.png)
 
-Similar to the previous plot, this one shows the suspension dislocation of individual wheels and compares sides of the car. A negative dislocation means that the spring is compressed. The many flat tops in the upper graph show that the suspension regularly hits the bump stops, which is very bad for the stability. This can even send you in the air and cause crashes. If you see such a behavior, you should definitely increase the ride height. If it's already at the limit, you can still stiffen the springs and damping. Better a harder suspension than hitting the bump stops.
+This plot shows the suspension dislocation of individual wheels and compares sides of the car. A negative dislocation means that the spring is compressed. Quite often, the springs were fully compressed at -100 mm. Since there is no information transmitted from DR2, we can only assume that the bump stops were hit at this dislocation. Hitting the bump stops is very bad for the stability and can cause crashes. If you see such a behavior, you should definitely increase the ride height. If it's already at the limit, you can still stiffen the springs and damping. Better a harder suspension than hitting the bump stops.
 
-The middle graph displays a large positive blue peak. This means that the left springs are considerably more compressed than the right springs. A look at the upper graph shows that mostly the rear springs are affected here. Therefore, you should probably stiffen the rear stabilizer.
+The lower graph displays the averaged front/back and left/right statistics. You can see that the rear springs are more often fully compressed. Therefore, you should probably stiffen the rear springs or dampers.
 
 ![Rotation vs Suspension](img/rot_vs_susp.png)
 
@@ -76,11 +76,11 @@ This last plot (for now) compares spring dislocation with car roll and pitch. Wi
 
 The suspension angles are approximated for the width and length of the Audi Quattro S1. So, the absolute values of the suspension rotation graph will be off for other cars. But we care mostly for the relation between both graphs, anyway.
 
-In the upper graph with the car rotations, we can see that the lines have much lower frequencies than the lower graph with the suspension angles, as it should be. However, we can also see rather high frequencies in some parts of the car rotation graph. This is likely caused by springs hitting the bump stops or maybe, the car body touches the road. We can again see that there is more roll than pitch. So, the front-rear setup is probably ok, while the left-right setup needs more space or stiffness.
+In the upper graph with the car rotations, we can see that the lines have much lower frequencies than the middle graph with the suspension angles, as it should be. Looking at the center of the car rotation graph (upper graph),we see that the car rotates quickly backwards because the springs (middle graph) could not compensate the pressure anymore since they were already fully compressed (lower graph). This was probably the landing after a longer jump.
 
 ## Raw Data ##
 
-I can only use the information I get from Dirt Rally 2.0 via UDP. Currently this is:
+I can only use the information I get from Dirt Rally 2.0 via UDP. This is Currently:
 
 1. run time (starts after loading screen)
 1. lap time (starts after countdown)
