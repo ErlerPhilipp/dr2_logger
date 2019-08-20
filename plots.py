@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+from scipy.stats import binned_statistic
 
 import networking
 import data_processing
@@ -43,8 +44,8 @@ def plot_main(session_data):
 
         fig, ax = plt.subplots(2, 1, sharex=True)
         fig.canvas.set_window_title('Suspension')
-        suspension_histogram(ax[0], session_data)
-        suspension_l_r_f_r_histogram(ax[1], session_data)
+        suspension_bars(ax[0], session_data)
+        suspension_l_r_f_r_bars(ax[1], session_data)
 
         fig, ax = plt.subplots(3, 1, sharex=True)
         fig.canvas.set_window_title('Wheel Speed')
@@ -164,6 +165,33 @@ def histogram_plot(ax, samples, title, x_label, y_label, labels=None, min=None, 
         if labels is not None and len(labels) > 1:
             ax.legend(labels)
         ax.set_title(title)
+
+
+def bar_plot(ax, data, weights, num_bins=20,
+             title=None, x_label=None, y_label=None, series_labels=None, tick_labels=None):
+
+    data_min = data.min()
+    data_max = data.max()
+
+    x = np.arange(num_bins)
+
+    default_width = 0.8
+    width = default_width / (float(len(series_labels)) + 1)
+    for i in range(len(series_labels)):
+        data_bin_sum, bin_edges, _ = \
+            binned_statistic(data[i], weights, statistic='sum', bins=num_bins, range=(data_min, data_max))
+        tick_labels = ['{:.0f} to\n {:.0f}'.format(bin_edges[0 + i], bin_edges[1 + i])
+                       for i in range(bin_edges.shape[0] - 1)]
+
+        ax.bar(x + (0.5 + i - float(len(series_labels)) * 0.5) * width, data_bin_sum, width, label=series_labels[i])
+
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    if series_labels is not None and len(series_labels) > 1:
+        ax.legend(series_labels)
+    ax.set_xticks(x)
+    ax.set_xticklabels(tick_labels)
+    ax.set_title(title)
 
 
 def plot_gear_over_3d_pos(ax, session_data):
@@ -301,7 +329,7 @@ def suspension_l_r_f_r_over_time(ax, session_data):
               y_label='Suspension dislocation (mm)', flip_y=True, min_max_annotations=True)
 
 
-def suspension_histogram(ax, session_data):
+def suspension_bars(ax, session_data):
 
     time_differences = data_processing.differences(session_data[networking.fields['lap_time']])
     susp_fl = session_data[networking.fields['susp_fl']]
@@ -313,19 +341,19 @@ def suspension_histogram(ax, session_data):
     susp_max = susp_data.max()
     susp_min_ids = (susp_min == susp_data)
     susp_max_ids = (susp_max == susp_data)
-    labels = ['front left', 'front right', 'rear left', 'rear right']
-    labels = [l + ', bump min: {:.2f}s, bump max: {:.2f}s'.format(
+    series_labels = ['front left', 'front right', 'rear left', 'rear right']
+    series_labels = [l + ', bump min: {:.1f} s, bump max: {:.1f} s'.format(
         time_differences[susp_min_ids[li]].sum(), time_differences[susp_max_ids[li]].sum())
-              for li, l in enumerate(labels)]
+              for li, l in enumerate(series_labels)]
 
-    histogram_plot(ax, samples=susp_data,
-                   title='Suspension dislocation histogram, min: {} mm, max: {} mm'.format(susp_min, susp_max),
-                   x_label='Suspension dislocation (mm)', y_label='Samples (~time)',
-                   labels=labels, min=susp_min, max=susp_max, num_bins=20)
+    bar_plot(ax, data=susp_data, weights=time_differences, num_bins=20,
+             title='Suspension dislocation, min: {:.1f} mm, max: {:.1f} mm'.format(susp_min, susp_max),
+             x_label='Suspension dislocation (mm)', y_label='Accumulated Time (s)', series_labels=series_labels)
 
 
-def suspension_l_r_f_r_histogram(ax, session_data):
+def suspension_l_r_f_r_bars(ax, session_data):
 
+    time_differences = data_processing.differences(session_data[networking.fields['lap_time']])
     susp_fl = session_data[networking.fields['susp_fl']]
     susp_fr = session_data[networking.fields['susp_fr']]
     susp_rl = session_data[networking.fields['susp_rl']]
@@ -337,11 +365,11 @@ def suspension_l_r_f_r_histogram(ax, session_data):
     susp_data = np.array([susp_left, susp_right, susp_front, susp_rear])
     susp_min = susp_data.min()
     susp_max = susp_data.max()
-    labels = ['left', 'right', 'front', 'rear']
+    series_labels = ['left', 'right', 'front', 'rear']
 
-    histogram_plot(ax, samples=susp_data, title='Average Suspension Dislocation Histogram',
-                   x_label='Average Suspension Dislocation (mm)', y_label='Samples (~time)',
-                   labels=labels, min=susp_min, max=susp_max, num_bins=20)
+    bar_plot(ax, data=susp_data, weights=time_differences, num_bins=20,
+             title='Average Suspension dislocation, min: {:.1f} mm, max: {:.1f} mm'.format(susp_min, susp_max),
+             x_label='Suspension dislocation (mm)', y_label='Accumulated Time (s)', series_labels=series_labels)
 
 
 def plot_height_over_dist(ax, session_data):

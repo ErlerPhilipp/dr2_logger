@@ -113,6 +113,7 @@ See [networking.py](./networking.py) for more information.
 1. If using Anaconda, you should probably create a new environment for this project
 1. Use conda or pip to install the required packages:
     1. numpy
+    1. scipy
     1. keyboard
     1. tk
     1. basemap
