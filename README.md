@@ -2,8 +2,8 @@
 
 This is a logging and analysis tool for car setups in Codemasters' Dirt Rally 2.0 written by Philipp Erler in 2019.
 
-- [Download Executable](https://philipperler.net/dr2logger_1_1/)
-- [Source Code](https://github.com/ErlerPhilipp/dr2_logger)
+- [Download Executable (Version 1.1, 2019-08-19)](https://philipperler.net/dr2logger_1_1/)
+- [Source Code, Documentation and Support](https://github.com/ErlerPhilipp/dr2_logger)
 
 ## How to Use ##
 
