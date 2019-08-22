@@ -82,7 +82,7 @@ Make sure, UDP data is enabled in the hardware_settings_config.xml in .../docume
 
     if not debug:
         recording = True
-        print('Press "q" to quit the current race and start the analysis')
+        print('Press "esc" to quit the current race and start the analysis')
     else:
         recording = False
         #npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
@@ -109,7 +109,7 @@ Make sure, UDP data is enabled in the hardware_settings_config.xml in .../docume
 
                 last_receive_results = receive_results.copy()
 
-            if keyboard.is_pressed('q'):
+            if keyboard.is_pressed('esc'):
                 recording = False
                 utils.cls()
                 print('\nRecording of race stopped. Collected {} data points.\n'.format(session_collection.shape[1]))
