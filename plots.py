@@ -24,7 +24,9 @@ def plot_main(session_data):
         plot_height_over_dist(ax[0], session_data)
         plot_gear_over_2d_pos(ax[1], session_data)
 
-        plot_rpm_histogram_per_gear(session_data)
+        fig, ax = plt.subplots(1, 1)
+        fig.canvas.set_window_title('RPM Histogram per Gear')
+        gear_rpm_bars(ax, session_data)
 
         fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('Speed over RPM')
@@ -38,8 +40,8 @@ def plot_main(session_data):
         fig, ax = plt.subplots(1, 3)
         fig.canvas.set_window_title('Drift at 2D positions (drift angle as color)')
         forward_over_2d_pos(ax[0], session_data)
-        drift_angle_histogram(ax[1], session_data)
-        drift_angle_change_histogram(ax[2], session_data)
+        drift_angle_bars(ax[1], session_data)
+        drift_angle_change_bars(ax[2], session_data)
         #drift_over_speed(ax[1][1], session_data)
 
         fig, ax = plt.subplots(2, 1, sharex=True)
@@ -170,8 +172,8 @@ def histogram_plot(ax, samples, title, x_label, y_label, labels=None, min=None, 
 def bar_plot(ax, data, weights, num_bins=20,
              title=None, x_label=None, y_label=None, series_labels=None, tick_labels=None):
 
-    data_min = data.min()
-    data_max = data.max()
+    data_min = min([d.min() for d in data])
+    data_max = max([d.max() for d in data])
 
     x = np.arange(num_bins)
 
@@ -179,7 +181,7 @@ def bar_plot(ax, data, weights, num_bins=20,
     width = default_width / (float(len(series_labels)) + 1)
     for i in range(len(series_labels)):
         data_bin_sum, bin_edges, _ = \
-            binned_statistic(data[i], weights, statistic='sum', bins=num_bins, range=(data_min, data_max))
+            binned_statistic(data[i], weights[i], statistic='sum', bins=num_bins, range=(data_min, data_max))
         tick_labels = ['{:.0f} to\n {:.0f}'.format(bin_edges[0 + i], bin_edges[1 + i])
                        for i in range(bin_edges.shape[0] - 1)]
 
@@ -232,28 +234,25 @@ def plot_gear_over_2d_pos(ax, session_data):
                      scale=10, alpha=0.5, title='Gear at 2D positions', labels=labels)
 
 
-def plot_rpm_histogram_per_gear(session_data):
+def gear_rpm_bars(ax, session_data):
+
+    time_differences = data_processing.differences(session_data[networking.fields['lap_time']])
     rpm = session_data[networking.fields['rpm']]
     data_gear = session_data[networking.fields['gear']]
     range_gears = list(set(data_gear))
     range_gears.sort()
-    range_gears = [g for g in range_gears if g > 0.0]
-    rpm_min = min(rpm)
-    rpm_max = max(rpm)
 
-    num_total_samples = session_data.shape[1]
-    fig, a = plt.subplots(1, len(range_gears), sharex=True, sharey=True)
-    fig.canvas.set_window_title('RPM Histogram per Gear')
-    a = a.ravel()
-    for i, gear in enumerate(range_gears):
-        current_gear = session_data[networking.fields['gear']] == gear
-        rpm_per_gear = session_data[networking.fields['rpm'], current_gear]
-        num_samples_gear = len(rpm_per_gear)
-        samples_gear_ratio = num_samples_gear / num_total_samples
+    total_time = time_differences.sum()
+    gear_ids = [data_gear == gear for gear in range_gears]
+    gear_times = [time_differences[g] for g in gear_ids]
+    gear_rpms = [rpm[g] for g in gear_ids]
+    gear_time_sums = [gt.sum() for gt in gear_times]
+    gear_ratio = [gts / total_time for gts in gear_time_sums]
+    series_labels = ['Gear {0}: {1:.1f}%'.format(
+        int(g), gear_ratio[gi] * 100.0) for gi, g in enumerate(range_gears)]
 
-        histogram_plot(ax=a[i], samples=rpm_per_gear,
-                       title='G{0}: {1:.1f}%'.format(int(gear), samples_gear_ratio * 100.0),
-                       x_label='RPM', y_label='Samples (~time)', labels=None, min=rpm_min, max=rpm_max, num_bins=20)
+    bar_plot(ax, data=gear_rpms, weights=gear_times, num_bins=20,
+             title='Gear RPM', x_label='RPM', y_label='Accumulated Time (s)', series_labels=series_labels)
 
 
 def inputs_over_time(ax, session_data):
@@ -337,6 +336,7 @@ def suspension_bars(ax, session_data):
     susp_rl = session_data[networking.fields['susp_rl']]
     susp_rr = session_data[networking.fields['susp_rr']]
     susp_data = np.array([susp_fl, susp_fr, susp_rl, susp_rr])
+    time_data = np.repeat(np.expand_dims(time_differences, axis=0), 4, axis=0)
     susp_min = susp_data.min()
     susp_max = susp_data.max()
     susp_min_ids = (susp_min == susp_data)
@@ -346,7 +346,7 @@ def suspension_bars(ax, session_data):
         time_differences[susp_min_ids[li]].sum(), time_differences[susp_max_ids[li]].sum())
               for li, l in enumerate(series_labels)]
 
-    bar_plot(ax, data=susp_data, weights=time_differences, num_bins=20,
+    bar_plot(ax, data=susp_data, weights=time_data, num_bins=20,
              title='Suspension dislocation, min: {:.1f} mm, max: {:.1f} mm'.format(susp_min, susp_max),
              x_label='Suspension dislocation (mm)', y_label='Accumulated Time (s)', series_labels=series_labels)
 
@@ -363,11 +363,12 @@ def suspension_l_r_f_r_bars(ax, session_data):
     susp_front = (susp_fl + susp_fr) * 0.5
     susp_rear = (susp_rl + susp_rr) * 0.5
     susp_data = np.array([susp_left, susp_right, susp_front, susp_rear])
+    time_data = np.repeat(np.expand_dims(time_differences, axis=0), 4, axis=0)
     susp_min = susp_data.min()
     susp_max = susp_data.max()
     series_labels = ['left', 'right', 'front', 'rear']
 
-    bar_plot(ax, data=susp_data, weights=time_differences, num_bins=20,
+    bar_plot(ax, data=susp_data, weights=time_data, num_bins=20,
              title='Average Suspension dislocation, min: {:.1f} mm, max: {:.1f} mm'.format(susp_min, susp_max),
              x_label='Suspension dislocation (mm)', y_label='Accumulated Time (s)', series_labels=series_labels)
 
@@ -570,20 +571,32 @@ def drift_over_speed(ax, session_data):
                  x_label='Speed (m/s)', y_label='Drift angle (deg/s)')
 
 
-def drift_angle_histogram(ax, session_data):
+def drift_angle_bars(ax, session_data):
+
+    time_differences = data_processing.differences(session_data[networking.fields['lap_time']])
     speed_ms = session_data[networking.fields['speed_ms']]
     drift_angle_deg = data_processing.get_drift_angle(session_data)
 
     # filter very slow parts
     fast_enough = speed_ms > 1.0  # m/s
     drift_angle_deg = drift_angle_deg[fast_enough]
+    time_differences = time_differences[fast_enough]
 
-    histogram_plot(ax=ax, samples=drift_angle_deg,
-                   title='Drift Angle Histogram',
-                   x_label='Drift Angle (deg)', y_label='Samples (~time)')
+    # filter out rare extreme values
+    outlier_threshold = np.nanpercentile(drift_angle_deg, 99)
+    usual_values = drift_angle_deg < outlier_threshold
+    drift_angle_deg = drift_angle_deg[usual_values]
+    time_differences = time_differences[usual_values]
+
+    series_labels = ['']
+
+    bar_plot(ax, data=[drift_angle_deg], weights=[time_differences], num_bins=10, title='Drift Angle Histogram',
+             x_label='Drift Angle (deg)', y_label='Accumulated Time (s)', series_labels=series_labels)
 
 
-def drift_angle_change_histogram(ax, session_data):
+def drift_angle_change_bars(ax, session_data):
+
+    time_differences = data_processing.differences(session_data[networking.fields['lap_time']])
     speed_ms = session_data[networking.fields['speed_ms']]
     drift_angle_deg = data_processing.get_drift_angle(session_data)
     drift_angle_deg_der = data_processing.derive_no_nan(
@@ -599,9 +612,13 @@ def drift_angle_change_histogram(ax, session_data):
     usual_values = drift_angle_deg_der < outlier_threshold
     drift_angle_deg_der = drift_angle_deg_der[usual_values]
 
-    histogram_plot(ax=ax, samples=drift_angle_deg_der,
-                   title='Drift Angle Change Histogram',
-                   x_label='Drift Angle Change (deg/s)', y_label='Samples (~time)')
+    time_differences = time_differences[fast_enough]
+    time_differences = time_differences[usual_values]
+    series_labels = ['']
+
+    bar_plot(ax, data=[drift_angle_deg_der], weights=[time_differences], num_bins=10,
+             title='Drift Angle Change Histogram',
+             x_label='Drift Angle Change (deg/s)', y_label='Accumulated Time (s)', series_labels=series_labels)
 
 
 def rotation_over_time(ax, session_data):

@@ -111,7 +111,7 @@ Make sure, UDP data is enabled in the hardware_settings_config.xml in .../docume
 
             if keyboard.is_pressed('esc'):
                 recording = False
-                utils.cls()
+                # utils.cls()
                 print('\nRecording of race stopped. Collected {} data points.\n'.format(session_collection.shape[1]))
 
         print('Press: \n'
