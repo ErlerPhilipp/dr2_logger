@@ -1,6 +1,8 @@
 import numpy as np
 import socket
 import struct
+import errno
+import os
 
 port_default = 20777
 
@@ -191,7 +193,25 @@ def open_port(port):
     udp_port = port
     udp_socket = socket.socket(socket.AF_INET,  # Internet
                                socket.SOCK_DGRAM)  # UDP
-    udp_socket.bind((udp_ip, udp_port))
     udp_socket.settimeout(0.01)
+    try:
+        udp_socket.bind((udp_ip, udp_port))
+    except socket.error as error:
+        print('\n'
+              '#############\n'
+              'Socket error: {}\n'
+              '#############\n'
+              '\n'.format(error))
+        udp_socket.close()
+        udp_socket = None
+    except Exception as error:
+        print('\n'
+              '#############\n'
+              'Unknown error: {}\n'
+              '#############\n'
+              '\n'.format(error))
+        udp_socket.close()
+        udp_socket = None
+
     return udp_socket
 

@@ -92,6 +92,12 @@ Make sure, UDP data is enabled in the hardware_settings_config.xml in .../docume
 
     while not end_program:
         while recording:
+
+            # bind failed -> don't try to receive data
+            if udp_socket is None:
+                recording = False
+                break
+
             receive_results = networking.receive(udp_socket)
             if accept_new_data(receive_results, last_receive_results, session_collection.shape[1]):
                 sys.stdout.write('\rSamples {}, lap time: {}, speed: {} m/s, rpm {}'.format(
@@ -135,7 +141,7 @@ Make sure, UDP data is enabled in the hardware_settings_config.xml in .../docume
             recording = True
         elif command == 'n':
             print('Prepare for next race...')
-            print('Press "q" to quit the current race and start the analysis')
+            print('Press "esc" to quit the current race and start the analysis')
             session_collection = np.zeros((len(networking.fields), 0))
             last_receive_results = None
             recording = True
