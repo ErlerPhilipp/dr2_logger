@@ -2,7 +2,7 @@
 
 This is a logging and analysis tool for car setups in Codemasters' Dirt Rally 2.0 written by Philipp Erler in 2019.
 
-- [Download Executable (Version 1.1, 2019-08-19)](https://philipperler.net/dr2logger_1_1/)
+- [Download Executable (Version 1.2, 2019-08-25)](https://philipperler.net/dr2logger_1_2/)
 - [Source Code, Documentation and Support](https://github.com/ErlerPhilipp/dr2_logger)
 
 ## How to Use ##
@@ -132,3 +132,9 @@ On the long run, comparing two or more recordings would be great. However, this 
 All parts of this project are published under the permissive [MIT license](./LICENSE). In short, you can do with the code, documentation, images and so on whatever you want. But don't complain if it doesn't work as expected.
 
 If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or link my work. If you find this tool useful, please drop me a message. This would make me feel good :)
+
+## Change Log ##
+
+- 1.2 (2019-08-25): better histograms, error handling for sockets
+- 1.1 (2019-08-19): improved plots for suspension and rot vs susp
+- 1.0 (2019-08-17): initial release

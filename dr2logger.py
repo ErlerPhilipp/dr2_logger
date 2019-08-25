@@ -2,10 +2,8 @@ import numpy as np
 import os
 import sys
 import keyboard
-import time
 import tkinter as tk
 from tkinter import filedialog
-import math
 
 import networking
 import utils
@@ -13,6 +11,10 @@ import plots
 
 
 debug = False
+recording = False
+keys_default_stop_recording = 'Shift+F1'
+keys_stop_recording = keys_default_stop_recording
+version_string = '(Version 1.2, 2019-08-25)'
 
 
 def accept_new_data(receive_results, last_receive_results, num_samples):
@@ -63,16 +65,19 @@ def accept_new_data(receive_results, last_receive_results, num_samples):
 
 if __name__ == "__main__":
 
-    print('Dirt Rally 2.0 Race Logger by Philipp Erler')
     print('''
-Make sure, UDP data is enabled in the hardware_settings_config.xml in .../documents/my games/Dirt Rally 2.0/hardwaresettings/
+Dirt Rally 2.0 Race Logger {} by Philipp Erler
+https://github.com/ErlerPhilipp/dr2_logger
+    
+Make sure, UDP data is enabled in the hardware_settings_config.xml 
+Default: C:\\Users\\ [username] \\Documents\\My Games\\DiRT Rally 2.0\\hardwaresettings\\hardware_settings_config.xml
 <motion_platform>
     <dbox enabled="false" />
     <udp enabled="True" extradata="2" ip="127.0.0.1" port="20777" delay="1" />
     <custom_udp enabled="false" filename="packet_data.xml" ip="127.0.0.1" port="20777" delay="1" />
     <fanatec enabled="false" pedalVibrationScale="1.0" wheelVibrationScale="1.0" ledTrueForGearsFalseForSpeed="true" />
 </motion_platform>
-    ''')
+    '''.format(version_string))
 
     udp_socket = networking.open_port(networking.port_default)
 
@@ -82,7 +87,7 @@ Make sure, UDP data is enabled in the hardware_settings_config.xml in .../docume
 
     if not debug:
         recording = True
-        print('Press "esc" to quit the current race and start the analysis')
+        print('Press "{}" to quit the current race and start the analysis'.format(keys_stop_recording))
     else:
         recording = False
         #npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
@@ -115,19 +120,21 @@ Make sure, UDP data is enabled in the hardware_settings_config.xml in .../docume
 
                 last_receive_results = receive_results.copy()
 
-            if keyboard.is_pressed('esc'):
+            if keyboard.is_pressed(keys_stop_recording):
                 recording = False
                 # utils.cls()
                 print('\nRecording of race stopped. Collected {} data points.\n'.format(session_collection.shape[1]))
 
-        print('Press: \n'
+        print('\n'
+              'Enter: \n'
               '"e" to exit the program\n'
               '"r" to resume the race\n'
               '"n" for the next race (delete data from current run)\n'
               '"a" for analysis\n'
               '"s" to save the current run\n'
               '"l" to load a saved run\n'
-              '"p" to change the port\n')
+              '"p" to change the port\n'
+              '"k" to change the stop recording key\n')
 
         if debug:
             command = 'a'
@@ -141,7 +148,7 @@ Make sure, UDP data is enabled in the hardware_settings_config.xml in .../docume
             recording = True
         elif command == 'n':
             print('Prepare for next race...')
-            print('Press "esc" to quit the current race and start the analysis')
+            print('Press "{}" to quit the current race and start the analysis'.format(keys_stop_recording))
             session_collection = np.zeros((len(networking.fields), 0))
             last_receive_results = None
             recording = True
@@ -165,4 +172,13 @@ Make sure, UDP data is enabled in the hardware_settings_config.xml in .../docume
                 print('Loaded {} data points from {}'.format(session_collection.shape[1], file_path))
         elif command == 'p':
             udp_socket = networking.open_port(networking.get_port())
+        elif command == 'k':
+            try:
+                key_str = input('Enter key-string (default "{}"): '.format(keys_default_stop_recording))
+                c = keyboard.key_to_scan_codes(key_str)  # trigger error if invalid and catch below
+                keys_stop_recording = key_str
+            except ValueError as e:
+                print('Invalid key-string: "{}"'.format(key_str))
+        else:
+            print('Unknown command: {}'.format(command))
 
