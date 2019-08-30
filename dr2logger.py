@@ -1,9 +1,11 @@
 import numpy as np
 import os
 import sys
-import keyboard
 import tkinter as tk
 from tkinter import filedialog
+import threading
+import queue
+import time
 
 import networking
 import utils
@@ -12,9 +14,16 @@ import plots
 
 debug = False
 recording = False
-keys_default_stop_recording = 'Shift+F1'
-keys_stop_recording = keys_default_stop_recording
-version_string = '(Version 1.2, 2019-08-25)'
+version_string = '(Version 1.3, 2019-08-25)'
+
+
+def add_input(message_queue):
+    running = True
+    while running:
+        read_res = input()
+        message_queue.put(read_res)
+        if read_res == 'e':
+            running = False
 
 
 def accept_new_data(receive_results, last_receive_results, num_samples):
@@ -77,6 +86,14 @@ Default: C:\\Users\\ [username] \\Documents\\My Games\\DiRT Rally 2.0\\hardwares
     <custom_udp enabled="false" filename="packet_data.xml" ip="127.0.0.1" port="20777" delay="1" />
     <fanatec enabled="false" pedalVibrationScale="1.0" wheelVibrationScale="1.0" ledTrueForGearsFalseForSpeed="true" />
 </motion_platform>
+
+Enter:
+"e" to exit the program
+"c" to clear the current run
+"a" for analysis
+"s" to save the current run
+"l" to load a saved run
+"p" to change the port
     '''.format(version_string))
 
     udp_socket = networking.open_port(networking.port_default)
@@ -85,100 +102,79 @@ Default: C:\\Users\\ [username] \\Documents\\My Games\\DiRT Rally 2.0\\hardwares
     last_receive_results = None
     end_program = False
 
-    if not debug:
-        recording = True
-        print('Press "{}" to quit the current race and start the analysis'.format(keys_stop_recording))
-    else:
-        recording = False
-        #npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
-        npz_file = np.load('C:/Users/pherl/Desktop/dr2_logger/evo6_po.npz')
+    message_queue = queue.Queue()
+    input_thread = threading.Thread(target=add_input, args=(message_queue,))
+    input_thread.daemon = True
+    input_thread.start()
 
+    if debug:  # start with plots
+        # npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
+        npz_file = np.load('C:/Users/pherl/Desktop/dr2_logger/evo6_po.npz')
         session_collection = npz_file['arr_0']
+        message_queue.put('a')
+    else:  # start with recording
+        pass
 
     while not end_program:
-        while recording:
 
-            # bind failed -> don't try to receive data
-            if udp_socket is None:
-                recording = False
-                break
+        # socket bind failed -> don't try to receive data
+        receive_results = networking.receive(udp_socket) if udp_socket is not None else None
 
-            receive_results = networking.receive(udp_socket)
-            if accept_new_data(receive_results, last_receive_results, session_collection.shape[1]):
-                sys.stdout.write('\rSamples {}, lap time: {}, speed: {} m/s, rpm {}'.format(
-                    session_collection.shape[1],
-                    receive_results[networking.fields['lap_time']],
-                    receive_results[networking.fields['speed_ms']],
-                    receive_results[networking.fields['rpm']],) + ' '*20)
-                sys.stdout.flush()
+        has_new_data = accept_new_data(receive_results, last_receive_results, session_collection.shape[1])
+        if has_new_data:
+            sys.stdout.write('\rSamples {:05d}, lap time: {:.1f}, speed: {:.1f} m/s, rpm {:5.1f}'.format(
+                session_collection.shape[1],
+                receive_results[networking.fields['lap_time']],
+                receive_results[networking.fields['speed_ms']],
+                receive_results[networking.fields['rpm']],) + ' '*20)
+            sys.stdout.flush()
 
-                receive_results = np.expand_dims(receive_results, 1)
-                if session_collection.size == 0:
-                    session_collection = receive_results
-                else:
-                    session_collection = np.append(session_collection, receive_results, axis=1)
+            receive_results = np.expand_dims(receive_results, 1)
+            if session_collection.size == 0:
+                session_collection = receive_results
+            else:
+                session_collection = np.append(session_collection, receive_results, axis=1)
 
-                last_receive_results = receive_results.copy()
+            last_receive_results = receive_results.copy()
 
-            if keyboard.is_pressed(keys_stop_recording):
-                recording = False
-                # utils.cls()
-                print('\nRecording of race stopped. Collected {} data points.\n'.format(session_collection.shape[1]))
+        while not message_queue.empty():
+            command = message_queue.get()
 
-        print('\n'
-              'Enter: \n'
-              '"e" to exit the program\n'
-              '"r" to resume the race\n'
-              '"n" for the next race (delete data from current run)\n'
-              '"a" for analysis\n'
-              '"s" to save the current run\n'
-              '"l" to load a saved run\n'
-              '"p" to change the port\n'
-              '"k" to change the stop recording key\n')
+            if command == 'e':
+                print('Exit...\n')
+                end_program = True
+            elif command == 'c':
+                print('Cleared {} data points\n'.format(session_collection.shape[1]))
+                session_collection = np.zeros((len(networking.fields), 0))
+                last_receive_results = None
+            elif command == 'a':
+                print('Plotting {} data points\n'.format(session_collection.shape[1]))
+                plots.plot_main(session_data=session_collection)
+            elif command == 's':  # TODO: this will block the main thread and data from the port may be lost
+                root = tk.Tk()
+                root.withdraw()
+                file_path = filedialog.asksaveasfilename(filetypes=(("numpy", "*.npz"),))
+                if file_path is not None and file_path != '' and file_path != '.npz':
+                    utils.make_dir_for_file(file_path)
+                    np.savez_compressed(file_path, session_collection)
+                    print('Saved {} data points to {}\n'.format(session_collection.shape[1], file_path))
+            elif command == 'l':  # TODO: this will block the main thread and data from the port may be lost
+                root = tk.Tk()
+                root.withdraw()
+                file_path = filedialog.askopenfilename(filetypes=(("numpy", "*.npz"), ("all files", "*.*")))
+                if file_path is not None and file_path != '':
+                    if os.path.isfile(file_path):
+                        npz_file = np.load(file_path)
+                        session_collection = npz_file['arr_0']
+                        print('Loaded {} data points from {}\n'.format(session_collection.shape[1], file_path))
+                    else:
+                        print('"{}" is no valid file!\n'.format(file_path))
+            elif command == 'p':
+                udp_socket = networking.open_port(networking.get_port())
+            else:
+                print('Unknown command: {}\n'.format(command))
 
-        if debug:
-            command = 'a'
-        else:
-            command = input()
-        if command == 'e':
-            print('Ending...')
-            end_program = True
-        elif command == 'r':
-            print('Press "q" to quit the current race and start the analysis')
-            recording = True
-        elif command == 'n':
-            print('Prepare for next race...')
-            print('Press "{}" to quit the current race and start the analysis'.format(keys_stop_recording))
-            session_collection = np.zeros((len(networking.fields), 0))
-            last_receive_results = None
-            recording = True
-        elif command == 'a':
-            plots.plot_main(session_data=session_collection)
-        elif command == 's':
-            root = tk.Tk()
-            root.withdraw()
-            file_path = filedialog.asksaveasfilename(filetypes=(("numpy", "*.npz"),))
-            if file_path is not None:
-                utils.make_dir_for_file(file_path)
-                np.savez_compressed(file_path, session_collection)
-                print('Saved {} data points to {}'.format(session_collection.shape[1], file_path))
-        elif command == 'l':
-            root = tk.Tk()
-            root.withdraw()
-            file_path = filedialog.askopenfilename(filetypes=(("numpy", "*.npz"), ("all files", "*.*")))
-            if file_path is not None and os.path.isfile(file_path):
-                npz_file = np.load(file_path)
-                session_collection = npz_file['arr_0']
-                print('Loaded {} data points from {}'.format(session_collection.shape[1], file_path))
-        elif command == 'p':
-            udp_socket = networking.open_port(networking.get_port())
-        elif command == 'k':
-            try:
-                key_str = input('Enter key-string (default "{}"): '.format(keys_default_stop_recording))
-                c = keyboard.key_to_scan_codes(key_str)  # trigger error if invalid and catch below
-                keys_stop_recording = key_str
-            except ValueError as e:
-                print('Invalid key-string: "{}"'.format(key_str))
-        else:
-            print('Unknown command: {}'.format(command))
+        if not has_new_data:
+            time.sleep(0.05)  # 5 ms (+- 15 ms)
 
+    input_thread.join()

@@ -23,6 +23,7 @@ This is a logging and analysis tool for car setups in Codemasters' Dirt Rally 2.
             <fanatec enabled="false" pedalVibrationScale="1.0" wheelVibrationScale="1.0" ledTrueForGearsFalseForSpeed="true" />
         </motion_platform>
         ```
+    1. You will need to disable any another running telemetry tools. This is because data is removed from the port when a program reads a package.
 1. Download and unzip dr2logger.zip archive
 1. Run the dr2logger.exe while you play DR2
 1. After each race, switch to the logger to save the log and see the plots
