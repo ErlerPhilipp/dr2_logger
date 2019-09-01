@@ -145,4 +145,3 @@ def get_drift_angle(session_data):
     drift_angle_deg = np.rad2deg(drift_angle)
 
     return drift_angle_deg
-

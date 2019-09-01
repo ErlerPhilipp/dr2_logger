@@ -1,8 +1,8 @@
 import numpy as np
 import socket
 import struct
-import errno
-import os
+
+debug = False
 
 port_default = 20777
 
@@ -80,9 +80,9 @@ fields = {
 def bit_stream_to_float32(data, pos):
     try:
         value = struct.unpack('f', data[pos:pos+4])[0]
-    except struct.error as e:
+    except struct.error as _:
         value = 0
-        #print('Failed to get data item at pos {}'.format(pos))
+        # print('Failed to get data item at pos {}'.format(pos))
     except:
         value = 0
         print('Failed to get data item at pos {}'.format(pos))
@@ -90,9 +90,15 @@ def bit_stream_to_float32(data, pos):
 
 
 def receive(udp_socket):
+
+    if debug:
+        import time
+        time.sleep(0.1)
+        return np.random.rand(len(fields))
+
     try:
         data, addr = udp_socket.recvfrom(1024)  # buffer size is 1024 bytes
-    except socket.timeout as e:
+    except socket.timeout as _:
         return None
 
     run_time = bit_stream_to_float32(data, 0)
@@ -174,20 +180,27 @@ def receive(udp_socket):
     ])
 
 
-def get_port():
+def parse_port(port_str):
 
     try:
-        port_str = input('Enter port (default {}): '.format(port_default))
         if port_str is None or port_str == '':
             return port_default
         else:
             port_int = int(port_str)
             return port_int
-    except ValueError as e:
+    except ValueError as _:
+        print('Invalid port "{}"! Falling back to default port {}'.format(port_str, port_default))
         return port_default
 
 
-def open_port(port):
+def get_port():
+
+    port_str = input('Enter port (default {}): '.format(port_default))
+    port_int = parse_port(port_str)
+    return port_int
+
+
+def open_port(port: int):
 
     udp_ip = "127.0.0.1"
     udp_port = port
@@ -214,4 +227,3 @@ def open_port(port):
         udp_socket = None
 
     return udp_socket
-

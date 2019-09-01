@@ -14,7 +14,7 @@ import plots
 
 debug = False
 recording = False
-version_string = '(Version 1.3, 2019-08-25)'
+version_string = '(Version 1.3, 2019-09-01)'
 
 
 def add_input(message_queue):
@@ -24,6 +24,15 @@ def add_input(message_queue):
         message_queue.put(read_res)
         if read_res == 'e':
             running = False
+
+
+def print_overwriting(str):
+    # not really working currently
+    # this will mess up the commands or spam the console
+
+    # sys.stdout.write('\r' + str + '')
+    # sys.stdout.flush()
+    pass
 
 
 def accept_new_data(receive_results, last_receive_results, num_samples):
@@ -37,7 +46,7 @@ def accept_new_data(receive_results, last_receive_results, num_samples):
     if receive_results[networking.fields['pos_x']] == 0.0 and \
         receive_results[networking.fields['pos_y']] == 0.0 and \
         receive_results[networking.fields['pos_z']] == 0.0:
-        sys.stdout.write('\rSamples {}, lap time: {}, ignore bad data (in finish?)'.format(
+        print_overwriting('Samples {}, lap time: {}, ignore bad data (in finish?)'.format(
             num_samples,
             receive_results[networking.fields['lap_time']]) + ' '*20)
         sys.stdout.flush()
@@ -45,7 +54,7 @@ def accept_new_data(receive_results, last_receive_results, num_samples):
 
     # race has not yet started
     if receive_results[networking.fields['lap_time']] == 0.0:
-        sys.stdout.write('\rSamples {}, lap time: {}, ignore pre-race'.format(
+        print_overwriting('Samples {}, lap time: {}, ignore pre-race'.format(
             num_samples,
             receive_results[networking.fields['lap_time']]) + ' '*20)
         sys.stdout.flush()
@@ -54,7 +63,7 @@ def accept_new_data(receive_results, last_receive_results, num_samples):
     # new race time is less than the previous -> race has ended and car is in service area or next race
     if last_receive_results is not None and \
             receive_results[networking.fields['lap_time']] < last_receive_results[networking.fields['lap_time']]:
-        sys.stdout.write('\rSamples {}, lap time: {}, ignore bad data (service area?)'.format(
+        print_overwriting('Samples {}, lap time: {}, ignore bad data (service area?)'.format(
             num_samples,
             receive_results[networking.fields['lap_time']]) + ' '*20)
         sys.stdout.flush()
@@ -63,7 +72,7 @@ def accept_new_data(receive_results, last_receive_results, num_samples):
     # same time again -> game is probably paused
     if last_receive_results is not None and \
             receive_results[networking.fields['lap_time']] == last_receive_results[networking.fields['lap_time']]:
-        sys.stdout.write('\rSamples {}, lap time: {}, ignore old data'.format(
+        print_overwriting('Samples {}, lap time: {}, ignore old data'.format(
             num_samples,
             receive_results[networking.fields['lap_time']]) + ' '*20)
         sys.stdout.flush()
@@ -93,10 +102,12 @@ Enter:
 "a" for analysis
 "s" to save the current run
 "l" to load a saved run
-"p" to change the port
+"p [port]" to change the port, e.g. 'p 20777'
     '''.format(version_string))
 
     udp_socket = networking.open_port(networking.port_default)
+    if udp_socket is not None:
+        print('Listening on port {}'.format(networking.port_default))
 
     session_collection = np.zeros((len(networking.fields), 0))
     last_receive_results = None
@@ -122,11 +133,11 @@ Enter:
 
         has_new_data = accept_new_data(receive_results, last_receive_results, session_collection.shape[1])
         if has_new_data:
-            sys.stdout.write('\rSamples {:05d}, lap time: {:.1f}, speed: {:.1f} m/s, rpm {:5.1f}'.format(
+            print_overwriting('Samples {:05d}, lap time: {:.1f}, speed: {:.1f} m/s, rpm {:5.1f}'.format(
                 session_collection.shape[1],
                 receive_results[networking.fields['lap_time']],
                 receive_results[networking.fields['speed_ms']],
-                receive_results[networking.fields['rpm']],) + ' '*20)
+                receive_results[networking.fields['rpm']],) + ' '*30)
             sys.stdout.flush()
 
             receive_results = np.expand_dims(receive_results, 1)
@@ -170,7 +181,16 @@ Enter:
                     else:
                         print('"{}" is no valid file!\n'.format(file_path))
             elif command == 'p':
-                udp_socket = networking.open_port(networking.get_port())
+                print('You must specify a port number with the command. For example "p 20777".\n')
+            elif command[:2] == 'p ':
+                port_no = command.split(' ')[1]
+                port_no_int = networking.parse_port(port_no)
+                if udp_socket.getsockname()[1] == port_no_int:
+                    print('Already listening on socket {}\n'.format(udp_socket.getsockname()))
+                else:
+                    udp_socket = networking.open_port(port_no_int)
+                    if udp_socket is not None:
+                        print('Listening on socket {}\n'.format(udp_socket.getsockname()))
             else:
                 print('Unknown command: {}\n'.format(command))
 
@@ -178,3 +198,4 @@ Enter:
             time.sleep(0.05)  # 5 ms (+- 15 ms)
 
     input_thread.join()
+    udp_socket.close()

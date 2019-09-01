@@ -2,7 +2,7 @@
 
 This is a logging and analysis tool for car setups in Codemasters' Dirt Rally 2.0 written by Philipp Erler in 2019.
 
-- [Download Executable (Version 1.2, 2019-08-25)](https://philipperler.net/dr2logger_1_2/)
+- [Download Executable (Version 1.3, 2019-09-01)](https://philipperler.net/dr2logger_1_3/)
 - [Source Code, Documentation and Support](https://github.com/ErlerPhilipp/dr2_logger)
 
 ## How to Use ##
@@ -23,10 +23,12 @@ This is a logging and analysis tool for car setups in Codemasters' Dirt Rally 2.
             <fanatec enabled="false" pedalVibrationScale="1.0" wheelVibrationScale="1.0" ledTrueForGearsFalseForSpeed="true" />
         </motion_platform>
         ```
-    1. You will need to disable any another running telemetry tools. This is because data is removed from the port when a program reads a package.
 1. Download and unzip dr2logger.zip archive
 1. Run the dr2logger.exe while you play DR2
 1. After each race, switch to the logger to save the log and see the plots
+1. Remarks:
+    1. Disable any another running telemetry tools. This is necessary because data is sent only once from DR2 but removed from the port when a program reads a package. There can't be any guarantee that one progam receives all packages.
+    1. Don't save, load or analyze your run while the race is running. Otherwise, data might get lost. Pausing the race is sufficient.
 
 ![dr2logger](img/dr2logger.png)
 You should see this amazing command-line window.
@@ -136,6 +138,7 @@ If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or 
 
 ## Change Log ##
 
+- 1.3 (2019-09-01): keyboard I/O is now in a separate thread
 - 1.2 (2019-08-25): better histograms, error handling for sockets
 - 1.1 (2019-08-19): improved plots for suspension and rot vs susp
 - 1.0 (2019-08-17): initial release

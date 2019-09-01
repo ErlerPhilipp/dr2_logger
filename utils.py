@@ -12,5 +12,5 @@ def make_dir_for_file(file):
         if not os.path.exists(file_dir):
             try:
                 os.makedirs(os.path.dirname(file))
-            except OSError as exc: # Guard against race condition
+            except OSError as _:  # Guard against race condition
                 raise

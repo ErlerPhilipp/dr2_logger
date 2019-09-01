@@ -676,4 +676,3 @@ def suspension_lr_fr_angles_over_time(ax, session_data):
     line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension dislocation angle over lap time',
               labels=labels, alpha=0.5, x_label='Lap time (s)',
               y_label='Suspension dislocation angle (deg)', min_max_annotations=True)
-
