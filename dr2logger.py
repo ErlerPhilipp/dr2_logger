@@ -14,7 +14,7 @@ import plots
 
 debug = False
 recording = False
-version_string = '(Version 1.3, 2019-09-01)'
+version_string = '(Version 1.3, 2019-09-02)'
 
 
 def add_input(message_queue):
@@ -26,13 +26,15 @@ def add_input(message_queue):
             running = False
 
 
-def print_overwriting(str):
+def print_current_state(str):
     # not really working currently
     # this will mess up the commands or spam the console
-
     # sys.stdout.write('\r' + str + '')
     # sys.stdout.flush()
-    pass
+
+    # therefore print to window title
+    import ctypes
+    ctypes.windll.kernel32.SetConsoleTitleW(str)
 
 
 def accept_new_data(receive_results, last_receive_results, num_samples):
@@ -46,35 +48,35 @@ def accept_new_data(receive_results, last_receive_results, num_samples):
     if receive_results[networking.fields['pos_x']] == 0.0 and \
         receive_results[networking.fields['pos_y']] == 0.0 and \
         receive_results[networking.fields['pos_z']] == 0.0:
-        print_overwriting('Samples {}, lap time: {}, ignore bad data (in finish?)'.format(
+        print_current_state('Samples {}, lap time: {}, ignore bad data (in finish?)'.format(
             num_samples,
-            receive_results[networking.fields['lap_time']]) + ' '*20)
+            receive_results[networking.fields['lap_time']]) + ' ' * 20)
         sys.stdout.flush()
         return False
 
     # race has not yet started
     if receive_results[networking.fields['lap_time']] == 0.0:
-        print_overwriting('Samples {}, lap time: {}, ignore pre-race'.format(
+        print_current_state('Samples {}, lap time: {}, ignore pre-race'.format(
             num_samples,
-            receive_results[networking.fields['lap_time']]) + ' '*20)
+            receive_results[networking.fields['lap_time']]) + ' ' * 20)
         sys.stdout.flush()
         return False
 
     # new race time is less than the previous -> race has ended and car is in service area or next race
     if last_receive_results is not None and \
             receive_results[networking.fields['lap_time']] < last_receive_results[networking.fields['lap_time']]:
-        print_overwriting('Samples {}, lap time: {}, ignore bad data (service area?)'.format(
+        print_current_state('Samples {}, lap time: {}, ignore bad data (service area?)'.format(
             num_samples,
-            receive_results[networking.fields['lap_time']]) + ' '*20)
+            receive_results[networking.fields['lap_time']]) + ' ' * 20)
         sys.stdout.flush()
         return False
 
     # same time again -> game is probably paused
     if last_receive_results is not None and \
             receive_results[networking.fields['lap_time']] == last_receive_results[networking.fields['lap_time']]:
-        print_overwriting('Samples {}, lap time: {}, ignore old data'.format(
+        print_current_state('Samples {}, lap time: {}, ignore old data'.format(
             num_samples,
-            receive_results[networking.fields['lap_time']]) + ' '*20)
+            receive_results[networking.fields['lap_time']]) + ' ' * 20)
         sys.stdout.flush()
         return False
 
@@ -107,7 +109,7 @@ Enter:
 
     udp_socket = networking.open_port(networking.port_default)
     if udp_socket is not None:
-        print('Listening on port {}'.format(networking.port_default))
+        print('Listening on socket {}\n'.format(udp_socket.getsockname()))
 
     session_collection = np.zeros((len(networking.fields), 0))
     last_receive_results = None
@@ -133,11 +135,11 @@ Enter:
 
         has_new_data = accept_new_data(receive_results, last_receive_results, session_collection.shape[1])
         if has_new_data:
-            print_overwriting('Samples {:05d}, lap time: {:.1f}, speed: {:.1f} m/s, rpm {:5.1f}'.format(
+            print_current_state('Samples {:05d}, lap time: {:.1f}, speed: {:.1f} m/s, rpm {:5.1f}'.format(
                 session_collection.shape[1],
                 receive_results[networking.fields['lap_time']],
                 receive_results[networking.fields['speed_ms']],
-                receive_results[networking.fields['rpm']],) + ' '*30)
+                receive_results[networking.fields['rpm']],) + ' ' * 30)
             sys.stdout.flush()
 
             receive_results = np.expand_dims(receive_results, 1)
