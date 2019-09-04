@@ -202,11 +202,11 @@ def plot_gear_over_3d_pos(ax, session_data):
     x, y, z = data_processing.get_3d_coordinates(session_data)
     dx, dy, dz = data_processing.get_forward_dir_3d(session_data)
 
-    rpm = session_data[networking.fields['rpm']]
+    rpm = session_data[networking.fields.rpm.value]
     rpm_max = rpm.max()
     scale = 50.0
     rpm_normalized_scaled = rpm / rpm_max * scale
-    gear = session_data[networking.fields['gear']]
+    gear = session_data[networking.fields.gear.value]
     gear_max = max(gear)
     gear_normalized_scaled = gear / gear_max
 
@@ -218,7 +218,7 @@ def plot_gear_over_3d_pos(ax, session_data):
 
 def plot_gear_over_2d_pos(ax, session_data):
 
-    gear = session_data[networking.fields['gear']]
+    gear = session_data[networking.fields.gear.value]
     pos_x, pos_y = data_processing.get_2d_coordinates(session_data)
     range_gears = np.unique(gear)
 
@@ -226,7 +226,7 @@ def plot_gear_over_2d_pos(ax, session_data):
     lines_x = []
     lines_y = []
     for i, g in enumerate(range_gears):
-        current_gear = session_data[networking.fields['gear']] == g
+        current_gear = session_data[networking.fields.gear.value] == g
         lines_x += [pos_x[current_gear]]
         lines_y += [pos_y[current_gear]]
 
@@ -236,9 +236,9 @@ def plot_gear_over_2d_pos(ax, session_data):
 
 def gear_rpm_bars(ax, session_data):
 
-    time_differences = data_processing.differences(session_data[networking.fields['lap_time']])
-    rpm = session_data[networking.fields['rpm']]
-    data_gear = session_data[networking.fields['gear']]
+    time_differences = data_processing.differences(session_data[networking.fields.lap_time.value])
+    rpm = session_data[networking.fields.rpm.value]
+    data_gear = session_data[networking.fields.gear.value]
     range_gears = list(set(data_gear))
     range_gears.sort()
 
@@ -256,10 +256,10 @@ def gear_rpm_bars(ax, session_data):
 
 
 def inputs_over_time(ax, session_data):
-    lap_time = session_data[networking.fields['lap_time']]
-    throttle = session_data[networking.fields['throttle']]
-    brakes = session_data[networking.fields['brakes']]
-    steering = session_data[networking.fields['steering']]
+    lap_time = session_data[networking.fields.lap_time.value]
+    throttle = session_data[networking.fields.throttle.value]
+    brakes = session_data[networking.fields.brakes.value]
+    steering = session_data[networking.fields.steering.value]
     input_data = np.array([throttle, brakes, steering])
 
     labels = ['throttle', 'brakes', 'steering']
@@ -271,11 +271,11 @@ def inputs_over_time(ax, session_data):
 
 
 def suspension_over_time(ax, session_data):
-    lap_time = session_data[networking.fields['lap_time']]
-    susp_fl = session_data[networking.fields['susp_fl']]
-    susp_fr = session_data[networking.fields['susp_fr']]
-    susp_rl = session_data[networking.fields['susp_rl']]
-    susp_rr = session_data[networking.fields['susp_rr']]
+    lap_time = session_data[networking.fields.lap_time.value]
+    susp_fl = session_data[networking.fields.susp_fl.value]
+    susp_fr = session_data[networking.fields.susp_fr.value]
+    susp_rl = session_data[networking.fields.susp_rl.value]
+    susp_rr = session_data[networking.fields.susp_rr.value]
     susp_data = np.array([susp_fl, susp_fr, susp_rl, susp_rr])
 
     labels = ['front left', 'front right', 'rear left', 'rear right']
@@ -288,11 +288,11 @@ def suspension_over_time(ax, session_data):
 
 
 def suspension_lr_fr_over_time(ax, session_data):
-    lap_time = session_data[networking.fields['lap_time']]
-    susp_fl = session_data[networking.fields['susp_fl']]
-    susp_fr = session_data[networking.fields['susp_fr']]
-    susp_rl = session_data[networking.fields['susp_rl']]
-    susp_rr = session_data[networking.fields['susp_rr']]
+    lap_time = session_data[networking.fields.lap_time.value]
+    susp_fl = session_data[networking.fields.susp_fl.value]
+    susp_fr = session_data[networking.fields.susp_fr.value]
+    susp_rl = session_data[networking.fields.susp_rl.value]
+    susp_rr = session_data[networking.fields.susp_rr.value]
     susp_left_right = (susp_fl + susp_rl) * 0.5 - (susp_fr + susp_rr) * 0.5
     susp_front_rear = (susp_fl + susp_fr) * 0.5 - (susp_rl + susp_rr) * 0.5
     susp_data = np.array([susp_left_right, susp_front_rear])
@@ -308,11 +308,11 @@ def suspension_lr_fr_over_time(ax, session_data):
 
 def suspension_l_r_f_r_over_time(ax, session_data):
 
-    lap_time = session_data[networking.fields['lap_time']]
-    susp_fl = session_data[networking.fields['susp_fl']]
-    susp_fr = session_data[networking.fields['susp_fr']]
-    susp_rl = session_data[networking.fields['susp_rl']]
-    susp_rr = session_data[networking.fields['susp_rr']]
+    lap_time = session_data[networking.fields.lap_time.value]
+    susp_fl = session_data[networking.fields.susp_fl.value]
+    susp_fr = session_data[networking.fields.susp_fr.value]
+    susp_rl = session_data[networking.fields.susp_rl.value]
+    susp_rr = session_data[networking.fields.susp_rr.value]
     susp_left = (susp_fl + susp_rl) * 0.5
     susp_right = (susp_fr + susp_rr) * 0.5
     susp_front = (susp_fl + susp_fr) * 0.5
@@ -330,11 +330,11 @@ def suspension_l_r_f_r_over_time(ax, session_data):
 
 def suspension_bars(ax, session_data):
 
-    time_differences = data_processing.differences(session_data[networking.fields['lap_time']])
-    susp_fl = session_data[networking.fields['susp_fl']]
-    susp_fr = session_data[networking.fields['susp_fr']]
-    susp_rl = session_data[networking.fields['susp_rl']]
-    susp_rr = session_data[networking.fields['susp_rr']]
+    time_differences = data_processing.differences(session_data[networking.fields.lap_time.value])
+    susp_fl = session_data[networking.fields.susp_fl.value]
+    susp_fr = session_data[networking.fields.susp_fr.value]
+    susp_rl = session_data[networking.fields.susp_rl.value]
+    susp_rr = session_data[networking.fields.susp_rr.value]
     susp_data = np.array([susp_fl, susp_fr, susp_rl, susp_rr])
     time_data = np.repeat(np.expand_dims(time_differences, axis=0), 4, axis=0)
     susp_min = susp_data.min()
@@ -353,11 +353,11 @@ def suspension_bars(ax, session_data):
 
 def suspension_l_r_f_r_bars(ax, session_data):
 
-    time_differences = data_processing.differences(session_data[networking.fields['lap_time']])
-    susp_fl = session_data[networking.fields['susp_fl']]
-    susp_fr = session_data[networking.fields['susp_fr']]
-    susp_rl = session_data[networking.fields['susp_rl']]
-    susp_rr = session_data[networking.fields['susp_rr']]
+    time_differences = data_processing.differences(session_data[networking.fields.lap_time.value])
+    susp_fl = session_data[networking.fields.susp_fl.value]
+    susp_fr = session_data[networking.fields.susp_fr.value]
+    susp_rl = session_data[networking.fields.susp_rl.value]
+    susp_rr = session_data[networking.fields.susp_rr.value]
     susp_left = (susp_fl + susp_rl) * 0.5
     susp_right = (susp_fr + susp_rr) * 0.5
     susp_front = (susp_fl + susp_fr) * 0.5
@@ -374,8 +374,8 @@ def suspension_l_r_f_r_bars(ax, session_data):
 
 
 def plot_height_over_dist(ax, session_data):
-    distance = session_data[networking.fields['distance']]
-    height = np.abs(session_data[networking.fields['pos_y']])
+    distance = session_data[networking.fields.distance.value]
+    height = np.abs(session_data[networking.fields.pos_y.value])
     ax.plot(distance, height, label='height')
     ax.set(xlabel='distance (m)', ylabel='height (m)',
            title='Track Elevation')
@@ -384,7 +384,7 @@ def plot_height_over_dist(ax, session_data):
 
 def plot_g_over_rpm(ax, session_data):
 
-    data_gear = session_data[networking.fields['gear']]
+    data_gear = session_data[networking.fields.gear.value]
     range_gears = list(set(data_gear))
     range_gears.sort()
 
@@ -397,13 +397,13 @@ def plot_g_over_rpm(ax, session_data):
     y_points = []
     scales = []
     for i, g in enumerate(range_gears):
-        current_gear = session_data[networking.fields['gear']] == g
-        full_throttle = session_data[networking.fields['throttle']] == 1.0
+        current_gear = session_data[networking.fields.gear.value] == g
+        full_throttle = session_data[networking.fields.throttle.value] == 1.0
         interesting = np.logical_and(current_gear, full_throttle)
 
-        g_force_lon = session_data[networking.fields['g_force_lon'], interesting]
-        rpm = session_data[networking.fields['rpm'], interesting]
-        throttle = session_data[networking.fields['throttle'], interesting]
+        g_force_lon = session_data[networking.fields.g_force_lon.value, interesting]
+        rpm = session_data[networking.fields.rpm.value, interesting]
+        throttle = session_data[networking.fields.throttle.value, interesting]
         throttle_scaled = [t * scale for t in throttle]
 
         x_points += [rpm]
@@ -416,7 +416,7 @@ def plot_g_over_rpm(ax, session_data):
 
 def plot_g_over_throttle(ax, session_data):
 
-    data_gear = session_data[networking.fields['gear']]
+    data_gear = session_data[networking.fields.gear.value]
     range_gears = list(set(data_gear))
     range_gears.sort()
 
@@ -428,10 +428,10 @@ def plot_g_over_throttle(ax, session_data):
     x_points = []
     y_points = []
     for i, g in enumerate(range_gears):
-        current_gear = session_data[networking.fields['gear']] == g
+        current_gear = session_data[networking.fields.gear.value] == g
 
-        throttle = session_data[networking.fields['throttle'], current_gear]
-        g_force_lon = session_data[networking.fields['g_force_lon'], current_gear]
+        throttle = session_data[networking.fields.throttle.value, current_gear]
+        g_force_lon = session_data[networking.fields.g_force_lon.value, current_gear]
 
         x_points += [throttle]
         y_points += [g_force_lon]
@@ -442,7 +442,7 @@ def plot_g_over_throttle(ax, session_data):
 
 def plot_v_over_rpm(ax, session_data):
 
-    data_gear = session_data[networking.fields['gear']]
+    data_gear = session_data[networking.fields.gear.value]
     range_gears = list(set(data_gear))
     range_gears.sort()
 
@@ -454,12 +454,12 @@ def plot_v_over_rpm(ax, session_data):
     x_points = []
     y_points = []
     for i, g in enumerate(range_gears):
-        current_gear = session_data[networking.fields['gear']] == g
-        full_throttle = session_data[networking.fields['throttle']] == 1.0
+        current_gear = session_data[networking.fields.gear.value] == g
+        full_throttle = session_data[networking.fields.throttle.value] == 1.0
         interesting = np.logical_and(current_gear, full_throttle)
 
-        rpm = session_data[networking.fields['rpm'], interesting]
-        speed_ms = session_data[networking.fields['speed_ms'], interesting]
+        rpm = session_data[networking.fields.rpm.value, interesting]
+        speed_ms = session_data[networking.fields.speed_ms.value, interesting]
 
         x_points += [rpm]
         y_points += [speed_ms]
@@ -507,11 +507,11 @@ def forward_over_2d_pos(ax, session_data):
 
 def wheel_speed_over_time(ax, session_data):
 
-    lap_time = session_data[networking.fields['lap_time']]
-    wsp_fl = session_data[networking.fields['wsp_fl']]
-    wsp_fr = session_data[networking.fields['wsp_fr']]
-    wsp_rl = session_data[networking.fields['wsp_rl']]
-    wsp_rr = session_data[networking.fields['wsp_rr']]
+    lap_time = session_data[networking.fields.lap_time.value]
+    wsp_fl = session_data[networking.fields.wsp_fl.value]
+    wsp_fr = session_data[networking.fields.wsp_fr.value]
+    wsp_rl = session_data[networking.fields.wsp_rl.value]
+    wsp_rr = session_data[networking.fields.wsp_rr.value]
     wsp_data = np.array([wsp_fl, wsp_fr, wsp_rl, wsp_rr])
 
     labels = ['front left', 'front right', 'rear left', 'rear right']
@@ -524,11 +524,11 @@ def wheel_speed_over_time(ax, session_data):
 
 def wheel_speed_lr_fr_over_time(ax, session_data):
 
-    lap_time = session_data[networking.fields['lap_time']]
-    wsp_fl = session_data[networking.fields['wsp_fl']]
-    wsp_fr = session_data[networking.fields['wsp_fr']]
-    wsp_rl = session_data[networking.fields['wsp_rl']]
-    wsp_rr = session_data[networking.fields['wsp_rr']]
+    lap_time = session_data[networking.fields.lap_time.value]
+    wsp_fl = session_data[networking.fields.wsp_fl.value]
+    wsp_fr = session_data[networking.fields.wsp_fr.value]
+    wsp_rl = session_data[networking.fields.wsp_rl.value]
+    wsp_rr = session_data[networking.fields.wsp_rr.value]
     wsp_left_right = (wsp_fl + wsp_rl) * 0.5 - (wsp_fr + wsp_rr) * 0.5
     wsp_front_rear = (wsp_fl + wsp_fr) * 0.5 - (wsp_rl + wsp_rr) * 0.5
     wsp_data = np.array([wsp_left_right, wsp_front_rear])
@@ -543,11 +543,11 @@ def wheel_speed_lr_fr_over_time(ax, session_data):
 
 def drift_over_speed(ax, session_data):
 
-    steering = np.abs(session_data[networking.fields['steering']])
-    speed_ms = session_data[networking.fields['speed_ms']]
+    steering = np.abs(session_data[networking.fields.steering.value])
+    speed_ms = session_data[networking.fields.speed_ms.value]
     drift_angle_deg = data_processing.get_drift_angle(session_data)
     drift_angle_deg_der = data_processing.derive_no_nan(
-        drift_angle_deg, time_steps=session_data[networking.fields['lap_time']])
+        drift_angle_deg, time_steps=session_data[networking.fields.lap_time.value])
 
     # filter very slow parts
     fast_enough = speed_ms > 1.0  # m/s
@@ -573,8 +573,8 @@ def drift_over_speed(ax, session_data):
 
 def drift_angle_bars(ax, session_data):
 
-    time_differences = data_processing.differences(session_data[networking.fields['lap_time']])
-    speed_ms = session_data[networking.fields['speed_ms']]
+    time_differences = data_processing.differences(session_data[networking.fields.lap_time.value])
+    speed_ms = session_data[networking.fields.speed_ms.value]
     drift_angle_deg = data_processing.get_drift_angle(session_data)
 
     # filter very slow parts
@@ -596,11 +596,11 @@ def drift_angle_bars(ax, session_data):
 
 def drift_angle_change_bars(ax, session_data):
 
-    time_differences = data_processing.differences(session_data[networking.fields['lap_time']])
-    speed_ms = session_data[networking.fields['speed_ms']]
+    time_differences = data_processing.differences(session_data[networking.fields.lap_time.value])
+    speed_ms = session_data[networking.fields.speed_ms.value]
     drift_angle_deg = data_processing.get_drift_angle(session_data)
     drift_angle_deg_der = data_processing.derive_no_nan(
-        drift_angle_deg, time_steps=session_data[networking.fields['lap_time']])
+        drift_angle_deg, time_steps=session_data[networking.fields.lap_time.value])
 
     # filter very slow parts
     fast_enough = speed_ms > 1.0  # m/s
@@ -623,7 +623,7 @@ def drift_angle_change_bars(ax, session_data):
 
 def rotation_over_time(ax, session_data):
 
-    lap_time = session_data[networking.fields['lap_time']]
+    lap_time = session_data[networking.fields.lap_time.value]
 
     forward_local_xyz = data_processing.get_forward_dir_3d(session_data)
     sideward_local_xyz = data_processing.get_sideward_dir_3d(session_data)
@@ -651,11 +651,11 @@ def rotation_over_time(ax, session_data):
 
 
 def suspension_lr_fr_angles_over_time(ax, session_data):
-    lap_time = session_data[networking.fields['lap_time']]
-    susp_fl = session_data[networking.fields['susp_fl']]
-    susp_fr = session_data[networking.fields['susp_fr']]
-    susp_rl = session_data[networking.fields['susp_rl']]
-    susp_rr = session_data[networking.fields['susp_rr']]
+    lap_time = session_data[networking.fields.lap_time.value]
+    susp_fl = session_data[networking.fields.susp_fl.value]
+    susp_fr = session_data[networking.fields.susp_fr.value]
+    susp_rl = session_data[networking.fields.susp_rl.value]
+    susp_rr = session_data[networking.fields.susp_rr.value]
     susp_left_right = (susp_fl + susp_rl) * 0.5 - (susp_fr + susp_rr) * 0.5
     susp_front_rear = (susp_fl + susp_fr) * 0.5 - (susp_rl + susp_rr) * 0.5
 

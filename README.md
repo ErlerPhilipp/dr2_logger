@@ -144,3 +144,10 @@ If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or 
 - 1.2 (2019-08-25): better histograms, error handling for sockets
 - 1.1 (2019-08-19): improved plots for suspension and rot vs susp
 - 1.0 (2019-08-17): initial release
+
+## Work in Progress ##
+
+- automatic detection and saving of runs
+- prevent crash from too less data
+- put socket I/O in extra thread
+- mirror received UDP packages to another port

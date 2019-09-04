@@ -1,80 +1,82 @@
 import numpy as np
 import socket
 import struct
+from enum import Enum
 
 debug = False
 
 port_default = 20777
 
 # https://docs.google.com/spreadsheets/d/1eA518KHFowYw7tSMa-NxIFYpiWe5JXgVVQ_IMs7BVW0/edit?usp=drivesdk
-fields = {
-    'run_time':            0,
-    'lap_time':            1,
-    'distance':            2,
-    'progress':            3,
-    'pos_x':               4,
-    'pos_y':               5,
-    'pos_z':               6,
-    'speed_ms':            7,
-    'vel_x':               8,
-    'vel_y':               9,
-    'vel_z':               10,
-    'roll_x':              11,
-    'roll_y':              12,
-    'roll_z':              13,
-    'pitch_x':             14,
-    'pitch_y':             15,
-    'pitch_z':             16,
-    'susp_rl':             17,
-    'susp_rr':             18,
-    'susp_fl':             19,
-    'susp_fr':             20,
-    'susp_vel_rl':         21,
-    'susp_vel_rr':         22,
-    'susp_vel_fl':         23,
-    'susp_vel_fr':         24,
-    'wsp_rl':              25,
-    'wsp_rr':              26,
-    'wsp_fl':              27,
-    'wsp_fr':              28,
-    'throttle':            29,
-    'steering':            30,
-    'brakes':              31,
-    'clutch':              32,
-    'gear':                33,
-    'g_force_lat':         34,
-    'g_force_lon':         35,
-    'current_lap':         36,
-    'rpm':                 37,
-    'sli_pro_support':     38,
-    'car_pos':             39,
-    'kers_level':          40,
-    'kers_max_level':      41,
-    'drs':                 42,
-    'traction_control':    43,
-    'anti_lock_brakes':    44,
-    'fuel_in_tank':        45,
-    'fuel_capacity':       46,
-    'in_pit':              47,
-    'sector':              48,
-    'sector_1_time':       49,
-    'sector_2_time':       50,
-    'brakes_temp':         51,
-    'wheels_pressure_psi': 52,
-    'team_info':           53,
-    'total_laps':          54,
-    'track_size':          55,
-    'last_lap_time':       56,
-    'max_rpm':             57,
-    'idle_rpm':            58,
-    'max_gears':           59,
-    'session_type':        60,
-    'drs_allowed':         61,
-    'track_number':        62,
-    'vehicle_fia_flags':   63,
-    'unknown_0':           64,
-    'unknown_1':           65,
-}
+
+class fields(Enum):
+    run_time =            0
+    lap_time =            1
+    distance =            2
+    progress =            3
+    pos_x =               4
+    pos_y =               5
+    pos_z =               6
+    speed_ms =            7
+    vel_x =               8
+    vel_y =               9
+    vel_z =               10
+    roll_x =              11
+    roll_y =              12
+    roll_z =              13
+    pitch_x =             14
+    pitch_y =             15
+    pitch_z =             16
+    susp_rl =             17
+    susp_rr =             18
+    susp_fl =             19
+    susp_fr =             20
+    susp_vel_rl =         21
+    susp_vel_rr =         22
+    susp_vel_fl =         23
+    susp_vel_fr =         24
+    wsp_rl =              25
+    wsp_rr =              26
+    wsp_fl =              27
+    wsp_fr =              28
+    throttle =            29
+    steering =            30
+    brakes =              31
+    clutch =              32
+    gear =                33
+    g_force_lat =         34
+    g_force_lon =         35
+    current_lap =         36
+    rpm =                 37
+    sli_pro_support =     38
+    car_pos =             39
+    kers_level =          40
+    kers_max_level =      41
+    drs =                 42
+    traction_control =    43
+    anti_lock_brakes =    44
+    fuel_in_tank =        45
+    fuel_capacity =       46
+    in_pit =              47
+    sector =              48
+    sector_1_time =       49
+    sector_2_time =       50
+    brakes_temp =         51
+    wheels_pressure_psi = 52
+    team_info =           53
+    total_laps =          54
+    track_size =          55
+    last_lap_time =       56
+    max_rpm =             57
+    idle_rpm =            58
+    max_gears =           59
+    session_type =        60
+    drs_allowed =         61
+    track_number =        62
+    vehicle_fia_flags =   63
+    unknown_0 =           64
+    unknown_1 =           65
+
 
 
 def bit_stream_to_float32(data, pos):

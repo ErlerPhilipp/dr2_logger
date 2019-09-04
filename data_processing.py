@@ -43,16 +43,16 @@ def convert_coordinate_system_2d(x, z):
 def get_3d_coordinates(session_data):
 
     return convert_coordinate_system_3d(
-        session_data[networking.fields['pos_x']],
-        session_data[networking.fields['pos_y']],
-        session_data[networking.fields['pos_z']])
+        session_data[networking.fields.pos_x.value],
+        session_data[networking.fields.pos_y.value],
+        session_data[networking.fields.pos_z.value])
 
 
 def get_2d_coordinates(session_data):
 
     return convert_coordinate_system_2d(
-        session_data[networking.fields['pos_x']],
-        session_data[networking.fields['pos_z']])
+        session_data[networking.fields.pos_x.value],
+        session_data[networking.fields.pos_z.value])
 
 
 def get_min_middle_max(x):
@@ -93,43 +93,43 @@ def derive_no_nan(x, time_steps):
 
 def get_forward_dir_2d(session_data):
     px, py = convert_coordinate_system_2d(
-        session_data[networking.fields['pitch_x']],
-        session_data[networking.fields['pitch_z']])
+        session_data[networking.fields.pitch_x.value],
+        session_data[networking.fields.pitch_z.value])
     pxy_normalized = normalize_2d_vectors(px, py)
     return pxy_normalized
 
 
 def get_forward_dir_3d(session_data):
     px, py, pz = convert_coordinate_system_3d(
-        session_data[networking.fields['pitch_x']],
-        session_data[networking.fields['pitch_y']],
-        session_data[networking.fields['pitch_z']])
+        session_data[networking.fields.pitch_x.value],
+        session_data[networking.fields.pitch_y.value],
+        session_data[networking.fields.pitch_z.value])
     pxyz_normalized = normalize_3d_vectors(px, py, pz)
     return pxyz_normalized
 
 
 def get_sideward_dir_3d(session_data):
     px, py, pz = convert_coordinate_system_3d(
-        session_data[networking.fields['roll_x']],
-        session_data[networking.fields['roll_y']],
-        session_data[networking.fields['roll_z']])
+        session_data[networking.fields.roll_x.value],
+        session_data[networking.fields.roll_y.value],
+        session_data[networking.fields.roll_z.value])
     pxy_normalized = normalize_3d_vectors(px, py, pz)
     return pxy_normalized
 
 
 def get_forward_vel_2d(session_data):
     vx, vy = convert_coordinate_system_2d(
-        session_data[networking.fields['vel_x']],
-        session_data[networking.fields['vel_z']])
+        session_data[networking.fields.vel_x.value],
+        session_data[networking.fields.vel_z.value])
     vxy_normalized = normalize_2d_vectors(vx, vy)
     return vxy_normalized
 
 
 def get_sideward_vel_3d(session_data):
     vy, vx, vz = convert_coordinate_system_3d(
-        session_data[networking.fields['roll_x']],
-        session_data[networking.fields['roll_y']],
-        session_data[networking.fields['roll_z']])
+        session_data[networking.fields.roll_x.value],
+        session_data[networking.fields.roll_y.value],
+        session_data[networking.fields.roll_z.value])
     vxy_normalized = normalize_3d_vectors(vx, vy, vz)
     return vxy_normalized
 
