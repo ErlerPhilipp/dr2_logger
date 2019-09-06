@@ -14,8 +14,8 @@ import dr2specific
 debug = False
 recording = False
 log_raw_data = False
-version_string = '(Version 1.4, 2019-09-04)'
-default_session_path = './session_auto_save/'
+version_string = '(Version 1.4, 2019-09-07)'
+default_session_path = './races_auto_save/'
 
 
 def add_input(message_queue):
@@ -40,8 +40,9 @@ def save_run(session_collection, automatic_name=False):
     from datetime import datetime
 
     if automatic_name:
+        total_race_time = '{:.1f}'.format(session_collection[networking.fields.lap_time.value][-1])
         now = datetime.now()
-        file_name = now.strftime("%Y-%m-%d %H_%M_%S") + '.npz'
+        file_name = now.strftime('%Y-%m-%d %H_%M_%S') + ' {}s.npz'.format(total_race_time)
         os.makedirs(default_session_path, exist_ok=True)
         file_path = os.path.join(default_session_path, file_name)
     else:
