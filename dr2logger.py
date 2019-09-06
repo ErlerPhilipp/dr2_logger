@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import sys
 import threading
 import queue
 import time
@@ -12,6 +13,7 @@ import dr2specific
 
 debug = False
 recording = False
+log_raw_data = False
 version_string = '(Version 1.4, 2019-09-04)'
 default_session_path = './session_auto_save/'
 
@@ -39,7 +41,7 @@ def save_run(session_collection, automatic_name=False):
 
     if automatic_name:
         now = datetime.now()
-        file_name = now.strftime("%Y-%m/%d %H:%M:%S") + '.npy'
+        file_name = now.strftime("%Y-%m-%d %H_%M_%S") + '.npz'
         os.makedirs(default_session_path, exist_ok=True)
         file_path = os.path.join(default_session_path, file_name)
     else:
@@ -98,8 +100,8 @@ def main():
     session_collection = clear_session_collection()
     last_receive_results = None
     end_program = False
-    new_state = dr2specific.GameState.startup
-    last_state = dr2specific.GameState.startup
+    new_state = dr2specific.GameState.error
+    last_state = dr2specific.GameState.error
 
     print('''
 Dirt Rally 2.0 Race Logger {} by Philipp Erler
@@ -134,6 +136,7 @@ Enter:
     input_thread = threading.Thread(target=add_input, args=(message_queue,))
     input_thread.daemon = True
     input_thread.start()
+    raw_data = clear_session_collection() if log_raw_data else None
 
     if debug:  # start with plots
         # npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
@@ -147,9 +150,13 @@ Enter:
 
         # socket bind failed -> don't try to receive data
         receive_results = networking.receive(udp_socket) if udp_socket is not None else None
-        if receive_results is None:
-            time.sleep(0.005)  # 5 ms (+- 15 ms)
-            continue
+
+        if log_raw_data:
+            receive_results_raw = np.expand_dims(receive_results, 1)
+            if raw_data.size == 0:
+                raw_data = receive_results_raw
+            else:
+                raw_data = np.append(session_collection, receive_results_raw, axis=1)
 
         new_state = dr2specific.get_game_state(receive_results, last_receive_results)
         print_current_state(dr2specific.get_game_state_str(new_state, receive_results, session_collection.shape[1]))
@@ -186,12 +193,20 @@ Enter:
                 print('Unknown command: "{}"\n'.format(command))
                 print(commands_hint + '\n')
 
+        # simply ignore state changes through duplicates
+        if new_state == dr2specific.GameState.duplicate_package or new_state == dr2specific.GameState.error:
+            new_state = last_state
+
         if last_state != new_state:
             print('State changed from {} to {}'.format(last_state, new_state))
 
-        if last_state == dr2specific.GameState.race_running and new_state == dr2specific.GameState.race_finished:
+        if last_state == dr2specific.GameState.race_running and \
+                new_state == dr2specific.GameState.race_finished_or_service_area:
             print('Race finished. ')
             save_run(session_collection, automatic_name=True)
+
+            if log_raw_data:
+                save_run(raw_data, automatic_name=False)
         if last_state == dr2specific.GameState.race_start and new_state == dr2specific.GameState.race_running:
             print('Race starting. Cleared {} data points\n'.format(session_collection.shape[1]))
             session_collection = clear_session_collection()
@@ -199,8 +214,8 @@ Enter:
         last_state = new_state
         if has_new_data:
             last_receive_results = receive_results.copy()
-        else:
-            time.sleep(0.005)  # 5 ms (+- 15 ms)
+        #else:
+        #    time.sleep(0.005)  # 5 ms (+- 15 ms)
 
     input_thread.join()
     udp_socket.close()
