@@ -97,8 +97,14 @@ def plot_over_2d_pos(ax, session_data, lines_x, lines_y, scale, alpha, title, la
 
     for i, g in enumerate(lines_x):
         ax.scatter(x=lines_x[i], y=lines_y[i], s=scale, alpha=alpha, label=labels[i])
-    ax.set_xlim(x_middle - diff_max * 0.6, x_middle + diff_max * 0.6)
-    ax.set_ylim(y_middle - diff_max * 0.6, y_middle + diff_max * 0.6)
+    lim_left = x_middle - diff_max * 0.6
+    lim_right = x_middle + diff_max * 0.6
+    if lim_left != lim_right:
+        ax.set_xlim(lim_left, lim_right)
+    lim_bottom = y_middle - diff_max * 0.6
+    lim_top = y_middle + diff_max * 0.6
+    if lim_bottom != lim_top:
+        ax.set_ylim(lim_bottom, lim_top)
     if labels is not None and len(labels) > 1:
         ax.legend()
     ax.text(x[0], y[0], 'start')
@@ -171,6 +177,9 @@ def histogram_plot(ax, samples, title, x_label, y_label, labels=None, min=None, 
 
 def bar_plot(ax, data, weights, num_bins=20,
              title=None, x_label=None, y_label=None, series_labels=None, tick_labels=None):
+
+    if len(data) == 0 or data[0].size == 0:
+        return
 
     data_min = min([d.min() for d in data])
     data_max = max([d.max() for d in data])
@@ -247,7 +256,10 @@ def gear_rpm_bars(ax, session_data):
     gear_times = [time_differences[g] for g in gear_ids]
     gear_rpms = [rpm[g] for g in gear_ids]
     gear_time_sums = [gt.sum() for gt in gear_times]
-    gear_ratio = [gts / total_time for gts in gear_time_sums]
+    if total_time == 0.0:
+        gear_ratio = [0.0] * len(gear_time_sums)
+    else:
+        gear_ratio = [gts / total_time for gts in gear_time_sums]
     series_labels = ['Gear {0}: {1:.1f}%'.format(
         int(g), gear_ratio[gi] * 100.0) for gi, g in enumerate(range_gears)]
 
@@ -496,8 +508,14 @@ def forward_over_2d_pos(ax, session_data):
               angles='xy', scale_units='dots', scale=0.03, label='Forward dir', color='tab:purple')
     ax.quiver(x, y, vxy_normalized[0], vxy_normalized[1],
               angles='xy', scale_units='dots', scale=0.03, label='Forward vel', color='tab:red')
-    ax.set_xlim(x_middle - diff_max * 0.6, x_middle + diff_max * 0.6)
-    ax.set_ylim(y_middle - diff_max * 0.6, y_middle + diff_max * 0.6)
+    lim_left = x_middle - diff_max * 0.6
+    lim_right = x_middle + diff_max * 0.6
+    if lim_left != lim_right:
+        ax.set_xlim(lim_left, lim_right)
+    lim_bottom = y_middle - diff_max * 0.6
+    lim_top = y_middle + diff_max * 0.6
+    if lim_bottom != lim_top:
+        ax.set_ylim(lim_bottom, lim_top)
     ax.text(x[0], y[0], 'start')
     ax.text(x[-1], y[-1], 'finish')
     ax.set_xlabel('X')

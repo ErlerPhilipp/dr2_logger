@@ -180,7 +180,10 @@ Enter:
                 last_receive_results = None
             elif command == 'a':
                 print('Plotting {} data points\n'.format(session_collection.shape[1]))
+                #try:
                 plots.plot_main(session_data=session_collection)
+                #except:
+                #    print('Error during plot: {}'.format(sys.exc_info()))
             elif command == 's':
                 save_run(session_collection)
             elif command == 'l':
