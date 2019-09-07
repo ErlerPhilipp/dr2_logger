@@ -33,12 +33,13 @@ This is a free and open-source tool written by Philipp Erler in 2019.
         ```
 1. Download and unzip dr2logger.zip archive
 1. Run the dr2logger.exe while you play DR2
-1. After each race, the logger will save the 
+1. After each race, the logger will save the current data
+1. At the start of a race, the logger will delete the old data
 1. Switch (Alt+Tab) from DR2 to the logger to create the plots
 1. Remarks:
     1. Disable any another running telemetry tools. This is necessary because data is sent only once from DR2 but removed from the port when a program reads a package. There can't be any guarantee that one progam receives all packages.
     1. Don't save, load or analyze your run while the race is running. Otherwise, data might get lost. Pausing the race is sufficient.
-    1. This will probably work with other racing games by Codemaster, for example Dirt Rally 1 and Dirt 4. Those games use the same datastructure for the UDP packages. However, I didn't test it. Other racing games with UDP output, such as Project Cars, will require trivial changes in this tool's networking code.
+    1. This tool will probably work with other racing games by Codemaster, for example Dirt Rally 1 and Dirt 4. Those games use the same datastructure for the UDP packages. However, I didn't test it. Other racing games with UDP output, such as Project Cars, will require trivial changes in this tool's networking code.
 
 ![dr2logger](img/dr2logger.png)
 You should see this amazing command-line window.
@@ -115,7 +116,8 @@ I can only use the information I get from Dirt Rally 2.0 via UDP. This is Curren
 1. g-force (lat-lon)
 1. current lap
 1. RPM of engine
-1. [more stuff, mostly originating from F1 2016](https://docs.google.com/spreadsheets/d/1eA518KHFowYw7tSMa-NxIFYpiWe5JXgVVQ_IMs7BVW0/edit?usp=drivesdk)
+1. Brake temperature
+1. Unclear stuff
 
 See [networking.py](./networking.py) for more information.
 
@@ -154,7 +156,7 @@ If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or 
 - 1.1 (2019-08-19): improved plots for suspension and rot vs susp
 - 1.0 (2019-08-17): initial release
 
-## Work in Progress ##
+## TODO List ##
 
 - put socket I/O in extra thread
 - mirror received UDP packages to another port
