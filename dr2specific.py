@@ -55,20 +55,19 @@ def get_game_state(receive_results, last_receive_results):
         return GameState.error
 
     # all values zero -> probably in finish
-    if np.all(receive_results == np.zeros_like(receive_results)):
+    # strange lap time = 0 and progress near 2 suddenly -> over finish line
+    if np.all(receive_results == np.zeros_like(receive_results)) or \
+        (receive_results[networking.fields.lap_time.value] == 0.0 and
+         receive_results[networking.fields.progress.value] >= 1.0):
         return GameState.race_finished_or_service_area
 
     # race has not yet started
-    if receive_results[networking.fields.lap_time.value] == 0.0 and \
-        receive_results[networking.fields.distance.value] == 0.0 and \
-        receive_results[networking.fields.progress.value] == 0.0:
+    if receive_results[networking.fields.lap_time.value] == 0.0:
         return GameState.race_start
 
     # all equal except the run time -> new package, same game state in DR2 -> race paused
     if last_receive_results is not None and \
-        receive_results[networking.fields.run_time.value] != \
-        last_receive_results[networking.fields.run_time.value] and \
-        np.all(receive_results[1:] == last_receive_results[1:]):
+            np.all(receive_results[1:] == last_receive_results[1:]):
         return GameState.duplicate_package
 
     return GameState.race_running

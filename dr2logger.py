@@ -40,7 +40,7 @@ def save_run(session_collection, automatic_name=False):
     from datetime import datetime
 
     if automatic_name:
-        total_race_time = '{:.1f}'.format(session_collection[networking.fields.lap_time.value][-1])
+        total_race_time = '{:.1f}'.format(np.max(session_collection[networking.fields.lap_time.value]))
         now = datetime.now()
         file_name = now.strftime('%Y-%m-%d %H_%M_%S') + ' {}s.npz'.format(total_race_time)
         os.makedirs(default_session_path, exist_ok=True)
@@ -163,11 +163,10 @@ Enter:
         print_current_state(dr2specific.get_game_state_str(new_state, receive_results, session_collection.shape[1]))
         has_new_data = dr2specific.accept_new_data(new_state)
         if has_new_data:
-            receive_results = np.expand_dims(receive_results, 1)
             if session_collection.size == 0:
-                session_collection = receive_results
+                session_collection = np.expand_dims(receive_results, 1)
             else:
-                session_collection = np.append(session_collection, receive_results, axis=1)
+                session_collection = np.append(session_collection, np.expand_dims(receive_results, 1), axis=1)
 
         while not message_queue.empty():
             command = message_queue.get()
@@ -193,6 +192,8 @@ Enter:
                     session_collection = loaded_session_collection
             elif len(command) > 0 and command[0] == 'p':
                 set_up_port(command, udp_socket)
+            elif command == '':
+                pass  # just ignore empty inputs
             else:
                 print('Unknown command: "{}"\n'.format(command))
                 print(commands_hint + '\n')
@@ -201,8 +202,8 @@ Enter:
         if new_state == dr2specific.GameState.duplicate_package or new_state == dr2specific.GameState.error:
             new_state = last_state
 
-        if last_state != new_state:
-            print('State changed from {} to {}'.format(last_state, new_state))
+        #if last_state != new_state:
+        #    print('State changed from {} to {}'.format(last_state, new_state))
 
         if last_state == dr2specific.GameState.race_running and \
                 new_state == dr2specific.GameState.race_finished_or_service_area:

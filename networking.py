@@ -61,21 +61,24 @@ class fields(Enum):
     sector =              48
     sector_1_time =       49
     sector_2_time =       50
-    brakes_temp =         51
-    wheels_pressure_psi = 52
-    team_info =           53
-    total_laps =          54
-    track_size =          55
-    last_lap_time =       56
-    max_rpm =             57
-    idle_rpm =            58
-    max_gears =           59
-    session_type =        60
-    drs_allowed =         61
-    track_number =        62
-    vehicle_fia_flags =   63
-    unknown_0 =           64
-    unknown_1 =           65
+    brakes_temp_rl =      51
+    brakes_temp_rr =      52
+    brakes_temp_fl =      53
+    brakes_temp_fr =      54
+    #wheels_pressure_psi = 52  # in F1 2016
+    #team_info =           53  # in F1 2016
+    #total_laps =          54  # in F1 2016
+    track_size =          55  # always zero?
+    last_lap_time =       56  # always zero?
+    max_rpm =             57  # always zero?
+    idle_rpm =            58  # always zero?
+    max_gears =           59  # always one?
+    session_type =        60  # always one?
+    drs_allowed =         61  # always 11507.4404296875?
+    track_number =        62  # always 485.9736022949219?
+    vehicle_fia_flags =   63  # always zero?
+    unknown_0 =           64  # always zero?
+    unknown_1 =           65  # always zero?
 
 
 
