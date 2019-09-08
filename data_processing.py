@@ -85,7 +85,8 @@ def derive_no_nan(x, time_steps):
     :return:
     """
     time_diff = differences(time_steps)
-    time_diff[time_diff == 0.0] = np.finfo(time_diff.dtype).eps
+    time_diff[time_diff < 0.0] = np.finfo(time_diff.dtype).eps  # lap time is reset to 0.0 on a new lap, of course
+    time_diff[time_diff == 0.0] = np.finfo(time_diff.dtype).eps  # same lap time should be filtered out but who knows
     x_diff = differences(x)
     x_derived = x_diff / time_diff
     return x_derived

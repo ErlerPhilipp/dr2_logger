@@ -246,6 +246,8 @@ def plot_gear_over_2d_pos(ax, session_data):
 def gear_rpm_bars(ax, session_data):
 
     time_differences = data_processing.differences(session_data[networking.fields.lap_time.value])
+    # prevent negative times due to next lap
+    time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
     rpm = session_data[networking.fields.rpm.value]
     data_gear = session_data[networking.fields.gear.value]
     range_gears = list(set(data_gear))
@@ -343,6 +345,8 @@ def suspension_l_r_f_r_over_time(ax, session_data):
 def suspension_bars(ax, session_data):
 
     time_differences = data_processing.differences(session_data[networking.fields.lap_time.value])
+    # prevent negative times due to next lap
+    time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
     susp_fl = session_data[networking.fields.susp_fl.value]
     susp_fr = session_data[networking.fields.susp_fr.value]
     susp_rl = session_data[networking.fields.susp_rl.value]
@@ -366,6 +370,8 @@ def suspension_bars(ax, session_data):
 def suspension_l_r_f_r_bars(ax, session_data):
 
     time_differences = data_processing.differences(session_data[networking.fields.lap_time.value])
+    # prevent negative times due to next lap
+    time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
     susp_fl = session_data[networking.fields.susp_fl.value]
     susp_fr = session_data[networking.fields.susp_fr.value]
     susp_rl = session_data[networking.fields.susp_rl.value]
@@ -592,6 +598,8 @@ def drift_over_speed(ax, session_data):
 def drift_angle_bars(ax, session_data):
 
     time_differences = data_processing.differences(session_data[networking.fields.lap_time.value])
+    # prevent negative times due to next lap
+    time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
     speed_ms = session_data[networking.fields.speed_ms.value]
     drift_angle_deg = data_processing.get_drift_angle(session_data)
 
@@ -615,6 +623,8 @@ def drift_angle_bars(ax, session_data):
 def drift_angle_change_bars(ax, session_data):
 
     time_differences = data_processing.differences(session_data[networking.fields.lap_time.value])
+    # prevent negative times due to next lap
+    time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
     speed_ms = session_data[networking.fields.speed_ms.value]
     drift_angle_deg = data_processing.get_drift_angle(session_data)
     drift_angle_deg_der = data_processing.derive_no_nan(
