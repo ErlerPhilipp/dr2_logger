@@ -3,7 +3,8 @@
 Dirt Rally 2.0 Logger is a logging and analysis tool for car setups in Dirt Rally 2.0 by Codemasters. 
 This is a free and open-source tool written by Philipp Erler in 2019.
 
-- [Executable (Version 1.4, 2019-09-07)](https://philipperler.net/dr2logger_1_4/)
+- [comming soon: Executable (Version 1.4, 2019-09-07)](https://philipperler.net/dr2logger_1_4/)
+- [Executable (Version 1.3, 2019-09-02)](https://philipperler.net/dr2logger1_3/)
 - [Source Code, Documentation and Support](https://github.com/ErlerPhilipp/dr2_logger)
 
 ## Older Releases ##
