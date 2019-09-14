@@ -14,7 +14,7 @@ import dr2specific
 debug = False
 recording = False
 log_raw_data = False
-version_string = '(Version 1.4, 2019-09-07)'
+version_string = '(Version 1.4, 2019-09-14)'
 default_session_path = './races_auto_save/'
 
 
