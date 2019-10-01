@@ -3,12 +3,13 @@
 Dirt Rally 2.0 Logger is a logging and analysis tool for car setups in Dirt Rally 2.0 by Codemasters. 
 This is a free and open-source tool written by Philipp Erler in 2019.
 
-- [Executable (Version 1.4, 2019-09-14)](https://philipperler.net/dr2logger_1_4/)
+- [Executable (Version 1.5, 2019-10-01)](https://philipperler.net/dr2logger_1_5/)
 - [Source Code, Documentation and Support](https://github.com/ErlerPhilipp/dr2_logger)
 
 ## Older Releases ##
 
-- [Executable (Version 1.3, 2019-09-02)](https://philipperler.net/dr2logger1_3/)
+- [Executable (Version 1.4, 2019-09-14)](https://philipperler.net/dr2logger_1_4/)
+- [Executable (Version 1.3, 2019-09-02)](https://philipperler.net/dr2logger_1_3/)
 - [Executable (Version 1.2, 2019-08-25)](https://philipperler.net/dr2logger_1_2/)
 - [Executable (Version 1.1, 2019-08-19)](https://philipperler.net/dr2logger_1_1/)
 - [Executable (Version 1.1, 2019-08-17)](https://philipperler.net/dr2logger_1_0/)
@@ -37,7 +38,7 @@ This is a free and open-source tool written by Philipp Erler in 2019.
 1. At the start of a race, the logger will delete the old data
 1. Switch (Alt+Tab) from DR2 to the logger to create the plots
 1. Remarks:
-    1. Disable any another running telemetry tools. This is necessary because data is sent only once from DR2 but removed from the port when a program reads a package. There can't be any guarantee that one progam receives all packages.
+    1. You can edit the settings.ini to change the path for automatic session saves. Also, you can modify the input ip and port as well as the output ip and port. This way, the logger can receive the UDP data from DR2 and forward it to other telemetry tools.
     1. Don't save, load or analyze your run while the race is running. Otherwise, data might get lost. Pausing the race is sufficient.
     1. This tool will probably work with other racing games by Codemaster, for example Dirt Rally 1 and Dirt 4. Those games use the same datastructure for the UDP packages. However, I didn't test it. Other racing games with UDP output, such as Project Cars, will require trivial changes in this tool's networking code.
 
@@ -150,13 +151,23 @@ If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or 
 
 ## Change Log ##
 
-- 1.4 (2019-09-07): automatic detection and saving of runs, prevent crash caused by not enough data for plots
-- 1.3 (2019-09-02): keyboard I/O is now in a separate thread, current state in window title
-- 1.2 (2019-08-25): better histograms, error handling for sockets
-- 1.1 (2019-08-19): improved plots for suspension and rot vs susp
-- 1.0 (2019-08-17): initial release
+- 1.5 (2019-10-01): 
+    - Improved the automatic detection of races.
+    - Input and output IPs and ports can now be changed in the 'settings.ini'.
+    - You can now change the path for automatic session saves.
+    - The logger can now forward received UDP packages to another socket. This way, you can use the logger and telemetry tools at the same time.
+- 1.4 (2019-09-07): 
+    - Added automatic detection and saving of runs.
+    - Prevent a crash caused by not enough data for plots.
+- 1.3 (2019-09-02): 
+    - Keyboard I/O is now in a separate thread.
+    - The current state is now printed in the window title.
+- 1.2 (2019-08-25): 
+    - Improved histograms.
+    - Added error handling for sockets.
+- 1.1 (2019-08-19): Improved plots for suspension and rot vs susp.
+- 1.0 (2019-08-17): Initial release.
 
 ## TODO List ##
 
 - put socket I/O in extra thread
-- mirror received UDP packages to another port

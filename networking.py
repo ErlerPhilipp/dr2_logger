@@ -5,9 +5,8 @@ from enum import Enum
 
 debug = False
 
-port_default = 20777
-
 # https://docs.google.com/spreadsheets/d/1eA518KHFowYw7tSMa-NxIFYpiWe5JXgVVQ_IMs7BVW0/edit?usp=drivesdk
+
 
 class fields(Enum):
     run_time =            0
@@ -81,7 +80,6 @@ class fields(Enum):
     unknown_1 =           65  # always zero?
 
 
-
 def bit_stream_to_float32(data, pos):
     try:
         value = struct.unpack('f', data[pos:pos+4])[0]
@@ -101,10 +99,13 @@ def receive(udp_socket):
         time.sleep(0.1)
         return np.random.rand(len(fields))
 
+    if udp_socket is None:
+        return None, None
+
     try:
         data, addr = udp_socket.recvfrom(1024)  # buffer size is 1024 bytes
     except socket.timeout as _:
-        return None
+        return None, None
 
     run_time = bit_stream_to_float32(data, 0)
     lap_time = bit_stream_to_float32(data, 4)
@@ -182,33 +183,16 @@ def receive(udp_socket):
         sector, sector_1_time, sector_2_time, brakes_temp, wheels_pressure_psi, team_info, total_laps, track_size,
         last_lap_time, max_rpm, idle_rpm, max_gears, session_type, drs_allowed, track_number, vehicle_fia_flags,
         unknown_0, unknown_1
-    ])
+    ]), data
 
 
-def parse_port(port_str):
-
-    try:
-        if port_str is None or port_str == '':
-            return port_default
-        else:
-            port_int = int(port_str)
-            return port_int
-    except ValueError as _:
-        print('Invalid port "{}"! Falling back to default port {}'.format(port_str, port_default))
-        return port_default
+def send_datagram(udp_socket: socket, datagram: bytes, ip, port):
+    if datagram is not None and len(datagram) > 0:
+        udp_socket.sendto(datagram, (ip, port))
 
 
-def get_port():
+def open_port(udp_ip: str, udp_port: int):
 
-    port_str = input('Enter port (default {}): '.format(port_default))
-    port_int = parse_port(port_str)
-    return port_int
-
-
-def open_port(port: int):
-
-    udp_ip = "127.0.0.1"
-    udp_port = port
     udp_socket = socket.socket(socket.AF_INET,  # Internet
                                socket.SOCK_DGRAM)  # UDP
     udp_socket.settimeout(0.01)
@@ -218,16 +202,21 @@ def open_port(port: int):
         print('\n'
               '#############\n'
               'Socket error: {}\n'
+              '#############\n'.format(error))
+        udp_socket.close()
+        udp_socket = None
+    except ValueError as error:
+        print('\n'
               '#############\n'
-              '\n'.format(error))
+              'Value error: {}\n'
+              '#############\n'.format(error))
         udp_socket.close()
         udp_socket = None
     except Exception as error:
         print('\n'
               '#############\n'
               'Unknown error: {}\n'
-              '#############\n'
-              '\n'.format(error))
+              '#############\n'.format(error))
         udp_socket.close()
         udp_socket = None
 
