@@ -8,7 +8,7 @@ debug = False
 # https://docs.google.com/spreadsheets/d/1eA518KHFowYw7tSMa-NxIFYpiWe5JXgVVQ_IMs7BVW0/edit?usp=drivesdk
 
 
-class fields(Enum):
+class Fields(Enum):
     run_time =            0
     lap_time =            1
     distance =            2
