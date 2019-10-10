@@ -23,12 +23,14 @@ This is a free and open-source tool written by Philipp Erler in 2019.
     1. Set ip="127.0.0.1" to keep the information on localhost
     1. Set port=20777 (you would need to change the port in the dr2logger every time otherwise)
     1. Set delay="1" so that DR2 ends the current car state at 100 FPS (important for derived values)
+    1. You can add the 'custom_udp' line multiple times for multiple telemetry tools.
     1. Example:
         ```xml
         <motion_platform>
             <dbox enabled="false" />
-            <udp enabled="True" extradata="2" ip="127.0.0.1" port="20777" delay="1" />
+            <udp enabled="True" extradata="3" ip="127.0.0.1" port="20777" delay="1" />
             <custom_udp enabled="false" filename="packet_data.xml" ip="127.0.0.1" port="20777" delay="1" />
+            <custom_udp enabled="false" filename="packet_data.xml" ip="127.0.0.1" port="10001" delay="1" />
             <fanatec enabled="false" pedalVibrationScale="1.0" wheelVibrationScale="1.0" ledTrueForGearsFalseForSpeed="true" />
         </motion_platform>
         ```
@@ -141,7 +143,9 @@ Please, feel free to send pull requests when you have improvements for the code 
 
 So far, I had no idea how to visualize and analyze cornering. Should the car change its direction faster? How much speed is lost in the process? How does e.g. toe and camber angle affect the acceleration and speed on straights? I think, you probably have a good feeling for the required steering and the overall performance can be measured simply with the race time. In contrast, you can hardly have a feeling for optimal gear and suspension setting. So, I focused more on these things. Anyway, if you have suggestions for missing plots, for improving plots and for more derived information, please tell me (in the project forum).
 
-On the long run, comparing two or more recordings would be great. However, this is not trivial because most plots would need a common registration. Using the run time won't work. Using the progress could work but would make time-dependent data hard to understand or even useless.
+On the long run, comparing two or more recordings would be great. However, this is not trivial because most plots would need a common registration. Using the run time or progress won't work. Using the progress could work but would make time-dependent data hard to understand or even useless.
+
+You may see 'unknown car' or 'unknown track' in your logs. This happens when my internal database is outdated. If that happens, please fill in the car names in the 'unknown cars.txt' and 'unknown tracks.txt' that you should find in the dr2logger. Then please send the contents of those files to me.
 
 ## License ##
 
@@ -151,6 +155,8 @@ If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or 
 
 ## Change Log ##
 
+- 1.6 (2019-10-07):
+    - Added automatic car and track detection.
 - 1.5 (2019-10-01): 
     - Improved the automatic detection of races.
     - Input and output IPs and ports can now be changed in the 'settings.ini'.

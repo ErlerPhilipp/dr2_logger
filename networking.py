@@ -5,7 +5,8 @@ from enum import Enum
 
 debug = False
 
-# https://docs.google.com/spreadsheets/d/1eA518KHFowYw7tSMa-NxIFYpiWe5JXgVVQ_IMs7BVW0/edit?usp=drivesdk
+# https://docs.google.com/spreadsheets/d/1UTgeE7vbnGIzDz-URRk2eBIPc_LR1vWcZklp7xD9N0Y/edit#gid=0
+# https://github.com/soong-construction/
 
 
 class Fields(Enum):
@@ -46,17 +47,17 @@ class Fields(Enum):
     g_force_lat =         34
     g_force_lon =         35
     current_lap =         36
-    rpm =                 37
-    sli_pro_support =     38
+    rpm =                 37  # / 10
+    sli_pro_support =     38  # ignored
     car_pos =             39
-    kers_level =          40
-    kers_max_level =      41
-    drs =                 42
-    traction_control =    43
-    anti_lock_brakes =    44
-    fuel_in_tank =        45
-    fuel_capacity =       46
-    in_pit =              47
+    kers_level =          40  # ignored
+    kers_max_level =      41  # ignored
+    drs =                 42  # ignored
+    traction_control =    43  # ignored
+    anti_lock_brakes =    44  # ignored
+    fuel_in_tank =        45  # ignored
+    fuel_capacity =       46  # ignored
+    in_pit =              47  # ignored
     sector =              48
     sector_1_time =       49
     sector_2_time =       50
@@ -64,20 +65,17 @@ class Fields(Enum):
     brakes_temp_rr =      52
     brakes_temp_fl =      53
     brakes_temp_fr =      54
-    #wheels_pressure_psi = 52  # in F1 2016
-    #team_info =           53  # in F1 2016
-    #total_laps =          54  # in F1 2016
-    track_size =          55  # always zero?
-    last_lap_time =       56  # always zero?
-    max_rpm =             57  # always zero?
-    idle_rpm =            58  # always zero?
-    max_gears =           59  # always one?
-    session_type =        60  # always one?
-    drs_allowed =         61  # always 11507.4404296875?
-    track_number =        62  # always 485.9736022949219?
-    vehicle_fia_flags =   63  # always zero?
-    unknown_0 =           64  # always zero?
-    unknown_1 =           65  # always zero?
+    tyre_pressure_rl =    55  # ignored
+    tyre_pressure_rr =    56  # ignored
+    tyre_pressure_fl =    57  # ignored
+    tyre_pressure_fr =    58  # ignored
+    laps_completed =      59
+    total_laps =          60
+    track_length =        61
+    last_lap_time =       62
+    max_rpm =             63  # / 10
+    idle_rpm =            64
+    max_gears =           65
 
 
 def bit_stream_to_float32(data, pos):
@@ -86,9 +84,9 @@ def bit_stream_to_float32(data, pos):
     except struct.error as _:
         value = 0
         # print('Failed to get data item at pos {}'.format(pos))
-    except:
+    except Exception as e:
         value = 0
-        print('Failed to get data item at pos {}'.format(pos))
+        print('Failed to get data item at pos {}. Make sure to set extradata=3 in the hardware settings.'.format(pos))
     return value
 
 
@@ -97,7 +95,7 @@ def receive(udp_socket):
     if debug:
         import time
         time.sleep(0.1)
-        return np.random.rand(len(fields))
+        return np.random.rand(len(Fields))
 
     if udp_socket is None:
         return None, None
@@ -114,7 +112,7 @@ def receive(udp_socket):
     pos_x = bit_stream_to_float32(data, 16)
     pos_y = bit_stream_to_float32(data, 20)
     pos_z = bit_stream_to_float32(data, 24)
-    speed_ms = bit_stream_to_float32(data, 28)  # * 3.6  # * 3.6 for Km/h
+    speed_ms = bit_stream_to_float32(data, 28)  # * 3.6 for Km/h
     vel_x = bit_stream_to_float32(data, 32)  # velocity in world space
     vel_y = bit_stream_to_float32(data, 36)  # velocity in world space
     vel_z = bit_stream_to_float32(data, 40)  # velocity in world space
@@ -137,7 +135,7 @@ def receive(udp_socket):
     wsp_fl = bit_stream_to_float32(data, 108)  # Wheel speed fwd left
     wsp_fr = bit_stream_to_float32(data, 112)  # Wheel speed fwd right
     throttle = bit_stream_to_float32(data, 116)  # Throttle 0-1
-    steering = bit_stream_to_float32(data, 120)
+    steering = bit_stream_to_float32(data, 120)  # -1..+1
     brakes = bit_stream_to_float32(data, 124)  # Brakes 0-1
     clutch = bit_stream_to_float32(data, 128)  # Clutch 0-1
     gear = bit_stream_to_float32(data, 132)  # Gear, neutral = 0
@@ -145,34 +143,34 @@ def receive(udp_socket):
     g_force_lon = bit_stream_to_float32(data, 140)
     current_lap = bit_stream_to_float32(data, 144)  # Current lap, starts at 0
     rpm = bit_stream_to_float32(data, 148) * 10  # RPM, requires * 10 for realistic values
-    sli_pro_support = bit_stream_to_float32(data, 152)
+    sli_pro_support = bit_stream_to_float32(data, 152)  # ignored
     car_pos = bit_stream_to_float32(data, 156)
-    kers_level = bit_stream_to_float32(data, 160)
-    kers_max_level = bit_stream_to_float32(data, 164)
-    drs = bit_stream_to_float32(data, 168)
-    traction_control = bit_stream_to_float32(data, 172)
-    anti_lock_brakes = bit_stream_to_float32(data, 176)
-    fuel_in_tank = bit_stream_to_float32(data, 180)
-    fuel_capacity = bit_stream_to_float32(data, 184)
-    in_pit = bit_stream_to_float32(data, 188)
+    kers_level = bit_stream_to_float32(data, 160)  # ignored
+    kers_max_level = bit_stream_to_float32(data, 164)  # ignored
+    drs = bit_stream_to_float32(data, 168)  # ignored
+    traction_control = bit_stream_to_float32(data, 172)  # ignored
+    anti_lock_brakes = bit_stream_to_float32(data, 176)  # ignored
+    fuel_in_tank = bit_stream_to_float32(data, 180)  # ignored
+    fuel_capacity = bit_stream_to_float32(data, 184)  # ignored
+    in_pit = bit_stream_to_float32(data, 188)  # ignored
     sector = bit_stream_to_float32(data, 192)
     sector_1_time = bit_stream_to_float32(data, 196)
     sector_2_time = bit_stream_to_float32(data, 200)
-    brakes_temp = bit_stream_to_float32(data, 204)
-    wheels_pressure_psi = bit_stream_to_float32(data, 208)
-    team_info = bit_stream_to_float32(data, 212)
-    total_laps = bit_stream_to_float32(data, 216)
-    track_size = bit_stream_to_float32(data, 220)
-    last_lap_time = bit_stream_to_float32(data, 224)
-    max_rpm = bit_stream_to_float32(data, 228)
-    idle_rpm = bit_stream_to_float32(data, 232)
-    max_gears = bit_stream_to_float32(data, 236)
-    session_type = bit_stream_to_float32(data, 240)
-    drs_allowed = bit_stream_to_float32(data, 244)
-    track_number = bit_stream_to_float32(data, 248)
-    vehicle_fia_flags = bit_stream_to_float32(data, 252)
-    unknown_0 = bit_stream_to_float32(data, 256)
-    unknown_1 = bit_stream_to_float32(data, 260)
+    brakes_temp_rl = bit_stream_to_float32(data, 204)
+    brakes_temp_rr = bit_stream_to_float32(data, 208)
+    brakes_temp_fl = bit_stream_to_float32(data, 212)
+    brakes_temp_fr = bit_stream_to_float32(data, 216)
+    tyre_pressure_rl = bit_stream_to_float32(data, 220)
+    tyre_pressure_rr = bit_stream_to_float32(data, 224)
+    tyre_pressure_fl = bit_stream_to_float32(data, 228)
+    tyre_pressure_fr = bit_stream_to_float32(data, 232)
+    laps_completed = bit_stream_to_float32(data, 236)
+    total_laps = bit_stream_to_float32(data, 240)
+    track_length = bit_stream_to_float32(data, 244)
+    last_lap_time = bit_stream_to_float32(data, 248)
+    max_rpm = bit_stream_to_float32(data, 252) * 10.0  # requires * 10 for realistic values
+    idle_rpm = bit_stream_to_float32(data, 256) * 10.0  # requires * 10 for realistic values
+    max_gears = bit_stream_to_float32(data, 260)
 
     return np.array([
         run_time, lap_time, distance, progress, pos_x, pos_y, pos_z, speed_ms, vel_x, vel_y, vel_z,
@@ -180,9 +178,9 @@ def receive(udp_socket):
         susp_vel_rl, susp_vel_rr, susp_vel_fl, susp_vel_fr, wsp_rl, wsp_rr, wsp_fl, wsp_fr,
         throttle, steering, brakes, clutch, gear, g_force_lat, g_force_lon, current_lap, rpm, sli_pro_support, car_pos,
         kers_level, kers_max_level, drs, traction_control, anti_lock_brakes, fuel_in_tank, fuel_capacity, in_pit,
-        sector, sector_1_time, sector_2_time, brakes_temp, wheels_pressure_psi, team_info, total_laps, track_size,
-        last_lap_time, max_rpm, idle_rpm, max_gears, session_type, drs_allowed, track_number, vehicle_fia_flags,
-        unknown_0, unknown_1
+        sector, sector_1_time, sector_2_time, brakes_temp_rl, brakes_temp_rr, brakes_temp_fl, brakes_temp_fr,
+        tyre_pressure_rl, tyre_pressure_rr, tyre_pressure_fl, tyre_pressure_fr, laps_completed,
+        total_laps, track_length, last_lap_time, max_rpm, idle_rpm, max_gears
     ]), data
 
 
