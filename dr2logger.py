@@ -3,7 +3,7 @@ import os
 import sys
 import threading
 import queue
-#import time
+# import time
 import configparser
 
 import networking
@@ -25,8 +25,9 @@ Make sure, UDP data is enabled in the hardware_settings_config.xml
 Default: C:\\Users\\ [username] \\Documents\\My Games\\DiRT Rally 2.0\\hardwaresettings\\hardware_settings_config.xml
 <motion_platform>
     <dbox enabled="false" />
-    <udp enabled="True" extradata="2" ip="127.0.0.1" port="20777" delay="1" />
-    <custom_udp enabled="false" filename="packet_data.xml" ip="127.0.0.1" port="20777" delay="1" />
+    <udp enabled="true" extradata="3" ip="127.0.0.1" port="20777" delay="1" />
+    <udp enabled="true" extradata="3" ip="127.0.0.1" port="10001" delay="1" />
+    <custom_udp enabled="False" filename="packet_data.xml" ip="127.0.0.1" port="20777" delay="1" />
     <fanatec enabled="false" pedalVibrationScale="1.0" wheelVibrationScale="1.0" ledTrueForGearsFalseForSpeed="true" />
 </motion_platform>
 '''.format(version_string)
@@ -43,7 +44,7 @@ Enter:
 
 def init_config(config):
     init_config_input_socket(config)
-    init_config_output_socket(config)
+#    init_config_output_socket(config)
     init_config_session_path(config)
 
 
@@ -52,10 +53,10 @@ def init_config_input_socket(config):
     config['general']['port_in'] = '20777'
 
 
-def init_config_output_socket(config):
-    # mirror the received datagrams to this port in order to enable other telemetry tools
-    config['general']['ip_out'] = '127.0.0.1'
-    config['general']['port_out'] = '10001'
+# def init_config_output_socket(config):
+#     # mirror the received datagrams to this port in order to enable other telemetry tools
+#     config['general']['ip_out'] = '127.0.0.1'
+#     config['general']['port_out'] = '10001'
 
 
 def init_config_session_path(config):
@@ -92,16 +93,17 @@ def print_current_state(state_str):
         ctypes.windll.kernel32.SetConsoleTitleW(state_str)
 
 
-def save_run(session_collection, config, automatic_name=False):
+def save_run(session_collection, config, car_name='', track_name='', automatic_name=False):
     # TODO: this will block the main thread and data from the port may be lost
     import tkinter as tk
     from tkinter import filedialog
     from datetime import datetime
 
     if automatic_name:
-        total_race_time = '{:.1f}'.format(np.max(session_collection[networking.fields.lap_time.value]))
+        total_race_time = '{:.1f}'.format(np.max(session_collection[networking.Fields.lap_time.value]))
         now = datetime.now()
-        file_name = now.strftime('%Y-%m-%d %H_%M_%S') + ' {}s.npz'.format(total_race_time)
+        now_str = now.strftime('%Y-%m-%d %H_%M_%S')
+        file_name = '{} - {} - {} - {}s.npz'.format(now_str, car_name, track_name, total_race_time)
         try:
             os.makedirs(config['general']['session_path'], exist_ok=True)
         except ValueError:
@@ -139,25 +141,8 @@ def load_run():
             return clear_session_collection()
 
 
-def set_up_port(command, udp_socket, port_default):
-    if command == 'p':
-        print('You must specify a port number with the command. For example "p 20777".\n')
-
-    elif command[:2] == 'p ':
-        port_no = command.split(' ')[1]
-        port_no_int = networking.parse_port(port_no, port_default)
-        if udp_socket.getsockname()[1] == port_no_int:
-            print('Already listening on socket {}\n'.format(udp_socket.getsockname()))
-        else:
-            udp_socket = networking.open_port(port_no_int)
-            if udp_socket is not None:
-                print('Listening on socket {}\n'.format(udp_socket.getsockname()))
-    else:
-        print('Unknown port parameter: "{}"'.format(command))
-
-
 def clear_session_collection():
-    return np.zeros((len(networking.fields), 0))
+    return np.zeros((len(networking.Fields), 0))
 
 
 def main():
@@ -200,15 +185,15 @@ def main():
     while not end_program:
 
         receive_results, datagram = networking.receive(udp_socket)
-        try:
-            networking.send_datagram(udp_socket, datagram,
-                                     config['general']['ip_out'], int(config['general']['port_out']))
-        except ValueError:
-            print('Invalid output socket. Resetting...')
-            init_config_output_socket(config)
-            write_config(config)
-            networking.send_datagram(udp_socket, datagram,
-                                     config['general']['ip_out'], int(config['general']['port_out']))
+#        try:
+#            networking.send_datagram(udp_socket, datagram,
+#                                     config['general']['ip_out'], int(config['general']['port_out']))
+#        except ValueError:
+#            print('Invalid output socket. Resetting...')
+#            init_config_output_socket(config)
+#            write_config(config)
+#            networking.send_datagram(udp_socket, datagram,
+#                                     config['general']['ip_out'], int(config['general']['port_out']))
 
         if log_raw_data:
             receive_results_raw = np.expand_dims(receive_results, 1)
@@ -218,7 +203,14 @@ def main():
                 raw_data = np.append(session_collection, receive_results_raw, axis=1)
 
         new_state = dr2specific.get_game_state(receive_results, last_receive_results)
-        print_current_state(dr2specific.get_game_state_str(new_state, receive_results, session_collection.shape[1]))
+        if session_collection.shape[1] > 0:
+            start_z = session_collection[networking.Fields.pos_z.value, 0]
+        elif receive_results is not None:
+            start_z = receive_results[networking.Fields.pos_z.value]
+        else:
+            start_z = None
+        print_current_state(dr2specific.get_game_state_str(
+            new_state, receive_results, session_collection.shape[1], start_z))
         has_new_data = dr2specific.accept_new_data(new_state)
         if has_new_data:
             if session_collection.size == 0:
@@ -267,7 +259,14 @@ def main():
         if last_state == dr2specific.GameState.race_running and \
                 new_state == dr2specific.GameState.race_finished_or_service_area:
             print('Race finished. ')
-            save_run(session_collection, config, automatic_name=True)
+            max_rpm = receive_results[networking.Fields.max_rpm.value]
+            idle_rpm = receive_results[networking.Fields.idle_rpm.value]
+            max_gears = receive_results[networking.Fields.max_gears.value]
+            car_name = dr2specific.get_car_name(max_rpm, idle_rpm, max_gears)
+            track_length = receive_results[networking.Fields.track_length.value]
+            pos_z = receive_results[networking.Fields.pos_z.value]
+            track_name = dr2specific.get_track_name(track_length, pos_z)
+            save_run(session_collection, config, car_name, track_name, automatic_name=True)
 
             if log_raw_data:
                 save_run(raw_data, config, automatic_name=False)
@@ -275,6 +274,23 @@ def main():
                 new_state == dr2specific.GameState.race_running:
             print('Race starting. \nCleared {} data points\n'.format(session_collection.shape[1]))
             session_collection = clear_session_collection()
+
+            # debug, data mining
+            max_rpm = receive_results[networking.Fields.max_rpm.value]
+            idle_rpm = receive_results[networking.Fields.idle_rpm.value]
+            max_gears = receive_results[networking.Fields.max_gears.value]
+            car_name = dr2specific.get_car_name(max_rpm, idle_rpm, max_gears)
+            #if car_name.startswith('Unknown'):
+            with open('unknown cars.txt', 'a+') as f:
+                f.write('[{}, {}, {}, \'Unknown car\'],\n'.format(max_rpm, idle_rpm, max_gears))
+
+            track_length = receive_results[networking.Fields.track_length.value]
+            pos_z = receive_results[networking.Fields.pos_z.value]
+            track_name = dr2specific.get_track_name(track_length, pos_z)
+            #if track_name.startswith('Unknown'):
+            with open('unknown tracks.txt', 'a+') as f:
+                f.write('[{}, {}, \'Unknown track\'],\n'.format(track_length, pos_z))
+
         elif last_state == dr2specific.GameState.race_finished_or_service_area and \
                 new_state == dr2specific.GameState.race_running:
             save_run(session_collection, config, automatic_name=True)
