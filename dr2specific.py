@@ -312,11 +312,18 @@ for t in track_data:
 
 
 class GameState(Enum):
-    error = 0
+    #error = 0
     race_start = 1
     race_running = 2
     duplicate_package = 3
     race_finished_or_service_area = 4
+
+
+def get_car_name_from_sample(start_sample):
+    max_rpm = start_sample[networking.Fields.max_rpm.value]
+    idle_rpm = start_sample[networking.Fields.idle_rpm.value]
+    max_gears = start_sample[networking.Fields.max_gears.value]
+    return get_car_name(max_rpm, idle_rpm, max_gears)
 
 
 def get_car_name(max_rpm, idle_rpm, max_gears):
@@ -326,6 +333,12 @@ def get_car_name(max_rpm, idle_rpm, max_gears):
     else:
         car_name = 'Unknown car ' + str(key)
     return car_name
+
+
+def get_track_name_from_sample(start_sample):
+    length = start_sample[networking.Fields.track_length.value]
+    start_z = start_sample[networking.Fields.pos_z.value]
+    return get_track_name(length, start_z)
 
 
 def get_track_name(length, start_z):
@@ -340,25 +353,20 @@ def get_track_name(length, start_z):
     return track_name
 
 
-def get_game_state_str(state, receive_results, num_samples, start_z):
+def get_game_state_str(state, start_sample, num_samples):
 
-    if state == GameState.error:
-        return None
+    #if state == GameState.error:
+    #    return None
 
     state_str = '{car} on {track}, samples: {samples:05d}, lap time: {time:.1f}, ' \
                 'speed: {speed:.1f} m/s, rpm {rpm:5.1f}, {state}'
 
-    max_rpm = receive_results[networking.Fields.max_rpm.value]
-    idle_rpm = receive_results[networking.Fields.idle_rpm.value]
-    track_length = receive_results[networking.Fields.track_length.value]
-    # start_z = receive_results[networking.Fields.pos_z.value]
-    time = receive_results[networking.Fields.lap_time.value]
-    speed = receive_results[networking.Fields.speed_ms.value]
-    rpm = receive_results[networking.Fields.rpm.value]
-    max_gears = receive_results[networking.Fields.max_gears.value]
+    time = start_sample[networking.Fields.lap_time.value]
+    speed = start_sample[networking.Fields.speed_ms.value]
+    rpm = start_sample[networking.Fields.rpm.value]
 
-    car_name = get_car_name(max_rpm, idle_rpm, max_gears)
-    track_name = get_track_name(track_length, start_z)
+    car_name = get_car_name_from_sample(start_sample)
+    track_name = get_track_name_from_sample(start_sample)
 
     if state == GameState.race_start:
         state = 'race starting'
@@ -379,8 +387,8 @@ def get_game_state_str(state, receive_results, num_samples, start_z):
 
 def get_game_state(receive_results, last_receive_results):
 
-    if receive_results is None:  # no data, error in receive?
-        return GameState.error
+    #if receive_results is None:  # no data, error in receive?
+    #    return GameState.error
 
     # all values zero -> probably in finish
     # strange lap time = 0 and progress near 2 suddenly -> over finish line
@@ -398,13 +406,18 @@ def get_game_state(receive_results, last_receive_results):
             np.all(receive_results[1:] == last_receive_results[1:]):
         return GameState.duplicate_package
 
+    # RPM will never be zero at the start (it will be the idle RPM)
+    # However, RPM can be zero for some reason in the service area. Ignore then.
+    if receive_results[networking.Fields.rpm.value] == 0.0 and receive_results[networking.Fields.run_time.value] <= 0.1:
+        return GameState.duplicate_package
+
     return GameState.race_running
 
 
 def accept_new_data(state):
-    if state == GameState.error:
-        return False
-    elif state == GameState.race_start:
+    #if state == GameState.error:
+    #    return False
+    if state == GameState.race_start:
         return False
     elif state == GameState.race_running:
         return True

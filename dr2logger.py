@@ -15,7 +15,7 @@ import dr2specific
 debug = False
 recording = False
 log_raw_data = False
-version_string = '(Version 1.5, 2019-10-1)'
+version_string = '(Version 1.6, 2019-10-14)'
 
 intro_text = '''
 Dirt Rally 2.0 Race Logger {} by Philipp Erler
@@ -93,43 +93,55 @@ def print_current_state(state_str):
         ctypes.windll.kernel32.SetConsoleTitleW(state_str)
 
 
-def save_run(session_collection, config, car_name='', track_name='', automatic_name=False):
+def save_run(session_collection, config, first_sample, automatic_name=False):
     # TODO: this will block the main thread and data from the port may be lost
     import tkinter as tk
     from tkinter import filedialog
     from datetime import datetime
 
-    if automatic_name:
-        total_race_time = '{:.1f}'.format(np.max(session_collection[networking.Fields.lap_time.value]))
-        now = datetime.now()
-        now_str = now.strftime('%Y-%m-%d %H_%M_%S')
-        file_name = '{} - {} - {} - {}s.npz'.format(now_str, car_name, track_name, total_race_time)
-        try:
-            os.makedirs(config['general']['session_path'], exist_ok=True)
-        except ValueError:
-            print('Invalid session path. Resetting...')
-            init_config_session_path(config)
-            write_config(config)
-            os.makedirs(config['general']['session_path'], exist_ok=True)
-        file_path = os.path.join(config['general']['session_path'], file_name)
-    else:
+    try:
+        os.makedirs(config['general']['session_path'], exist_ok=True)
+    except ValueError:
+        print('Invalid session path. Resetting...')
+        init_config_session_path(config)
+        write_config(config)
+        os.makedirs(config['general']['session_path'], exist_ok=True)
+
+    # assemble default name
+    car_name = dr2specific.get_car_name_from_sample(first_sample)
+    track_name = dr2specific.get_track_name_from_sample(first_sample)
+    total_race_time = '{:.1f}'.format(np.max(session_collection[networking.Fields.lap_time.value]))
+    now = datetime.now()
+    now_str = now.strftime('%Y-%m-%d %H_%M_%S')
+    file_name = '{} - {} - {} - {}s.npz'.format(now_str, car_name, track_name, total_race_time)
+    file_path = os.path.join(config['general']['session_path'], file_name)
+
+    if not automatic_name:
         root = tk.Tk()
         root.withdraw()
-        file_path = filedialog.asksaveasfilename(filetypes=(("numpy", "*.npz"),))
+        file_path = filedialog.asksaveasfilename(
+            initialdir=config['general']['session_path'],
+            initialfile=file_name,
+            title='Save race log',
+            filetypes=(("numpy", "*.npz"),))
+
     if file_path is not None and file_path != '' and file_path != '.npz':
         utils.make_dir_for_file(file_path)
         np.savez_compressed(file_path, session_collection)
         print('Saved {} data points to {}\n'.format(session_collection.shape[1], os.path.abspath(file_path)))
 
 
-def load_run():
+def load_run(config):
     # TODO: this will block the main thread and data from the port may be lost
     import tkinter as tk
     from tkinter import filedialog
 
     root = tk.Tk()
     root.withdraw()
-    file_path = filedialog.askopenfilename(filetypes=(("numpy", "*.npz"), ("all files", "*.*")))
+    file_path = filedialog.askopenfilename(
+        initialdir=config['general']['session_path'],
+        title='Load race log',
+        filetypes=(("numpy", "*.npz"), ("all files", "*.*")))
     if file_path is not None and file_path != '':
         if os.path.isfile(file_path):
             npz_file = np.load(file_path)
@@ -142,16 +154,16 @@ def load_run():
 
 
 def clear_session_collection():
-    return np.zeros((len(networking.Fields), 0))
+    return np.zeros((len(networking.Fields), 0)), np.zeros((len(networking.Fields)))
 
 
 def main():
 
-    session_collection = clear_session_collection()
+    session_collection, first_sample = clear_session_collection()
     last_receive_results = None
     end_program = False
-    new_state = dr2specific.GameState.error
-    last_state = dr2specific.GameState.error
+    new_state = dr2specific.GameState.race_start
+    last_state = dr2specific.GameState.race_start
     config = configparser.ConfigParser()
     read_config(config)
 
@@ -172,7 +184,7 @@ def main():
     input_thread = threading.Thread(target=add_input, args=(message_queue,))
     input_thread.daemon = True
     input_thread.start()
-    raw_data = clear_session_collection() if log_raw_data else None
+    raw_data, _ = clear_session_collection() if log_raw_data else (None, None)
 
     if debug:  # start with plots
         # npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
@@ -202,21 +214,20 @@ def main():
             else:
                 raw_data = np.append(session_collection, receive_results_raw, axis=1)
 
-        new_state = dr2specific.get_game_state(receive_results, last_receive_results)
-        if session_collection.shape[1] > 0:
-            start_z = session_collection[networking.Fields.pos_z.value, 0]
-        elif receive_results is not None:
-            start_z = receive_results[networking.Fields.pos_z.value]
+        if receive_results is not None:
+            new_state = dr2specific.get_game_state(receive_results, last_receive_results)
+            print_current_state(dr2specific.get_game_state_str(
+                new_state, first_sample, session_collection.shape[1]))
+            has_new_data = dr2specific.accept_new_data(new_state)
+            if has_new_data:
+                if session_collection.size == 0:
+                    session_collection = np.expand_dims(receive_results, 1)
+                    first_sample = receive_results
+                else:
+                    session_collection = np.append(session_collection, np.expand_dims(receive_results, 1), axis=1)
         else:
-            start_z = None
-        print_current_state(dr2specific.get_game_state_str(
-            new_state, receive_results, session_collection.shape[1], start_z))
-        has_new_data = dr2specific.accept_new_data(new_state)
-        if has_new_data:
-            if session_collection.size == 0:
-                session_collection = np.expand_dims(receive_results, 1)
-            else:
-                session_collection = np.append(session_collection, np.expand_dims(receive_results, 1), axis=1)
+            new_state = last_state
+            has_new_data = False
 
         while not message_queue.empty():
             command = message_queue.get()
@@ -226,7 +237,7 @@ def main():
                 end_program = True
             elif command == 'c':
                 print('Cleared {} data points\n'.format(session_collection.shape[1]))
-                session_collection = clear_session_collection()
+                session_collection, first_sample = clear_session_collection()
                 last_receive_results = None
             elif command == 'a':
                 print('Plotting {} data points\n'.format(session_collection.shape[1]))
@@ -238,11 +249,14 @@ def main():
                     except Exception:
                         print('Error during plot: {}'.format(sys.exc_info()))
             elif command == 's':
-                save_run(session_collection, config)
+                save_run(session_collection, config, first_sample)
             elif command == 'l':
-                loaded_session_collection = load_run()
-                if loaded_session_collection.size > 0:
+                loaded_session_collection = load_run(config)
+                if loaded_session_collection is not None and loaded_session_collection.size > 0:
                     session_collection = loaded_session_collection
+                    first_sample = session_collection[:, 0]
+                    print_current_state(dr2specific.get_game_state_str(
+                        new_state, first_sample, session_collection.shape[1]))
             elif command == '':
                 pass  # just ignore empty inputs
             else:
@@ -250,7 +264,7 @@ def main():
                 print(commands_hint + '\n')
 
         # simply ignore state changes through duplicates
-        if new_state == dr2specific.GameState.duplicate_package or new_state == dr2specific.GameState.error:
+        if new_state == dr2specific.GameState.duplicate_package:
             new_state = last_state
 
         if debug and last_state != new_state:
@@ -259,42 +273,36 @@ def main():
         if last_state == dr2specific.GameState.race_running and \
                 new_state == dr2specific.GameState.race_finished_or_service_area:
             print('Race finished. ')
-            max_rpm = receive_results[networking.Fields.max_rpm.value]
-            idle_rpm = receive_results[networking.Fields.idle_rpm.value]
-            max_gears = receive_results[networking.Fields.max_gears.value]
-            car_name = dr2specific.get_car_name(max_rpm, idle_rpm, max_gears)
-            track_length = receive_results[networking.Fields.track_length.value]
-            pos_z = receive_results[networking.Fields.pos_z.value]
-            track_name = dr2specific.get_track_name(track_length, pos_z)
-            save_run(session_collection, config, car_name, track_name, automatic_name=True)
+            save_run(session_collection, config, first_sample, automatic_name=True)
 
             if log_raw_data:
-                save_run(raw_data, config, automatic_name=False)
+                save_run(raw_data, config, first_sample, automatic_name=False)
         elif last_state == dr2specific.GameState.race_start and \
                 new_state == dr2specific.GameState.race_running:
-            print('Race starting. \nCleared {} data points\n'.format(session_collection.shape[1]))
-            session_collection = clear_session_collection()
+            if session_collection.shape[1] > 10:  # should only be less than 100 at the first race after startup
+                print('Race starting. \nCleared {} data points\n'.format(session_collection.shape[1]))
+            session_collection, first_sample = clear_session_collection()
 
             # debug, data mining
             max_rpm = receive_results[networking.Fields.max_rpm.value]
             idle_rpm = receive_results[networking.Fields.idle_rpm.value]
             max_gears = receive_results[networking.Fields.max_gears.value]
             car_name = dr2specific.get_car_name(max_rpm, idle_rpm, max_gears)
-            #if car_name.startswith('Unknown'):
-            with open('unknown cars.txt', 'a+') as f:
-                f.write('[{}, {}, {}, \'Unknown car\'],\n'.format(max_rpm, idle_rpm, max_gears))
+            if car_name.startswith('Unknown'):
+                with open('unknown cars.txt', 'a+') as f:
+                    f.write('[{}, {}, {}, \'Unknown car\'],\n'.format(max_rpm, idle_rpm, max_gears))
 
             track_length = receive_results[networking.Fields.track_length.value]
             pos_z = receive_results[networking.Fields.pos_z.value]
             track_name = dr2specific.get_track_name(track_length, pos_z)
-            #if track_name.startswith('Unknown'):
-            with open('unknown tracks.txt', 'a+') as f:
-                f.write('[{}, {}, \'Unknown track\'],\n'.format(track_length, pos_z))
+            if track_name.startswith('Unknown'):
+                with open('unknown tracks.txt', 'a+') as f:
+                    f.write('[{}, {}, \'Unknown track\'],\n'.format(track_length, pos_z))
 
         elif last_state == dr2specific.GameState.race_finished_or_service_area and \
                 new_state == dr2specific.GameState.race_running:
-            save_run(session_collection, config, automatic_name=True)
-            session_collection = clear_session_collection()
+            save_run(session_collection, config, first_sample, automatic_name=True)
+            session_collection, first_sample = clear_session_collection()
             print('Race finished. Race starting. \nCleared {} data points\n'.format(session_collection.shape[1]))
 
         last_state = new_state

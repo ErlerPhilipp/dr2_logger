@@ -3,11 +3,12 @@
 Dirt Rally 2.0 Logger is a logging and analysis tool for car setups in Dirt Rally 2.0 by Codemasters. 
 This is a free and open-source tool written by Philipp Erler in 2019.
 
-- [Executable (Version 1.5, 2019-10-01)](https://philipperler.net/dr2logger_1_5/)
+- [Executable (Version 1.6, 2019-10-14)](https://philipperler.net/dr2logger_1_6/)
 - [Source Code, Documentation and Support](https://github.com/ErlerPhilipp/dr2_logger)
 
 ## Older Releases ##
 
+- [Executable (Version 1.5, 2019-10-01)](https://philipperler.net/dr2logger_1_5/)
 - [Executable (Version 1.4, 2019-09-14)](https://philipperler.net/dr2logger_1_4/)
 - [Executable (Version 1.3, 2019-09-02)](https://philipperler.net/dr2logger_1_3/)
 - [Executable (Version 1.2, 2019-08-25)](https://philipperler.net/dr2logger_1_2/)
@@ -120,7 +121,10 @@ I can only use the information I get from Dirt Rally 2.0 via UDP. This is Curren
 1. current lap
 1. RPM of engine
 1. Brake temperature
-1. Unclear stuff
+1. Laps
+1. Track length
+1. Max / idle RPM
+1. Max gears
 
 See [networking.py](./networking.py) for more information.
 
@@ -135,7 +139,7 @@ See [networking.py](./networking.py) for more information.
     1. keyboard
     1. tk
     1. basemap
-1. Build and run main.py with Python
+1. Build and run dr2logger.py with Python
 
 ## Open Issues and Contributing ##
 
@@ -145,7 +149,7 @@ So far, I had no idea how to visualize and analyze cornering. Should the car cha
 
 On the long run, comparing two or more recordings would be great. However, this is not trivial because most plots would need a common registration. Using the run time or progress won't work. Using the progress could work but would make time-dependent data hard to understand or even useless.
 
-You may see 'unknown car' or 'unknown track' in your logs. This happens when my internal database is outdated. If that happens, please fill in the car names in the 'unknown cars.txt' and 'unknown tracks.txt' that you should find in the dr2logger. Then please send the contents of those files to me.
+You may see 'unknown car' or 'unknown track' in your logs. This happens when the internal database is outdated. In this case, please fill in the car names in the 'unknown cars.txt' and 'unknown tracks.txt' that you should find in the dr2logger directory. Then please send the contents of those files to me.
 
 ## License ##
 
@@ -155,8 +159,9 @@ If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or 
 
 ## Change Log ##
 
-- 1.6 (2019-10-07):
+- 1.6 (2019-10-14):
     - Added automatic car and track detection.
+    - Improved automatic race detection.
 - 1.5 (2019-10-01): 
     - Improved the automatic detection of races.
     - Input and output IPs and ports can now be changed in the 'settings.ini'.
