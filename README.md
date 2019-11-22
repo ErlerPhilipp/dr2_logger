@@ -182,3 +182,15 @@ If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or 
 ## TODO List ##
 
 - put socket I/O in extra thread
+
+## Related Tools ##
+
+Aside this tool, which focuses on the analysis and visualization of single runs, there are other tools.
+
+[Dirt Rally Time Recorder](https://github.com/soong-construction/dirt-rally-time-recorder):
+This tool allows you to track your stage times in DiRT Rally and browse them, which the game itself does not allow.
+
+[RaceTrack Data Acquisition](https://www.racedepartment.com/downloads/racetrack-data-acquisition-rda.26829/):
+RDA is an application that can log telemetry from DiRT Rally and DiRT Rally 2.0 to CSV, BIN, or MoTeC LD files.
+It includes an overlay window with delta times.
+
