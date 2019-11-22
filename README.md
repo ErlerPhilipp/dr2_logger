@@ -13,7 +13,7 @@ This is a free and open-source tool written by Philipp Erler in 2019.
 - [Executable (Version 1.3, 2019-09-02)](https://philipperler.net/dr2logger_1_3/)
 - [Executable (Version 1.2, 2019-08-25)](https://philipperler.net/dr2logger_1_2/)
 - [Executable (Version 1.1, 2019-08-19)](https://philipperler.net/dr2logger_1_1/)
-- [Executable (Version 1.1, 2019-08-17)](https://philipperler.net/dr2logger_1_0/)
+- [Executable (Version 1.0, 2019-08-17)](https://philipperler.net/dr2logger_1_0/)
 
 ## How to Use ##
 
