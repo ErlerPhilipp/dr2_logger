@@ -41,7 +41,7 @@ This is a free and open-source tool written by Philipp Erler in 2019.
 1. At the start of a race, the logger will delete the old data
 1. Switch (Alt+Tab) from DR2 to the logger to create the plots
 1. Remarks:
-    1. You can edit the settings.ini to change the path for automatic session saves. Also, you can modify the input ip and port as well as the output ip and port. This way, the logger can receive the UDP data from DR2 and forward it to other telemetry tools. I tested it with the [DiRT Telemetry Tool](https://www.racedepartment.com/downloads/dirt-telemetry-tool-cortextuals-version.8246/).
+    1. You can edit the settings.ini to change the path for automatic session saves, the ip and port.
     1. Don't save, load or analyze your run while the race is running. Otherwise, data might get lost. Pausing the race is sufficient.
     1. This tool will probably work with other racing games by Codemaster, for example Dirt Rally 1 and Dirt 4. Those games use the same datastructure for the UDP packages. However, I didn't test it. Other racing games with UDP output, such as Project Cars, will require trivial changes in this tool's networking code.
 
@@ -149,7 +149,17 @@ So far, I had no idea how to visualize and analyze cornering. Should the car cha
 
 On the long run, comparing two or more recordings would be great. However, this is not trivial because most plots would need a common registration. Using the run time or progress won't work. Using the progress could work but would make time-dependent data hard to understand or even useless.
 
-You may see 'unknown car' or 'unknown track' in your logs. This happens when the internal database is outdated. In this case, please fill in the car names in the 'unknown cars.txt' and 'unknown tracks.txt' that you should find in the dr2logger directory. Then please send the contents of those files to me.
+You may see 'unknown car' or 'unknown track' in your logs. This happens when the internal database is outdated. In this case, please fill in the car names in the 'unknown cars.txt' and 'unknown tracks.txt' that you should find in the dr2logger directory. Then please send the contents of those files to me. I didn't yet buy season 3 and 4, therefore those tracks and cars are unknown.
+Due to ambiguous data (exactly the same min/max RPM and number of gears), the following cars cannot be distinguished:
+- Mitsubishi Lancer Evo VI and BMW M2 Competition
+- Mitsubishi Lancer Evo X and Peugeot 208 T16
+- Lancia Delta S4 RX, non-RX and Peugeot 208 R2
+- Peugeot 205 T16 RX and non-RX
+- Skoda Fabia Rally and Subaru WRX STI RX
+- Renault Megane R.S. RX (2019) and Subaru Impreza WRX STI NR4
+- Peugeot 208 WRX Supercars (2019) and Renault Clio R.S. RX
+- Audi S1 EKS RX Quattro Supercars (2019) and Volkswagen Polo R Supercar
+- Ford Fiesta RXS Evo 5 and Ford Fiesta RX (Stard)
 
 ## License ##
 
@@ -182,6 +192,8 @@ If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or 
 ## TODO List ##
 
 - put socket I/O in extra thread
+- analyze slip
+- Fourier transform on suspension to check dampers?
 
 ## Related Tools ##
 
