@@ -22,7 +22,17 @@ def plot_main(session_data):
         fig, ax = plt.subplots(1, 2)
         fig.canvas.set_window_title('Map Basics')
         plot_height_over_dist(ax[0], session_data)
-        plot_gear_over_2d_pos(ax[1], session_data)
+        plot_energy_over_2d_pos(ax[1], session_data)
+        # plot_gear_over_2d_pos(ax[1], session_data)
+
+        fig, ax = plt.subplots(2, 1, sharex=True)
+        fig.canvas.set_window_title('Energy and Power')
+        energy_over_time(ax[0], session_data)
+        power_over_time(ax[1], session_data)
+
+        # fig, ax = plt.subplots(1, 1)
+        # fig.canvas.set_window_title('Energy')
+        # plot_energy_over_2d_pos(ax, session_data)
 
         fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('RPM Histogram per Gear')
@@ -31,6 +41,11 @@ def plot_main(session_data):
         fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('Speed over RPM')
         plot_v_over_rpm(ax, session_data)
+
+        fig, ax = plt.subplots(1, 2, sharey=True)
+        fig.canvas.set_window_title('Power')
+        plot_p_over_rpm(ax[0], session_data)
+        plot_p_over_vel(ax[1], session_data)
 
         #fig, ax = plt.subplots(2, 1)
         #fig.canvas.set_window_title('G-Force')
@@ -96,7 +111,10 @@ def plot_over_2d_pos(ax, session_data, lines_x, lines_y, scale, alpha, title, la
     diff_max = diff.max()
 
     for i, g in enumerate(lines_x):
-        ax.scatter(x=lines_x[i], y=lines_y[i], s=scale, alpha=alpha, label=labels[i])
+        if type(scale) == list:
+            ax.scatter(x=lines_x[i], y=lines_y[i], s=scale[i], alpha=alpha, label=labels[i])
+        else:
+            ax.scatter(x=lines_x[i], y=lines_y[i], s=scale, alpha=alpha, label=labels[i])
     lim_left = x_middle - diff_max * 0.6
     lim_right = x_middle + diff_max * 0.6
     if lim_left != lim_right:
@@ -135,7 +153,7 @@ def line_plot(ax, x_points, y_points, title, labels, alpha, x_label, y_label,
         ax.plot(x_points[i], y_points[i], alpha=alpha)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    if labels is not None and len(labels) > 1:
+    if labels is not None:
         ax.legend(labels)
     ax.grid(True)
     ax.set_title(title)
@@ -243,6 +261,31 @@ def plot_gear_over_2d_pos(ax, session_data):
                      scale=10, alpha=0.5, title='Gear at 2D positions', labels=labels)
 
 
+def plot_energy_over_2d_pos(ax, session_data):
+
+    scale_factor = 100.0
+    gear = session_data[networking.Fields.gear.value]
+    pos_x, pos_y = data_processing.get_2d_coordinates(session_data)
+    range_gears = np.unique(gear)
+
+    energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
+    energy_truncated = energy - np.min(energy)
+    energy_normalized = energy_truncated / np.max(energy_truncated)
+
+    labels = ['Gear {}'.format(str(g)) for g in range_gears]
+    lines_x = []
+    lines_y = []
+    scales = []
+    for i, g in enumerate(range_gears):
+        current_gear = session_data[networking.Fields.gear.value] == g
+        lines_x += [pos_x[current_gear]]
+        lines_y += [pos_y[current_gear]]
+        scales += [energy_normalized[current_gear] * scale_factor]
+
+    plot_over_2d_pos(ax, session_data=session_data, lines_x=lines_x, lines_y=lines_y,
+                     scale=scales, alpha=0.5, title='Gear at 2D positions, scaled by energy', labels=labels)
+
+
 def gear_rpm_bars(ax, session_data):
 
     time_differences = data_processing.differences(session_data[networking.Fields.lap_time.value])
@@ -267,6 +310,39 @@ def gear_rpm_bars(ax, session_data):
 
     bar_plot(ax, data=gear_rpms, weights=gear_times, num_bins=20,
              title='Gear RPM', x_label='RPM', y_label='Accumulated Time (s)', series_labels=series_labels)
+
+
+def energy_over_time(ax, session_data):
+    lap_time = session_data[networking.Fields.lap_time.value]
+    energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
+    energy_data = np.array([energy, kinetic_energy, potential_energy])
+
+    labels = ['Energy [kJ]', 'Kinetic Energy [kJ]', 'Potential Energy [kJ]']
+    y_points = energy_data
+    x_points = np.array([lap_time] * y_points.shape[0])
+
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Energy over lap time',
+              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Energy', min_max_annotations=False)
+
+
+def power_over_time(ax, session_data):
+    lap_time = session_data[networking.Fields.lap_time.value]
+    energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
+    power = data_processing.derive_no_nan(energy, lap_time)
+    full_acceleration = data_processing.get_full_acceleration_mask(session_data=session_data)
+    not_full_acceleration = np.logical_not(full_acceleration)
+    power_full_acceleration = power.copy()
+    power_full_acceleration[not_full_acceleration] = 0.0
+    power_not_full_acceleration = power.copy()
+    power_not_full_acceleration[full_acceleration] = 0.0
+    power_data = np.array([power_full_acceleration, power_not_full_acceleration])
+
+    labels = ['Power at full throttle [kW]', 'Power otherwise [kW]']
+    y_points = power_data
+    x_points = np.array([lap_time] * y_points.shape[0])
+
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Power over lap time',
+              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Power', min_max_annotations=False)
 
 
 def inputs_over_time(ax, session_data):
@@ -430,6 +506,70 @@ def plot_g_over_rpm(ax, session_data):
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='G-force over RPM (full throttle)',
                  labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='RPM', y_label='G-force X')
+
+
+def plot_p_over_rpm(ax, session_data):
+
+    data_gear = session_data[networking.Fields.gear.value]
+    range_gears = list(set(data_gear))
+    range_gears.sort()
+
+    labels = ['Gear {}'.format(str(g)) for g in range_gears]
+    scale = 50.0
+    alphas = [0.5] * len(labels)
+    colors = [static_colors[i] for i, g in enumerate(range_gears)]
+    full_acceleration_mask = data_processing.get_full_acceleration_mask(session_data=session_data)
+
+    rpm = session_data[networking.Fields.rpm.value]
+    energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
+    times_steps = session_data[networking.Fields.lap_time.value]
+    power = data_processing.derive_no_nan(x=energy, time_steps=times_steps) / 1000.0
+
+    x_points = []
+    y_points = []
+    scales = []
+    for gear in range_gears:
+        current_gear = session_data[networking.Fields.gear.value] == gear
+        interesting = np.logical_and(current_gear, full_acceleration_mask)
+
+        x_points += [rpm[interesting]]
+        y_points += [power[interesting]]
+        scales += [np.ones_like(rpm[interesting]) * scale]
+
+    scatter_plot(ax, x_points=x_points, y_points=y_points, title='Power over RPM (full throttle)',
+                 labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='RPM', y_label='Power [kW]')
+
+
+def plot_p_over_vel(ax, session_data):
+
+    data_gear = session_data[networking.Fields.gear.value]
+    range_gears = list(set(data_gear))
+    range_gears.sort()
+
+    labels = ['Gear {}'.format(str(g)) for g in range_gears]
+    scale = 50.0
+    alphas = [0.5] * len(labels)
+    colors = [static_colors[i] for i, g in enumerate(range_gears)]
+    full_acceleration_mask = data_processing.get_full_acceleration_mask(session_data=session_data)
+
+    energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
+    times_steps = session_data[networking.Fields.lap_time.value]
+    power = data_processing.derive_no_nan(x=energy, time_steps=times_steps) / 1000.0
+
+    x_points = []
+    y_points = []
+    scales = []
+    for gear in range_gears:
+        current_gear = session_data[networking.Fields.gear.value] == gear
+        interesting = np.logical_and(current_gear, full_acceleration_mask)
+
+        speed_ms = session_data[networking.Fields.speed_ms.value]
+        x_points += [speed_ms[interesting]]
+        y_points += [power[interesting]]
+        scales += [np.ones_like(speed_ms[interesting]) * scale]
+
+    scatter_plot(ax, x_points=x_points, y_points=y_points, title='Power over velocity (full throttle)',
+                 labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='Velocity [m/s]', y_label='Power [kW]')
 
 
 def plot_g_over_throttle(ax, session_data):

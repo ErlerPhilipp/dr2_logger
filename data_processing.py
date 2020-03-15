@@ -146,3 +146,65 @@ def get_drift_angle(session_data):
     drift_angle_deg = np.rad2deg(drift_angle)
 
     return drift_angle_deg
+
+
+def get_energy(session_data):
+
+    mass = 1000.0  # kg, doesn't really matter because we want only the relative changes in energy
+    gravity = 9.81  # m/s^2
+    velocity = session_data[networking.Fields.speed_ms.value]
+    height = session_data[networking.Fields.pos_y.value]
+    height_relative = height - np.min(height)
+
+    kinetic_energy = 0.5 * mass * np.square(velocity)
+    potential_energy = mass * gravity * height_relative
+    # TODO: add rotational energy
+
+    energy = kinetic_energy + potential_energy
+
+    return energy, kinetic_energy, potential_energy
+
+
+def get_full_acceleration_mask(session_data):
+
+    import functools
+
+    # full throttle inputs
+    full_throttle = session_data[networking.Fields.throttle.value] >= 0.99
+    no_brakes = session_data[networking.Fields.brakes.value] <= 0.01
+    no_clutch = session_data[networking.Fields.clutch.value] <= 0.01
+
+    # take only times without a lot of drifting
+    no_drift = np.abs(get_drift_angle(session_data=session_data)) <= 5.0  # degree
+
+    # # take only times without a lot of slip
+    # car_vel = session_data[networking.Fields.speed_ms.value]
+    # no_slip_fl = np.abs(session_data[networking.Fields.wsp_fl.value] - car_vel) <= 5.0
+    # no_slip_fr = np.abs(session_data[networking.Fields.wsp_fr.value] - car_vel) <= 5.0
+    # no_slip_rl = np.abs(session_data[networking.Fields.wsp_rl.value] - car_vel) <= 5.0
+    # no_slip_rr = np.abs(session_data[networking.Fields.wsp_rr.value] - car_vel) <= 5.0
+
+    # # take only mostly flat parts of the track
+    # small_susp_vel_fl = np.abs(session_data[networking.Fields.susp_vel_fl.value]) <= 0.01
+    # small_susp_vel_fr = np.abs(session_data[networking.Fields.susp_vel_fr.value]) <= 0.01
+    # small_susp_vel_rl = np.abs(session_data[networking.Fields.susp_vel_rl.value]) <= 0.01
+    # small_susp_vel_rr = np.abs(session_data[networking.Fields.susp_vel_rr.value]) <= 0.01
+
+    # exclude times ~0.1 sec around gear shifts and gears < 1
+    gear = session_data[networking.Fields.gear.value]
+    forward_gear = gear >= 1.0
+    time_steps = session_data[networking.Fields.lap_time.value]
+    gear_changes = derive_no_nan(gear, time_steps=time_steps)
+    gear_changes[gear_changes != 0.0] = 1.0  # 1.0 if the gear changed, 0.0 otherwise
+    box_filter = np.array([1.0] * 10)  # 10 -> 2 * 160ms at 60 FPS
+    no_close_gear_changes = np.convolve(gear_changes, box_filter, mode='same') == 0.0
+
+    full_acceleration_mask = functools.reduce(np.logical_and, (
+        full_throttle, no_brakes, no_clutch,
+        forward_gear, no_close_gear_changes,
+        no_drift,
+        # no_slip_fl, no_slip_fr, no_slip_rl, no_slip_rr,
+        # small_susp_vel_fl, small_susp_vel_fr, small_susp_vel_rl, small_susp_vel_rr,
+    ))
+
+    return full_acceleration_mask
