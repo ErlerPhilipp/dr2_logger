@@ -22,8 +22,7 @@ def plot_main(session_data):
         fig, ax = plt.subplots(1, 2)
         fig.canvas.set_window_title('Map Basics')
         plot_height_over_dist(ax[0], session_data)
-        plot_energy_over_2d_pos(ax[1], session_data)
-        # plot_gear_over_2d_pos(ax[1], session_data)
+        plot_gear_over_2d_pos(ax[1], session_data)
 
         fig, ax = plt.subplots(2, 1, sharex=True)
         fig.canvas.set_window_title('Energy and Power')
@@ -75,6 +74,12 @@ def plot_main(session_data):
         rotation_over_time(ax[0], session_data)
         suspension_lr_fr_angles_over_time(ax[1], session_data)
         suspension_l_r_f_r_over_time(ax[2], session_data)
+
+        fig, ax = plt.subplots(3, 1, sharex=True)
+        fig.canvas.set_window_title('Ground Contact')
+        suspension_vel_over_time(ax[0], session_data)
+        slip_over_time(ax[1], session_data)
+        ground_contact_over_time(ax[2], session_data)
 
         plt.show()
 
@@ -146,8 +151,12 @@ def scatter_plot(ax, x_points, y_points, title, labels, colors, scales, alphas, 
 def line_plot(ax, x_points, y_points, title, labels, alpha, x_label, y_label,
               flip_y=False, min_max_annotations=True):
 
-    arg_y_max = np.unravel_index(np.argmax(y_points), y_points.shape)
-    arg_y_min = np.unravel_index(np.argmin(y_points), y_points.shape)
+    y_points_no_nan = y_points.copy()
+    y_points_no_nan_mean = np.nanmean(y_points_no_nan)
+    y_points_no_nan[np.isnan(y_points_no_nan)] = y_points_no_nan_mean
+    y_points_no_nan[np.isinf(y_points_no_nan)] = y_points_no_nan_mean
+    arg_y_max = np.unravel_index(np.argmax(y_points_no_nan), y_points.shape)
+    arg_y_min = np.unravel_index(np.argmin(y_points_no_nan), y_points.shape)
 
     for i, g in enumerate(x_points):
         ax.plot(x_points[i], y_points[i], alpha=alpha)
@@ -317,7 +326,7 @@ def energy_over_time(ax, session_data):
     energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
     energy_data = np.array([energy, kinetic_energy, potential_energy])
 
-    labels = ['Energy [kJ]', 'Kinetic Energy [kJ]', 'Potential Energy [kJ]']
+    labels = ['Energy (kJ)', 'Kinetic Energy (kJ)', 'Potential Energy (kJ)']
     y_points = energy_data
     x_points = np.array([lap_time] * y_points.shape[0])
 
@@ -337,7 +346,7 @@ def power_over_time(ax, session_data):
     power_not_full_acceleration[full_acceleration] = 0.0
     power_data = np.array([power_full_acceleration, power_not_full_acceleration])
 
-    labels = ['Power at full throttle [kW]', 'Power otherwise [kW]']
+    labels = ['Power at full throttle (kW)', 'Power otherwise (kW)']
     y_points = power_data
     x_points = np.array([lap_time] * y_points.shape[0])
 
@@ -537,7 +546,7 @@ def plot_p_over_rpm(ax, session_data):
         scales += [np.ones_like(rpm[interesting]) * scale]
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='Power over RPM (full throttle)',
-                 labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='RPM', y_label='Power [kW]')
+                 labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='RPM', y_label='Power (kW)')
 
 
 def plot_p_over_vel(ax, session_data):
@@ -569,7 +578,7 @@ def plot_p_over_vel(ax, session_data):
         scales += [np.ones_like(speed_ms[interesting]) * scale]
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='Power over velocity (full throttle)',
-                 labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='Velocity [m/s]', y_label='Power [kW]')
+                 labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='Velocity (m/s)', y_label='Power (kW)')
 
 
 def plot_g_over_throttle(ax, session_data):
@@ -703,6 +712,86 @@ def wheel_speed_lr_fr_over_time(ax, session_data):
 
     line_plot(ax, x_points=x_points, y_points=y_points, title='Wheel speed difference over lap time', labels=labels,
               alpha=0.5, x_label='Lap time (s)', y_label='Wheel speed difference (m/s)', min_max_annotations=True)
+
+
+def suspension_vel_over_time(ax, session_data):
+
+    lap_time = session_data[networking.Fields.lap_time.value]
+    susp_vel_fl = session_data[networking.Fields.susp_vel_fl.value]
+    susp_vel_fr = session_data[networking.Fields.susp_vel_fr.value]
+    susp_vel_rl = session_data[networking.Fields.susp_vel_rl.value]
+    susp_vel_rr = session_data[networking.Fields.susp_vel_rr.value]
+
+    susp_data = np.array([susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr])
+
+    labels = ['susp_vel_fl', 'susp_vel_fr', 'susp_vel_rl', 'susp_vel_rr']
+    x_points = np.array([lap_time] * len(susp_data))
+    y_points = np.array(susp_data)
+
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension velocity over lap time',
+              labels=labels, alpha=0.5, x_label='Lap time (s)',
+              y_label='Suspension velocity (mm/s)', min_max_annotations=True)
+
+
+def slip_over_time(ax, session_data):
+
+    lap_time = session_data[networking.Fields.lap_time.value]
+    speed_ms = session_data[networking.Fields.speed_ms.value]
+    wsp_fl = session_data[networking.Fields.wsp_fl.value]
+    wsp_fr = session_data[networking.Fields.wsp_fr.value]
+    wsp_rl = session_data[networking.Fields.wsp_rl.value]
+    wsp_rr = session_data[networking.Fields.wsp_rr.value]
+    wsp = [wsp_fl, wsp_fr, wsp_rl, wsp_rr]
+    slip = [w - speed_ms for w in wsp]
+    wsp_data = np.array(slip)
+
+    labels = ['front left', 'front right', 'rear left', 'rear right']
+    x_points = np.array([lap_time] * len(wsp_data))
+    y_points = np.array(wsp_data)
+
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Wheel slip over lap time',
+              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Wheel slip (m/s)', min_max_annotations=True)
+
+
+def ground_contact_over_time(ax, session_data):
+
+    lap_time = session_data[networking.Fields.lap_time.value]
+
+    def get_ground_contact():
+        susp_vel_fl = session_data[networking.Fields.susp_vel_fl.value]
+        susp_vel_fr = session_data[networking.Fields.susp_vel_fr.value]
+        susp_vel_rl = session_data[networking.Fields.susp_vel_rl.value]
+        susp_vel_rr = session_data[networking.Fields.susp_vel_rr.value]
+        susp_vel = [susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr]
+
+        ground_contact_masks = [s < -300.0 for s in susp_vel]  # extending at least by x mm/s
+        return ground_contact_masks
+
+    ground_contact_masks = get_ground_contact()
+    no_ground_contact_masks = [np.logical_not(gc) for gc in ground_contact_masks]
+
+    susp_fl = session_data[networking.Fields.susp_fl.value]
+    susp_fr = session_data[networking.Fields.susp_fr.value]
+    susp_rl = session_data[networking.Fields.susp_rl.value]
+    susp_rr = session_data[networking.Fields.susp_rr.value]
+    susp = [susp_fl, susp_fr, susp_rl, susp_rr]
+
+    susp_contact = [s.copy() for s in susp]
+    for si, s in enumerate(susp_contact):
+        s[ground_contact_masks[si]] = np.nan  # 0.0
+    susp_no_contact = [s.copy() for s in susp]
+    for si, s in enumerate(susp_no_contact):
+        s[no_ground_contact_masks[si]] = np.nan  # 0.0
+    ground_contact_data = np.array(susp_contact + susp_no_contact)
+
+    labels = ['susp fl contact', 'susp fr contact', 'susp rl contact', 'susp rr contact',
+              'susp fl no contact', 'susp fr no contact', 'susp rl no contact', 'susp rr no contact']
+    x_points = np.array([lap_time] * len(ground_contact_data))
+    y_points = np.array(ground_contact_data)
+
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Ground contact over lap time',
+              labels=labels, alpha=0.5, x_label='Lap time (s)',
+              y_label='Ground contact', min_max_annotations=True)
 
 
 def drift_over_speed(ax, session_data):
