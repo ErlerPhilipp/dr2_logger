@@ -77,9 +77,12 @@ def plot_main(session_data):
 
         fig, ax = plt.subplots(3, 1, sharex=True)
         fig.canvas.set_window_title('Ground Contact')
-        suspension_vel_over_time(ax[0], session_data)
-        slip_over_time(ax[1], session_data)
-        ground_contact_over_time(ax[2], session_data)
+        ground_contact_over_time(ax[0], session_data)
+        suspension_l_r_f_r_over_time(ax[1], session_data)
+        # slip_over_time(ax[1], session_data)
+        suspension_vel_over_time(ax[2], session_data)
+        # suspension_vel_derived_l_r_f_r_over_time(ax[3], session_data)
+        # suspension_vel_der_diff_l_r_f_r_over_time(ax[4], session_data)
 
         plt.show()
 
@@ -331,7 +334,7 @@ def energy_over_time(ax, session_data):
     x_points = np.array([lap_time] * y_points.shape[0])
 
     line_plot(ax, x_points=x_points, y_points=y_points, title='Energy over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Energy', min_max_annotations=False)
+              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Energy (kJ)', min_max_annotations=False)
 
 
 def power_over_time(ax, session_data):
@@ -351,7 +354,7 @@ def power_over_time(ax, session_data):
     x_points = np.array([lap_time] * y_points.shape[0])
 
     line_plot(ax, x_points=x_points, y_points=y_points, title='Power over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Power', min_max_annotations=False)
+              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Power (kW)', min_max_annotations=False)
 
 
 def inputs_over_time(ax, session_data):
@@ -425,6 +428,53 @@ def suspension_l_r_f_r_over_time(ax, session_data):
     line_plot(ax, x_points=x_points, y_points=y_points, title='Average suspension dislocation over lap time',
               labels=labels, alpha=0.5, x_label='Lap time (s)',
               y_label='Suspension dislocation (mm)', flip_y=True, min_max_annotations=True)
+
+
+def suspension_vel_derived_l_r_f_r_over_time(ax, session_data):
+
+    lap_time = session_data[networking.Fields.lap_time.value]
+    susp_fl = session_data[networking.Fields.susp_fl.value]
+    susp_fr = session_data[networking.Fields.susp_fr.value]
+    susp_rl = session_data[networking.Fields.susp_rl.value]
+    susp_rr = session_data[networking.Fields.susp_rr.value]
+    susp_data = [susp_fl, susp_fr, susp_rl, susp_rr]
+    susp_data = [data_processing.derive_no_nan(susp, lap_time) for susp in susp_data]
+    susp_data = np.array(susp_data)
+
+    labels = ['susp_fl', 'susp_fr', 'susp_rl', 'susp_rr']
+    x_points = np.array([lap_time] * len(susp_data))
+    y_points = np.array(susp_data)
+
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension velocity derived over lap time',
+              labels=labels, alpha=0.5, x_label='Lap time (s)',
+              y_label='Suspension velocity derived (mm/s)', flip_y=True, min_max_annotations=True)
+
+
+def suspension_vel_der_diff_l_r_f_r_over_time(ax, session_data):
+
+    lap_time = session_data[networking.Fields.lap_time.value]
+    susp_fl = session_data[networking.Fields.susp_fl.value]
+    susp_fr = session_data[networking.Fields.susp_fr.value]
+    susp_rl = session_data[networking.Fields.susp_rl.value]
+    susp_rr = session_data[networking.Fields.susp_rr.value]
+    susp_data = [susp_fl, susp_fr, susp_rl, susp_rr]
+    susp_data = [data_processing.derive_no_nan(susp, lap_time) for susp in susp_data]
+
+    susp_vel_fl = session_data[networking.Fields.susp_vel_fl.value]
+    susp_vel_fr = session_data[networking.Fields.susp_vel_fr.value]
+    susp_vel_rl = session_data[networking.Fields.susp_vel_rl.value]
+    susp_vel_rr = session_data[networking.Fields.susp_vel_rr.value]
+    susp_vel = [susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr]
+
+    susp_data = np.array(susp_data) - np.array(susp_vel)
+
+    labels = ['susp_fl', 'susp_fr', 'susp_rl', 'susp_rr']
+    x_points = np.array([lap_time] * len(susp_data))
+    y_points = np.array(susp_data)
+
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension velocity derived - given over lap time',
+              labels=labels, alpha=0.5, x_label='Lap time (s)',
+              y_label='Suspension velocity derived - given (mm/s)', flip_y=True, min_max_annotations=True)
 
 
 def suspension_bars(ax, session_data):
@@ -757,35 +807,43 @@ def ground_contact_over_time(ax, session_data):
 
     lap_time = session_data[networking.Fields.lap_time.value]
 
-    def get_ground_contact():
-        susp_vel_fl = session_data[networking.Fields.susp_vel_fl.value]
-        susp_vel_fr = session_data[networking.Fields.susp_vel_fr.value]
-        susp_vel_rl = session_data[networking.Fields.susp_vel_rl.value]
-        susp_vel_rr = session_data[networking.Fields.susp_vel_rr.value]
-        susp_vel = [susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr]
+    def get_ground_contact(susp_vel: np.ndarray, susp_vel_lim=100.0, variance_max=100.0, filter_length=6) -> list:
+        # filter_length = 6 -> 100 ms (0.1 s) at 60 FPS
 
-        ground_contact_masks = [s < -300.0 for s in susp_vel]  # extending at least by x mm/s
-        return ground_contact_masks
+        def get_variance_convolved(data: np.ndarray, filter_length: int):
+            box_filter = np.array([1.0] * filter_length)  # filter_length = 6 -> 100 ms at 60 FPS
+            sum_conv = np.convolve(data, box_filter, mode='same')
+            mean_conv = sum_conv / float(filter_length)
+            var_sqr_conv = data - mean_conv
+            var_conv = var_sqr_conv * var_sqr_conv
+            return var_conv
 
-    ground_contact_masks = get_ground_contact()
-    no_ground_contact_masks = [np.logical_not(gc) for gc in ground_contact_masks]
+        # extending by max x mm/s
+        susp_vel_lim = np.logical_and(susp_vel < 0.0, susp_vel > -susp_vel_lim)
+        susp_var = get_variance_convolved(susp_vel, filter_length) < variance_max
+        ground_contact_mask = np.logical_and(susp_var, susp_vel_lim)
 
-    susp_fl = session_data[networking.Fields.susp_fl.value]
-    susp_fr = session_data[networking.Fields.susp_fr.value]
-    susp_rl = session_data[networking.Fields.susp_rl.value]
-    susp_rr = session_data[networking.Fields.susp_rr.value]
-    susp = [susp_fl, susp_fr, susp_rl, susp_rr]
+        # extending for more than 0.1s
+        box_filter = np.array([1.0] * filter_length)
+        ground_contact_mask = np.convolve(ground_contact_mask, box_filter, mode='same') >= float(filter_length * 0.5)
+        return ground_contact_mask
 
-    susp_contact = [s.copy() for s in susp]
-    for si, s in enumerate(susp_contact):
-        s[ground_contact_masks[si]] = np.nan  # 0.0
-    susp_no_contact = [s.copy() for s in susp]
-    for si, s in enumerate(susp_no_contact):
-        s[no_ground_contact_masks[si]] = np.nan  # 0.0
-    ground_contact_data = np.array(susp_contact + susp_no_contact)
+    susp_vel_fl = session_data[networking.Fields.susp_vel_fl.value]
+    susp_vel_fr = session_data[networking.Fields.susp_vel_fr.value]
+    susp_vel_rl = session_data[networking.Fields.susp_vel_rl.value]
+    susp_vel_rr = session_data[networking.Fields.susp_vel_rr.value]
+    susp_vel = [susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr]
+    ground_contact_masks = [get_ground_contact(susp, susp_vel_lim=100.0, variance_max=100.0, filter_length=6)
+                            for susp in susp_vel]
 
-    labels = ['susp fl contact', 'susp fr contact', 'susp rl contact', 'susp rr contact',
-              'susp fl no contact', 'susp fr no contact', 'susp rl no contact', 'susp rr no contact']
+    # boolean mask to 0.0 or 1.0, also take sum
+    ground_contact = [gc.astype(np.float) for gc in ground_contact_masks]
+    ground_contact_sum = [np.sum(np.array(ground_contact), axis=0)]
+    ground_contact = ground_contact_sum + ground_contact
+    ground_contact = [gc + gci * 0.05 for gci, gc in enumerate(ground_contact)]  # small offset to avoid overlaps
+    ground_contact_data = np.array(ground_contact)
+
+    labels = ['sum contact', 'fl contact', 'fr contact', 'rl contact', 'rr contact']
     x_points = np.array([lap_time] * len(ground_contact_data))
     y_points = np.array(ground_contact_data)
 
