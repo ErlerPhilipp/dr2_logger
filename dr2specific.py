@@ -315,6 +315,9 @@ track_data = [
     [1119.3590087890625, -341.3289794921875, 'Barcalona-Catalunya, Spain'],
     [1207.18798828125, 180.26181030273438, 'Holjes, Sweden'],
     [1194.22900390625, -133.4615936279297, 'Yas Marina, Abu Dhabi'],
+
+    # Rallycross locations:
+    [3601.22998046875, 121.67539978027344, 'DirtFish'],
 ]
 
 
@@ -330,11 +333,9 @@ for t in track_data:
 
 
 class GameState(Enum):
-    #error = 0
-    race_start = 1
+    ignore_package = 0
+    race_not_running = 1
     race_running = 2
-    duplicate_package = 3
-    race_finished_or_service_area = 4
 
 
 def get_car_name_from_sample(start_sample):
@@ -371,77 +372,82 @@ def get_track_name(length, start_z):
     return track_name
 
 
-def get_game_state_str(state, start_sample, num_samples):
-
-    #if state == GameState.error:
-    #    return None
+def get_game_state_str(state, start_sample, last_sample, num_samples):
 
     state_str = '{car} on {track}, samples: {samples:05d}, lap time: {time:.1f}, ' \
-                'speed: {speed:.1f} m/s, rpm {rpm:5.1f}, {state}'
+                'speed: {speed:.1f} m/s, rpm: {rpm:5.1f}, ' \
+                'progress: {progress:.2f}, distance: {distance:.1f}, run_time: {run_time:.1f}, ' \
+                '{state}'
 
-    time = start_sample[networking.Fields.lap_time.value]
-    speed = start_sample[networking.Fields.speed_ms.value]
-    rpm = start_sample[networking.Fields.rpm.value]
+    time = last_sample[networking.Fields.lap_time.value]
+    speed = last_sample[networking.Fields.speed_ms.value]
+    rpm = last_sample[networking.Fields.rpm.value]
+    progress = last_sample[networking.Fields.progress.value]
+    distance = last_sample[networking.Fields.distance.value]
+    run_time = last_sample[networking.Fields.run_time.value]
 
-    car_name = get_car_name_from_sample(start_sample)
-    track_name = get_track_name_from_sample(start_sample)
+    car_name = get_car_name_from_sample(last_sample)
+    track_name = get_track_name_from_sample(last_sample)
 
-    if state == GameState.race_start:
-        state = 'race starting'
+    if state == GameState.race_not_running:
+        state = 'race not running'
     elif state == GameState.race_running:
         state = 'race running'
-    elif state == GameState.duplicate_package:
-        state = 'duplicate package'
-    elif state == GameState.race_finished_or_service_area:
-        state = 'race finished or in service area'
+    elif state == GameState.ignore_package:
+        state = 'ignore package'
     else:
         raise ValueError('Invalid game state: {}'.format(state))
 
     state_str = state_str.format(
-        car=car_name, track=track_name, samples=num_samples, time=time, speed=speed, rpm=rpm, state=state
+        car=car_name, track=track_name,
+        samples=num_samples, time=time, speed=speed, rpm=rpm,
+        progress=progress, distance=distance, run_time=run_time,
+        state=state
     )
     return state_str
 
 
 def get_game_state(receive_results, last_receive_results):
 
-    #if receive_results is None:  # no data, error in receive?
-    #    return GameState.error
+    # no new data
+    if receive_results is None:
+        return GameState.ignore_package
 
-    # all values zero -> probably in finish
-    # strange lap time = 0 and progress near 2 suddenly -> over finish line
-    if np.all(receive_results == np.zeros_like(receive_results)) or \
-        (receive_results[networking.Fields.lap_time.value] == 0.0 and
-         receive_results[networking.Fields.progress.value] >= 1.0):
-        return GameState.race_finished_or_service_area
+    # all equal except the run time -> new package, same game state in DR2 -> race is paused
+    if last_receive_results is not None and \
+            np.all(receive_results[1:] == last_receive_results[1:]):
+        return GameState.ignore_package
+
+    #if receive_results[networking.Fields.progress.value] > 0.0:
+    if receive_results[networking.Fields.lap_time.value] > 0.0:
+        return GameState.race_running
 
     # race has not yet started
     if receive_results[networking.Fields.lap_time.value] == 0.0:
-        return GameState.race_start
-
-    # all equal except the run time -> new package, same game state in DR2 -> race paused
-    if last_receive_results is not None and \
-            np.all(receive_results[1:] == last_receive_results[1:]):
-        return GameState.duplicate_package
+        return GameState.race_not_running
+    if receive_results[networking.Fields.distance.value] <= 0.0:
+        return GameState.race_not_running
 
     # RPM will never be zero at the start (it will be the idle RPM)
     # However, RPM can be zero for some reason in the service area. Ignore then.
     if receive_results[networking.Fields.rpm.value] == 0.0 and receive_results[networking.Fields.run_time.value] <= 0.1:
-        return GameState.duplicate_package
+        return GameState.ignore_package
 
-    return GameState.race_running
+    # strange packages with position at zero after race, speed check to be sure
+    if receive_results[networking.Fields.pos_y.value] == 0.0 and \
+            receive_results[networking.Fields.speed_ms.value] == 0.0:
+        return GameState.race_not_running
+
+    print('Unknown reason for "not running": progress={}'.format(receive_results[networking.Fields.progress.value]))
+    return GameState.race_not_running
 
 
 def accept_new_data(state):
-    #if state == GameState.error:
-    #    return False
-    if state == GameState.race_start:
+    if state == GameState.race_not_running:
         return False
     elif state == GameState.race_running:
         return True
-    elif state == GameState.race_finished_or_service_area:
-        return False
-    elif state == GameState.duplicate_package:
+    elif state == GameState.ignore_package:
         return False
     else:
         raise ValueError('Unknown state: {}'.format(state))
