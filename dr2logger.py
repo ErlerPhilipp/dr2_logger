@@ -13,7 +13,6 @@ import dr2specific
 
 
 debug = False
-recording = False
 log_raw_data = False
 version_string = '(Version 1.6, 2019-10-14)'
 
@@ -63,6 +62,20 @@ def init_config_session_path(config):
     config['general']['session_path'] = './races_auto_save/'
 
 
+# def forward_datagram(udp_socket, datagram, config):
+#     # forward datagram to another socket
+#     # not necessary atm because you can simply duplicate the entry in the DR2 settings file
+#     try:
+#         networking.send_datagram(udp_socket, datagram,
+#                                  config['general']['ip_out'], int(config['general']['port_out']))
+#     except ValueError:
+#         print('Invalid output socket. Resetting...')
+#         init_config_output_socket(config)
+#         write_config(config)
+#         networking.send_datagram(udp_socket, datagram,
+#                                  config['general']['ip_out'], int(config['general']['port_out']))
+
+
 def write_config(config):
     with open('settings.ini', 'w') as configfile:
         config.write(configfile)
@@ -93,7 +106,7 @@ def print_current_state(state_str):
         ctypes.windll.kernel32.SetConsoleTitleW(state_str)
 
 
-def save_run(session_collection, config, first_sample, automatic_name=False):
+def save_run(session_collection, config, automatic_name=False):
     # TODO: this will block the main thread and data from the port may be lost
     import tkinter as tk
     from tkinter import filedialog
@@ -108,8 +121,9 @@ def save_run(session_collection, config, first_sample, automatic_name=False):
         os.makedirs(config['general']['session_path'], exist_ok=True)
 
     # assemble default name
-    car_name = dr2specific.get_car_name_from_sample(first_sample)
-    track_name = dr2specific.get_track_name_from_sample(first_sample)
+    last_sample = session_collection[:, -1]
+    car_name = dr2specific.get_car_name_from_sample(last_sample)
+    track_name = dr2specific.get_track_name_from_sample(last_sample)
     total_race_time = '{:.1f}'.format(np.max(session_collection[networking.Fields.lap_time.value]))
     now = datetime.now()
     now_str = now.strftime('%Y-%m-%d %H_%M_%S')
@@ -162,8 +176,8 @@ def main():
     session_collection, first_sample = clear_session_collection()
     last_receive_results = None
     end_program = False
-    new_state = dr2specific.GameState.race_start
-    last_state = dr2specific.GameState.race_start
+    new_state = dr2specific.GameState.race_not_running
+    last_state = dr2specific.GameState.race_not_running
     config = configparser.ConfigParser()
     read_config(config)
 
@@ -188,7 +202,8 @@ def main():
 
     if debug:  # start with plots
         # npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
-        npz_file = np.load('C:/Users/pherl/Desktop/dr2_logger/evo6_po.npz')
+        # npz_file = np.load('C:/Users/pherl/Desktop/dr2logger_1_6/races_auto_save/2019-12-26 16_11_35 - Unknown car (0.0, 0.0, 0.0) - Verbundsring - 216.9s.npz')
+        npz_file = np.load('C:/Users/pherl/Desktop/2020-03-18 21_22_14 - Peugeot 208 R2 - Kakaristo - 451.7s.npz')
         session_collection = npz_file['arr_0']
         message_queue.put('a')
     else:  # start with recording
@@ -197,32 +212,24 @@ def main():
     while not end_program:
 
         receive_results, datagram = networking.receive(udp_socket)
-#        try:
-#            networking.send_datagram(udp_socket, datagram,
-#                                     config['general']['ip_out'], int(config['general']['port_out']))
-#        except ValueError:
-#            print('Invalid output socket. Resetting...')
-#            init_config_output_socket(config)
-#            write_config(config)
-#            networking.send_datagram(udp_socket, datagram,
-#                                     config['general']['ip_out'], int(config['general']['port_out']))
-
-        if log_raw_data:
-            receive_results_raw = np.expand_dims(receive_results, 1)
-            if raw_data.size == 0:
-                raw_data = receive_results_raw
-            else:
-                raw_data = np.append(session_collection, receive_results_raw, axis=1)
+        # forward_datagram(udp_socket=udp_socket, datagram=datagram, config=config)
 
         if receive_results is not None:
+            if log_raw_data:
+                receive_results_raw = np.expand_dims(receive_results, 1)
+                if raw_data.size == 0:
+                    raw_data = receive_results_raw
+                else:
+                    raw_data = np.append(session_collection, receive_results_raw, axis=1)
+
             new_state = dr2specific.get_game_state(receive_results, last_receive_results)
+            last_sample = receive_results
             print_current_state(dr2specific.get_game_state_str(
-                new_state, first_sample, session_collection.shape[1]))
+                new_state, last_sample, session_collection.shape[1]))
             has_new_data = dr2specific.accept_new_data(new_state)
             if has_new_data:
                 if session_collection.size == 0:
                     session_collection = np.expand_dims(receive_results, 1)
-                    first_sample = receive_results
                 else:
                     session_collection = np.append(session_collection, np.expand_dims(receive_results, 1), axis=1)
         else:
@@ -249,14 +256,14 @@ def main():
                     except Exception:
                         print('Error during plot: {}'.format(sys.exc_info()))
             elif command == 's':
-                save_run(session_collection, config, first_sample)
+                save_run(session_collection, config)
             elif command == 'l':
                 loaded_session_collection = load_run(config)
                 if loaded_session_collection is not None and loaded_session_collection.size > 0:
                     session_collection = loaded_session_collection
-                    first_sample = session_collection[:, 0]
+                    last_sample = session_collection[:, -1]
                     print_current_state(dr2specific.get_game_state_str(
-                        new_state, first_sample, session_collection.shape[1]))
+                        new_state, last_sample, session_collection.shape[1]))
             elif command == '':
                 pass  # just ignore empty inputs
             else:
@@ -264,23 +271,24 @@ def main():
                 print(commands_hint + '\n')
 
         # simply ignore state changes through duplicates
-        if new_state == dr2specific.GameState.duplicate_package:
+        if new_state == dr2specific.GameState.ignore_package:
             new_state = last_state
 
         if debug and last_state != new_state:
             print('State changed from {} to {}'.format(last_state, new_state))
 
         if last_state == dr2specific.GameState.race_running and \
-                new_state == dr2specific.GameState.race_finished_or_service_area:
+                new_state == dr2specific.GameState.race_not_running:
             print('Race finished. ')
-            save_run(session_collection, config, first_sample, automatic_name=True)
+            save_run(session_collection, config, automatic_name=True)
 
             if log_raw_data:
-                save_run(raw_data, config, first_sample, automatic_name=False)
-        elif last_state == dr2specific.GameState.race_start and \
+                save_run(raw_data, config, automatic_name=False)
+        elif last_state == dr2specific.GameState.race_not_running and \
                 new_state == dr2specific.GameState.race_running:
+            print('Race starting')
             if session_collection.shape[1] > 10:  # should only be less than 100 at the first race after startup
-                print('Race starting. \nCleared {} data points\n'.format(session_collection.shape[1]))
+                print('Cleared {} data points'.format(session_collection.shape[1]))
             session_collection, first_sample = clear_session_collection()
 
             # debug, data mining
@@ -299,17 +307,9 @@ def main():
                 with open('unknown tracks.txt', 'a+') as f:
                     f.write('[{}, {}, \'Unknown track\'],\n'.format(track_length, pos_z))
 
-        elif last_state == dr2specific.GameState.race_finished_or_service_area and \
-                new_state == dr2specific.GameState.race_running:
-            save_run(session_collection, config, first_sample, automatic_name=True)
-            session_collection, first_sample = clear_session_collection()
-            print('Race finished. Race starting. \nCleared {} data points\n'.format(session_collection.shape[1]))
-
         last_state = new_state
         if has_new_data:
             last_receive_results = receive_results.copy()
-        #else:
-        #    time.sleep(0.005)  # 5 ms (+- 15 ms)
 
     input_thread.join()
     udp_socket.close()

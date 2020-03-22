@@ -338,10 +338,10 @@ class GameState(Enum):
     race_running = 2
 
 
-def get_car_name_from_sample(start_sample):
-    max_rpm = start_sample[networking.Fields.max_rpm.value]
-    idle_rpm = start_sample[networking.Fields.idle_rpm.value]
-    max_gears = start_sample[networking.Fields.max_gears.value]
+def get_car_name_from_sample(sample):
+    max_rpm = sample[networking.Fields.max_rpm.value]
+    idle_rpm = sample[networking.Fields.idle_rpm.value]
+    max_gears = sample[networking.Fields.max_gears.value]
     return get_car_name(max_rpm, idle_rpm, max_gears)
 
 
@@ -354,9 +354,9 @@ def get_car_name(max_rpm, idle_rpm, max_gears):
     return car_name
 
 
-def get_track_name_from_sample(start_sample):
-    length = start_sample[networking.Fields.track_length.value]
-    start_z = start_sample[networking.Fields.pos_z.value]
+def get_track_name_from_sample(sample):
+    length = sample[networking.Fields.track_length.value]
+    start_z = sample[networking.Fields.pos_z.value]
     return get_track_name(length, start_z)
 
 
@@ -372,7 +372,7 @@ def get_track_name(length, start_z):
     return track_name
 
 
-def get_game_state_str(state, start_sample, last_sample, num_samples):
+def get_game_state_str(state, last_sample, num_samples):
 
     state_str = '{car} on {track}, samples: {samples:05d}, lap time: {time:.1f}, ' \
                 'speed: {speed:.1f} m/s, rpm: {rpm:5.1f}, ' \
