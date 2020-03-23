@@ -300,7 +300,8 @@ def plot_energy_over_2d_pos(ax, session_data):
 
 def gear_rpm_bars(ax, session_data):
 
-    time_differences = data_processing.differences(session_data[networking.Fields.lap_time.value])
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
+    time_differences = data_processing.differences(race_time)
     # prevent negative times due to next lap
     time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
     rpm = session_data[networking.Fields.rpm.value]
@@ -325,22 +326,22 @@ def gear_rpm_bars(ax, session_data):
 
 
 def energy_over_time(ax, session_data):
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
     energy_data = np.array([energy, kinetic_energy, potential_energy])
 
     labels = ['Energy (kJ)', 'Kinetic Energy (kJ)', 'Potential Energy (kJ)']
     y_points = energy_data
-    x_points = np.array([lap_time] * y_points.shape[0])
+    x_points = np.array([race_time] * y_points.shape[0])
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Energy over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Energy (kJ)', min_max_annotations=False)
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Energy over time',
+              labels=labels, alpha=0.5, x_label='Time (s)', y_label='Energy (kJ)', min_max_annotations=False)
 
 
 def power_over_time(ax, session_data):
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
-    power = data_processing.derive_no_nan(energy, lap_time)
+    power = data_processing.derive_no_nan(energy, race_time)
     full_acceleration = data_processing.get_full_acceleration_mask(session_data=session_data)
     not_full_acceleration = np.logical_not(full_acceleration)
     power_full_acceleration = power.copy()
@@ -351,14 +352,14 @@ def power_over_time(ax, session_data):
 
     labels = ['Power at full throttle (kW)', 'Power otherwise (kW)']
     y_points = power_data
-    x_points = np.array([lap_time] * y_points.shape[0])
+    x_points = np.array([race_time] * y_points.shape[0])
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Power over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Power (kW)', min_max_annotations=False)
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Power over time',
+              labels=labels, alpha=0.5, x_label='Time (s)', y_label='Power (kW)', min_max_annotations=False)
 
 
 def inputs_over_time(ax, session_data):
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     throttle = session_data[networking.Fields.throttle.value]
     brakes = session_data[networking.Fields.brakes.value]
     steering = session_data[networking.Fields.steering.value]
@@ -366,14 +367,14 @@ def inputs_over_time(ax, session_data):
 
     labels = ['throttle', 'brakes', 'steering']
     y_points = input_data
-    x_points = np.array([lap_time] * y_points.shape[0])
+    x_points = np.array([race_time] * y_points.shape[0])
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Inputs over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Inputs', min_max_annotations=False)
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Inputs over time',
+              labels=labels, alpha=0.5, x_label='Time (s)', y_label='Inputs', min_max_annotations=False)
 
 
 def suspension_over_time(ax, session_data):
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     susp_fl = session_data[networking.Fields.susp_fl.value]
     susp_fr = session_data[networking.Fields.susp_fr.value]
     susp_rl = session_data[networking.Fields.susp_rl.value]
@@ -382,15 +383,15 @@ def suspension_over_time(ax, session_data):
 
     labels = ['front left', 'front right', 'rear left', 'rear right']
     y_points = susp_data
-    x_points = np.array([lap_time] * y_points.shape[0])
+    x_points = np.array([race_time] * y_points.shape[0])
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension dislocation over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Suspension dislocation (mm)',
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension dislocation over time',
+              labels=labels, alpha=0.5, x_label='Time (s)', y_label='Suspension dislocation (mm)',
               flip_y=True, min_max_annotations=True)
 
 
 def suspension_lr_fr_over_time(ax, session_data):
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     susp_fl = session_data[networking.Fields.susp_fl.value]
     susp_fr = session_data[networking.Fields.susp_fr.value]
     susp_rl = session_data[networking.Fields.susp_rl.value]
@@ -400,17 +401,17 @@ def suspension_lr_fr_over_time(ax, session_data):
     susp_data = np.array([susp_left_right, susp_front_rear])
 
     labels = ['left-right', 'front-rear']
-    x_points = np.array([lap_time] * len(susp_data))
+    x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension dislocation difference over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)',
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension dislocation difference over time',
+              labels=labels, alpha=0.5, x_label='Time (s)',
               y_label='Suspension dislocation difference (mm)', flip_y=True, min_max_annotations=True)
 
 
 def suspension_l_r_f_r_over_time(ax, session_data):
 
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     susp_fl = session_data[networking.Fields.susp_fl.value]
     susp_fr = session_data[networking.Fields.susp_fr.value]
     susp_rl = session_data[networking.Fields.susp_rl.value]
@@ -422,43 +423,43 @@ def suspension_l_r_f_r_over_time(ax, session_data):
     susp_data = np.array([susp_left, susp_right, susp_front, susp_rear])
 
     labels = ['left', 'right', 'front', 'rear']
-    x_points = np.array([lap_time] * len(susp_data))
+    x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Average suspension dislocation over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)',
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Average suspension dislocation over time',
+              labels=labels, alpha=0.5, x_label='Time (s)',
               y_label='Suspension dislocation (mm)', flip_y=True, min_max_annotations=True)
 
 
 def suspension_vel_derived_l_r_f_r_over_time(ax, session_data):
 
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     susp_fl = session_data[networking.Fields.susp_fl.value]
     susp_fr = session_data[networking.Fields.susp_fr.value]
     susp_rl = session_data[networking.Fields.susp_rl.value]
     susp_rr = session_data[networking.Fields.susp_rr.value]
     susp_data = [susp_fl, susp_fr, susp_rl, susp_rr]
-    susp_data = [data_processing.derive_no_nan(susp, lap_time) for susp in susp_data]
+    susp_data = [data_processing.derive_no_nan(susp, race_time) for susp in susp_data]
     susp_data = np.array(susp_data)
 
     labels = ['susp_fl', 'susp_fr', 'susp_rl', 'susp_rr']
-    x_points = np.array([lap_time] * len(susp_data))
+    x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension velocity derived over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)',
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension velocity derived over time',
+              labels=labels, alpha=0.5, x_label='Time (s)',
               y_label='Suspension velocity derived (mm/s)', flip_y=True, min_max_annotations=True)
 
 
 def suspension_vel_der_diff_l_r_f_r_over_time(ax, session_data):
 
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     susp_fl = session_data[networking.Fields.susp_fl.value]
     susp_fr = session_data[networking.Fields.susp_fr.value]
     susp_rl = session_data[networking.Fields.susp_rl.value]
     susp_rr = session_data[networking.Fields.susp_rr.value]
     susp_data = [susp_fl, susp_fr, susp_rl, susp_rr]
-    susp_data = [data_processing.derive_no_nan(susp, lap_time) for susp in susp_data]
+    susp_data = [data_processing.derive_no_nan(susp, race_time) for susp in susp_data]
 
     susp_vel_fl = session_data[networking.Fields.susp_vel_fl.value]
     susp_vel_fr = session_data[networking.Fields.susp_vel_fr.value]
@@ -469,17 +470,18 @@ def suspension_vel_der_diff_l_r_f_r_over_time(ax, session_data):
     susp_data = np.array(susp_data) - np.array(susp_vel)
 
     labels = ['susp_fl', 'susp_fr', 'susp_rl', 'susp_rr']
-    x_points = np.array([lap_time] * len(susp_data))
+    x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension velocity derived - given over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)',
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension velocity derived over time',
+              labels=labels, alpha=0.5, x_label='Time (s)',
               y_label='Suspension velocity derived - given (mm/s)', flip_y=True, min_max_annotations=True)
 
 
 def suspension_bars(ax, session_data):
 
-    time_differences = data_processing.differences(session_data[networking.Fields.lap_time.value])
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
+    time_differences = data_processing.differences(race_time)
     # prevent negative times due to next lap
     time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
     susp_fl = session_data[networking.Fields.susp_fl.value]
@@ -504,7 +506,8 @@ def suspension_bars(ax, session_data):
 
 def suspension_l_r_f_r_bars(ax, session_data):
 
-    time_differences = data_processing.differences(session_data[networking.Fields.lap_time.value])
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
+    time_differences = data_processing.differences(race_time)
     # prevent negative times due to next lap
     time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
     susp_fl = session_data[networking.Fields.susp_fl.value]
@@ -581,7 +584,7 @@ def plot_p_over_rpm(ax, session_data):
 
     rpm = session_data[networking.Fields.rpm.value]
     energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
-    times_steps = session_data[networking.Fields.lap_time.value]
+    times_steps = data_processing.get_run_time_cleaned(session_data=session_data)
     power = data_processing.derive_no_nan(x=energy, time_steps=times_steps) / 1000.0
 
     x_points = []
@@ -612,7 +615,7 @@ def plot_p_over_vel(ax, session_data):
     full_acceleration_mask = data_processing.get_full_acceleration_mask(session_data=session_data)
 
     energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
-    times_steps = session_data[networking.Fields.lap_time.value]
+    times_steps = data_processing.get_run_time_cleaned(session_data=session_data)
     power = data_processing.derive_no_nan(x=energy, time_steps=times_steps) / 1000.0
 
     x_points = []
@@ -730,7 +733,7 @@ def forward_over_2d_pos(ax, session_data):
 
 def wheel_speed_over_time(ax, session_data):
 
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     wsp_fl = session_data[networking.Fields.wsp_fl.value]
     wsp_fr = session_data[networking.Fields.wsp_fr.value]
     wsp_rl = session_data[networking.Fields.wsp_rl.value]
@@ -738,16 +741,16 @@ def wheel_speed_over_time(ax, session_data):
     wsp_data = np.array([wsp_fl, wsp_fr, wsp_rl, wsp_rr])
 
     labels = ['front left', 'front right', 'rear left', 'rear right']
-    x_points = np.array([lap_time] * len(wsp_data))
+    x_points = np.array([race_time] * len(wsp_data))
     y_points = np.array(wsp_data)
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Wheel speed over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Wheel speed (m/s)', min_max_annotations=True)
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Wheel speed over time',
+              labels=labels, alpha=0.5, x_label='Time (s)', y_label='Wheel speed (m/s)', min_max_annotations=True)
 
 
 def wheel_speed_lr_fr_over_time(ax, session_data):
 
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     wsp_fl = session_data[networking.Fields.wsp_fl.value]
     wsp_fr = session_data[networking.Fields.wsp_fr.value]
     wsp_rl = session_data[networking.Fields.wsp_rl.value]
@@ -757,16 +760,16 @@ def wheel_speed_lr_fr_over_time(ax, session_data):
     wsp_data = np.array([wsp_left_right, wsp_front_rear])
 
     labels = ['left-right', 'front-rear']
-    x_points = np.array([lap_time] * len(wsp_data))
+    x_points = np.array([race_time] * len(wsp_data))
     y_points = np.array(wsp_data)
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Wheel speed difference over lap time', labels=labels,
-              alpha=0.5, x_label='Lap time (s)', y_label='Wheel speed difference (m/s)', min_max_annotations=True)
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Wheel speed difference over time', labels=labels,
+              alpha=0.5, x_label='Time (s)', y_label='Wheel speed difference (m/s)', min_max_annotations=True)
 
 
 def suspension_vel_over_time(ax, session_data):
 
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     susp_vel_fl = session_data[networking.Fields.susp_vel_fl.value]
     susp_vel_fr = session_data[networking.Fields.susp_vel_fr.value]
     susp_vel_rl = session_data[networking.Fields.susp_vel_rl.value]
@@ -775,17 +778,17 @@ def suspension_vel_over_time(ax, session_data):
     susp_data = np.array([susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr])
 
     labels = ['susp_vel_fl', 'susp_vel_fr', 'susp_vel_rl', 'susp_vel_rr']
-    x_points = np.array([lap_time] * len(susp_data))
+    x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension velocity over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)',
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension velocity over time',
+              labels=labels, alpha=0.5, x_label='Time (s)',
               y_label='Suspension velocity (mm/s)', min_max_annotations=True)
 
 
 def slip_over_time(ax, session_data):
 
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     speed_ms = session_data[networking.Fields.speed_ms.value]
     wsp_fl = session_data[networking.Fields.wsp_fl.value]
     wsp_fr = session_data[networking.Fields.wsp_fr.value]
@@ -796,16 +799,16 @@ def slip_over_time(ax, session_data):
     wsp_data = np.array(slip)
 
     labels = ['front left', 'front right', 'rear left', 'rear right']
-    x_points = np.array([lap_time] * len(wsp_data))
+    x_points = np.array([race_time] * len(wsp_data))
     y_points = np.array(wsp_data)
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Wheel slip over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)', y_label='Wheel slip (m/s)', min_max_annotations=True)
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Wheel slip over time',
+              labels=labels, alpha=0.5, x_label='Time (s)', y_label='Wheel slip (m/s)', min_max_annotations=True)
 
 
 def ground_contact_over_time(ax, session_data):
 
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
 
     def get_ground_contact(susp_vel: np.ndarray, susp_vel_lim=100.0, variance_max=100.0, filter_length=6) -> list:
         # filter_length = 6 -> 100 ms (0.1 s) at 60 FPS
@@ -844,7 +847,7 @@ def ground_contact_over_time(ax, session_data):
     ground_contact_data = np.array(ground_contact)
 
     labels = ['sum contact', 'fl contact', 'fr contact', 'rl contact', 'rr contact']
-    x_points = np.array([lap_time] * len(ground_contact_data))
+    x_points = np.array([race_time] * len(ground_contact_data))
     y_points = np.array(ground_contact_data)
 
     line_plot(ax, x_points=x_points, y_points=y_points, title='Ground contact over lap time',
@@ -857,8 +860,9 @@ def drift_over_speed(ax, session_data):
     steering = np.abs(session_data[networking.Fields.steering.value])
     speed_ms = session_data[networking.Fields.speed_ms.value]
     drift_angle_deg = data_processing.get_drift_angle(session_data)
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     drift_angle_deg_der = data_processing.derive_no_nan(
-        drift_angle_deg, time_steps=session_data[networking.Fields.lap_time.value])
+        drift_angle_deg, time_steps=race_time)
 
     # filter very slow parts
     fast_enough = speed_ms > 1.0  # m/s
@@ -884,7 +888,8 @@ def drift_over_speed(ax, session_data):
 
 def drift_angle_bars(ax, session_data):
 
-    time_differences = data_processing.differences(session_data[networking.Fields.lap_time.value])
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
+    time_differences = data_processing.differences(race_time)
     # prevent negative times due to next lap
     time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
     speed_ms = session_data[networking.Fields.speed_ms.value]
@@ -909,13 +914,14 @@ def drift_angle_bars(ax, session_data):
 
 def drift_angle_change_bars(ax, session_data):
 
-    time_differences = data_processing.differences(session_data[networking.Fields.lap_time.value])
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
+    time_differences = data_processing.differences(race_time)
     # prevent negative times due to next lap
     time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
     speed_ms = session_data[networking.Fields.speed_ms.value]
     drift_angle_deg = data_processing.get_drift_angle(session_data)
     drift_angle_deg_der = data_processing.derive_no_nan(
-        drift_angle_deg, time_steps=session_data[networking.Fields.lap_time.value])
+        drift_angle_deg, time_steps=race_time)
 
     # filter very slow parts
     fast_enough = speed_ms > 1.0  # m/s
@@ -938,7 +944,7 @@ def drift_angle_change_bars(ax, session_data):
 
 def rotation_over_time(ax, session_data):
 
-    lap_time = session_data[networking.Fields.lap_time.value]
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
 
     forward_local_xyz = data_processing.get_forward_dir_3d(session_data)
     sideward_local_xyz = data_processing.get_sideward_dir_3d(session_data)
@@ -956,17 +962,18 @@ def rotation_over_time(ax, session_data):
     forward_angle_deg = get_vertical_angle_dislocation(forward_local_xyz)
 
     labels = ['Sideward Rotation Angle', 'Forward Rotation Angle']
-    x_points = np.array([lap_time] * len(labels))
+    x_points = np.array([race_time] * len(labels))
     y_points = np.array([sideward_angle_deg, forward_angle_deg])
 
     line_plot(ax, x_points=x_points, y_points=y_points,
-              title='Rotation Angles over Lap Time',
-              labels=labels, alpha=0.5, x_label='Lap Time (s)',
+              title='Rotation Angles over Time',
+              labels=labels, alpha=0.5, x_label='Time (s)',
               y_label='Angle (deg)', min_max_annotations=True)
 
 
 def suspension_lr_fr_angles_over_time(ax, session_data):
-    lap_time = session_data[networking.Fields.lap_time.value]
+
+    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
     susp_fl = session_data[networking.Fields.susp_fl.value]
     susp_fr = session_data[networking.Fields.susp_fr.value]
     susp_rl = session_data[networking.Fields.susp_rl.value]
@@ -985,9 +992,9 @@ def suspension_lr_fr_angles_over_time(ax, session_data):
     angle_data = np.array([-angle_left_right, -angle_front_rear])
 
     labels = ['left-right angle', 'front-rear angle']
-    x_points = np.array([lap_time] * len(angle_data))
+    x_points = np.array([race_time] * len(angle_data))
     y_points = np.array(angle_data)
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension dislocation angle over lap time',
-              labels=labels, alpha=0.5, x_label='Lap time (s)',
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension dislocation angle over time',
+              labels=labels, alpha=0.5, x_label='Time (s)',
               y_label='Suspension dislocation angle (deg)', min_max_annotations=True)

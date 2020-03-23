@@ -193,7 +193,7 @@ def get_full_acceleration_mask(session_data):
     # exclude times ~0.1 sec around gear shifts and gears < 1
     gear = session_data[networking.Fields.gear.value]
     forward_gear = gear >= 1.0
-    time_steps = session_data[networking.Fields.lap_time.value]
+    time_steps = get_run_time_cleaned(session_data=session_data)
     gear_changes = derive_no_nan(gear, time_steps=time_steps)
     gear_changes[gear_changes != 0.0] = 1.0  # 1.0 if the gear changed, 0.0 otherwise
     box_filter = np.array([1.0] * 10)  # 10 -> 2 * 160ms at 60 FPS
@@ -208,3 +208,10 @@ def get_full_acceleration_mask(session_data):
     ))
 
     return full_acceleration_mask
+
+
+def get_run_time_cleaned(session_data):
+    run_time_raw = session_data[networking.Fields.run_time.value]
+    start_time = run_time_raw[0]
+    run_time_cleaned = run_time_raw - start_time
+    return run_time_cleaned

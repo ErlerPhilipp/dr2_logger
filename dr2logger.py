@@ -124,7 +124,9 @@ def save_run(session_collection, config, automatic_name=False):
     last_sample = session_collection[:, -1]
     car_name = dr2specific.get_car_name_from_sample(last_sample)
     track_name = dr2specific.get_track_name_from_sample(last_sample)
-    total_race_time = '{:.1f}'.format(np.max(session_collection[networking.Fields.lap_time.value]))
+    race_time = session_collection[networking.Fields.run_time.value, -1] - \
+                session_collection[networking.Fields.run_time.value, 0]
+    total_race_time = '{:.1f}'.format(race_time)
     now = datetime.now()
     now_str = now.strftime('%Y-%m-%d %H_%M_%S')
     file_name = '{} - {} - {} - {}s.npz'.format(now_str, car_name, track_name, total_race_time)
