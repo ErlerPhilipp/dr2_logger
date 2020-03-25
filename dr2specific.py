@@ -5,7 +5,7 @@ from collections import defaultdict
 import networking
 
 
-# adapted from https://github.com/soong-construction/dirt-rally-time-recorder/blob/master/cars.sql
+# adapted from https://github.com/soong-construction/dirt-rally-time-recorder/blob/master/setup-dr2.sql
 # max_rpm, idle_rpm, max_gears, car_name
 car_data = [
     # H1 FWD
@@ -59,6 +59,7 @@ car_data = [
     [7330.3826904296875, 1151.9173431396484, 6.0, 'Subaru Impreza 1995'],
     [7853.98193359375, 1047.1975708007812, 6.0, 'Lancia Delta HF Integrale'],
     [7330.3826904296875, 1466.07666015625, 7.0, 'Ford Escort RS Cosworth'],
+    [7911.5777587890625, 2024.2329406738281, 6.0, 'Subaru Legacy RS'],
 
     # NR4/R4
     [8377.58056640625, 1780.2359008789062, 5.0, 'Subaru Impreza WRX STI NR4'],
@@ -72,6 +73,7 @@ car_data = [
     [785.398193359375, 178.02359008789062, 6.0, 'Ford Focus RS Rally 2001'],
     [8377.58056640625, 2042.035369873047, 6.0, 'Subaru Impreza 2001'],
     [6806.78466796875, 1570.796356201172, 5.0, 'Peugeot 206 Rally'],
+    [8168.1414794921875, 2073.4512329101562, 6.0, 'Subaru Impreza S4 Rally'],
 
     # R5
     [7749.2620849609375, 1884.9555969238281, 5.0, 'Ford Fiesta R5'],
@@ -301,6 +303,20 @@ track_data = [
     [14929.7998046875, 39.52613067626953, 'Kontinjärvi'],
     [14866.08984375, -192.407958984375, 'Hämelahti'],
 
+    # Scotland, UK
+    [7144.69970703125, -1657.4295654296875, 'Rosebank Farm'],
+    [6967.89990234375, 3383.216796875, 'Rosebank Farm Reverse'],
+    [12857.0703125, 1386.7626953125, 'Newhouse Bridge'],
+    [12969.2109375, -403.3143310546875, 'Newhouse Bridge Reverse'],
+    [5822.77001953125, -1157.0889892578125, 'Old Butterstone Muir'],
+    [5659.8203125, 3339.01513671875, 'Old Butterstone Muir Reverse'],
+    [7703.72021484375, -403.3154602050781, 'Annbank Station'],
+    [7587.64013671875, -1839.5506591796875, 'Annbank Station Reverse'],
+    [5245.4501953125, 1387.3612060546875, 'Glencastle Farm'],
+    [5238.43994140625, -1860.2203369140625, 'Glencastle Farm Reverse'],
+    [12583.41015625, -1157.111083984375, 'South Morningside'],
+    [12670.58984375, -1656.8243408203125, 'South Morningside Reverse'],
+
     # Rallycross locations:
     [1075.0989990234375, 149.30722045898438, 'Mettet, Belgium'],
     [1400.0770263671875, -230.09457397460938, 'Trois-Rivieres, Canada'],
@@ -316,7 +332,7 @@ track_data = [
     [1207.18798828125, 180.26181030273438, 'Holjes, Sweden'],
     [1194.22900390625, -133.4615936279297, 'Yas Marina, Abu Dhabi'],
 
-    # Rallycross locations:
+    # Test track locations:
     [3601.22998046875, 121.67539978027344, 'DirtFish'],
 ]
 
