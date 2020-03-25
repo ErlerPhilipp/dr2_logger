@@ -14,7 +14,7 @@ import dr2specific
 
 debug = False
 log_raw_data = False
-version_string = '(Version 1.6, 2019-10-14)'
+version_string = '(Version 1.7, 2020-03-25)'
 
 intro_text = '''
 Dirt Rally 2.0 Race Logger {} by Philipp Erler
@@ -39,6 +39,8 @@ Enter:
 "s" to save the current run
 "l" to load a saved run
 '''
+
+# build executable with: pyinstaller dr2logger.spec
 
 
 def init_config(config):

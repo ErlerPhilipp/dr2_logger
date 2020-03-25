@@ -1,13 +1,14 @@
 # Dirt Rally 2.0 Logger #
 
 Dirt Rally 2.0 Logger is a logging and analysis tool for car setups in Dirt Rally 2.0 by Codemasters. 
-This is a free and open-source tool written by Philipp Erler in 2019.
+This is a free and open-source tool written by Philipp Erler.
 
-- [Executable (Version 1.6, 2019-10-14)](https://philipperler.net/dr2logger_1_6/)
+- [Executable (Version 1.7, 2020-03-25)](https://philipperler.net/dr2logger_1_7/)
 - [Source Code, Documentation and Support](https://github.com/ErlerPhilipp/dr2_logger)
 
 ## Older Releases ##
 
+- [Executable (Version 1.6, 2019-10-14)](https://philipperler.net/dr2logger_1_6/)
 - [Executable (Version 1.5, 2019-10-01)](https://philipperler.net/dr2logger_1_5/)
 - [Executable (Version 1.4, 2019-09-14)](https://philipperler.net/dr2logger_1_4/)
 - [Executable (Version 1.3, 2019-09-02)](https://philipperler.net/dr2logger_1_3/)
@@ -132,14 +133,14 @@ See [networking.py](./networking.py) for more information.
 
 1. Download the code and unzip or pull the repository
 1. If you don't have it already, install a Python 3, e.g. Anaconda with Python 3.7
-1. If using Anaconda, you should probably create a new environment for this project
+1. If using Anaconda, you should create a new environment for this project
 1. Use conda or pip to install the required packages:
     1. numpy
     1. scipy
-    1. keyboard
     1. tk
     1. basemap
-1. Build and run dr2logger.py with Python
+1. Build and run "python dr2logger.py"
+1. To build an executable, run "pyinstaller dr2logger.spec"
 
 ## Open Issues and Contributing ##
 
@@ -150,7 +151,7 @@ So far, I had no idea how to visualize and analyze cornering. Should the car cha
 On the long run, comparing two or more recordings would be great. However, this is not trivial because most plots would need a common registration. Using the run time or progress won't work. Using the progress could work but would make time-dependent data hard to understand or even useless.
 
 You may see 'unknown car' or 'unknown track' in your logs. This happens when the internal database is outdated. In this case, please fill in the car names in the 'unknown cars.txt' and 'unknown tracks.txt' that you should find in the dr2logger directory. Then please send the contents of those files to me. I didn't yet buy season 3 and 4, therefore those tracks and cars are unknown.
-Due to ambiguous data (exactly the same min/max RPM and number of gears), the following cars cannot be distinguished:
+Due to ambiguous data (exactly the same idle/max RPM and number of gears), the following cars cannot be distinguished:
 - Mitsubishi Lancer Evo VI and BMW M2 Competition
 - Mitsubishi Lancer Evo X and Peugeot 208 T16
 - Lancia Delta S4 RX, non-RX and Peugeot 208 R2
@@ -169,6 +170,11 @@ If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or 
 
 ## Change Log ##
 
+- 1.7 (2020-03-25):
+    - Added cars and tracks for the Flat Out Pack
+    - Added (experimental) ground-contact detection
+    - Added (experimental) energy and power plots
+    - Simplified game-state detection
 - 1.6 (2019-10-14):
     - Added automatic car and track detection.
     - Improved automatic race detection.
