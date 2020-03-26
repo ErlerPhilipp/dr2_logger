@@ -140,7 +140,7 @@ See [networking.py](./networking.py) for more information.
     1. tk
     1. basemap
 1. Build and run "python dr2logger.py"
-1. To build an executable, run "pyinstaller dr2logger.spec"
+1. To build an executable, update the paths in "dr2logger.spec" and run "pyinstaller dr2logger.spec"
 
 ## Open Issues and Contributing ##
 
