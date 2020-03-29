@@ -229,7 +229,6 @@ track_data = [
     [16057.8505859375, 2892.97216796875, 'Waimarama Point Forward'],
     [11507.4404296875, -4415.119140625, 'Te Awanga Forward'],
     [8733.98046875, 5268.0849609375, 'Waimarama Sprint Reverse'],
-    [15844.529296875, 2074.8916015625, 'Waimarama Point Reverse'],
     [6643.490234375, 5161.06396484375, 'Elsthorpe Sprint Reverse'],
 
     # Poland, Leczna County:
@@ -272,7 +271,6 @@ track_data = [
     [6143.5703125, 2607.470947265625, 'Salida desde Montverd'],
     [7005.68994140625, 190.13796997070312, 'Ascenso por valle el Gualet'],
     [4562.80029296875, -2326.251708984375, 'Descenso por carretera'],
-    [6547.39990234375, -2002.19580078125, 'Vinedos Dardenya'],
     [13164.330078125, -2404.1171875, 'Final de Bellriu'],
 
     # Greece, Argolis
