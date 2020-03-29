@@ -1,0 +1,21 @@
+name: dr2logger
+channels:
+  - anaconda
+  - conda-forge
+  - defaults
+dependencies:
+  - matplotlib=3.0.3=py37hc8f65d3_0
+  - numpy=1.16.2=py37h19fb1c0_0
+  - pip=19.0.3=py37_0
+  - pyqt=5.9.2=py37h6538335_2
+  - python=3.7.3=h8c8aaf0_0
+  - qt=5.9.7=vc14h73c81de_0
+  - qtawesome=0.5.7=py37_1
+  - qtconsole=4.4.3=py37_0
+  - qtpy=1.7.0=py37_1
+  - scipy=1.2.1=py37h29ff71c_0
+  - setuptools=40.8.0=py37_0
+  - tk=8.6.8=hfa6e2cd_0
+  - pip:
+    - pyinstaller==3.5
+

@@ -47,6 +47,7 @@ This is a free and open-source tool written by Philipp Erler.
     1. This tool will probably work with other racing games by Codemaster, for example Dirt Rally 1 and Dirt 4. Those games use the same datastructure for the UDP packages. However, I didn't test it. Other racing games with UDP output, such as Project Cars, will require trivial changes in this tool's networking code.
 
 ![dr2logger](img/dr2logger.png)
+
 You should see this amazing command-line window.
 
 ## How to Evaluate ##
@@ -95,7 +96,7 @@ This last plot (for now) compares spring dislocation with car roll and pitch. Wi
 
 The suspension angles are approximated for the width and length of the Audi Quattro S1. So, the absolute values of the suspension rotation graph will be off for other cars. But we care mostly for the relation between both graphs, anyway.
 
-In the upper graph with the car rotations, we can see that the lines have much lower frequencies than the middle graph with the suspension angles, as it should be. Looking at the center of the car rotation graph (upper graph),we see that the car rotates quickly backwards because the springs (middle graph) could not compensate the pressure anymore since they were already fully compressed (lower graph). This was probably the landing after a longer jump.
+In the upper graph with the car rotations, we can see that the lines have much lower frequencies than the middle graph with the suspension angles, as it should be. Looking at the center of the car rotation graph (upper graph), we see that the car rotates quickly backwards because the springs (middle graph) could not compensate the pressure anymore since they were already fully compressed (lower graph). This was probably the landing after a longer jump.
 
 ## Raw Data ##
 
@@ -129,18 +130,33 @@ I can only use the information I get from Dirt Rally 2.0 via UDP. This is Curren
 
 See [networking.py](./networking.py) for more information.
 
-## How to Build ##
+## Run and Build ##
 
-1. Download the code and unzip or pull the repository
-1. If you don't have it already, install a Python 3, e.g. Anaconda with Python 3.7
-1. If using Anaconda, you should create a new environment for this project
-1. Use conda or pip to install the required packages:
-    1. numpy
-    1. scipy
-    1. tk
-    1. basemap
-1. Build and run "python dr2logger.py"
-1. To build an executable, update the paths in "dr2logger.spec" and run "pyinstaller dr2logger.spec"
+To run the logger as a Windows executable, simply download the latest release, unzip and double click the .cmd file.
+
+To run the logger as a Python script, run these commands:
+~~~~
+# install [Anaconda with Python 3](https://anaconda.org/)
+# open your repos directory in a terminal
+
+# clone repo ./dr2_logger
+git clone https://github.com/ErlerPhilipp/dr2_logger.git
+
+# go into the cloned logger dir
+cd dr2_logger
+
+# create a conda environment with the required packages
+conda env create --file dr2logger.yml
+
+# activate the new conda environment
+conda activate dr2logger
+
+# run the logger with Python
+python dr2logger.py
+~~~~
+
+To build an executable, run \
+`pyinstaller dr2logger.py`
 
 ## Open Issues and Contributing ##
 

@@ -1,4 +1,4 @@
-numpy   # conda
-scipy  # conda
-tk  # tkinter, conda install -c anaconda tk
-basemap  # mpl_toolkits, conda install -c anaconda basemap
+numpy
+scipy
+tk
+matplotlib
