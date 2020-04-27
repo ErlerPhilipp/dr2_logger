@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from scipy.stats import binned_statistic
 
@@ -151,18 +150,36 @@ def scatter_plot(ax, x_points, y_points, title, labels, colors, scales, alphas, 
         ax.legend()
 
 
-def line_plot(ax, x_points, y_points, title, labels, alpha, x_label, y_label,
+def line_plot(ax, x_points, y_points, title, labels, alpha, x_label, y_label, colors=None,
               flip_y=False, min_max_annotations=True):
 
-    y_points_no_nan = y_points.copy()
+    x_points_cat = np.concatenate(x_points.copy())
+    y_points_cat = np.concatenate(y_points.copy())
+    y_points_no_nan = y_points_cat.copy()
     y_points_no_nan_mean = np.nanmean(y_points_no_nan)
     y_points_no_nan[np.isnan(y_points_no_nan)] = y_points_no_nan_mean
     y_points_no_nan[np.isinf(y_points_no_nan)] = y_points_no_nan_mean
-    arg_y_max = np.unravel_index(np.argmax(y_points_no_nan), y_points.shape)
-    arg_y_min = np.unravel_index(np.argmin(y_points_no_nan), y_points.shape)
+    arg_y_max = np.argmax(y_points_no_nan)
+    arg_y_min = np.argmin(y_points_no_nan)
+
+    x_min = x_points_cat[arg_y_min]
+    y_min = y_points_cat[arg_y_min]
+    x_max = x_points_cat[arg_y_max]
+    y_max = y_points_cat[arg_y_max]
+
+    if colors is not None:
+        colors = np.array(colors)
 
     for i, g in enumerate(x_points):
-        ax.plot(x_points[i], y_points[i], alpha=alpha)
+        if colors is None:
+            ax.plot(x_points[i], y_points[i], alpha=alpha)
+        elif len(colors.shape) == 1 and colors.shape == (3,):
+            ax.plot(x_points[i], y_points[i], alpha=alpha, color=colors)
+        elif len(colors.shape) == 2 and colors.shape[-1] == 3:
+            ax.plot(x_points[i], y_points[i], alpha=alpha, color=colors[i])
+        else:
+            raise ValueError("Invalid color: {}".format(colors))
+
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     if labels is not None:
@@ -177,17 +194,17 @@ def line_plot(ax, x_points, y_points, title, labels, alpha, x_label, y_label,
             y_offset = -y_offset
         bbox = dict(boxstyle="round", fc="0.8")
         arrow_props = dict(arrowstyle="->", connectionstyle="angle,angleA=0,angleB=90,rad=10")
-        ax.annotate('max: {:.2f}'.format(y_points[arg_y_max]), (x_points[arg_y_max], y_points[arg_y_max]),
+        ax.annotate('max: {:.2f}'.format(y_max), (x_max, y_max),
                     xytext=(x_offset, y_offset), textcoords='offset points', bbox=bbox, arrowprops=arrow_props)
-        ax.annotate('min: {:.2f}'.format(y_points[arg_y_min]), (x_points[arg_y_min], y_points[arg_y_min]),
+        ax.annotate('min: {:.2f}'.format(y_min), (x_min, y_min),
                     xytext=(x_offset, -y_offset), textcoords='offset points', bbox=bbox, arrowprops=arrow_props)
 
     # invert y axis and pad
-    y_diff = y_points[arg_y_max] - y_points[arg_y_min]
+    y_diff = y_max - y_min
     if not flip_y:
-        ax.set_ylim(y_points[arg_y_min] - y_diff * 0.1, y_points[arg_y_max] + y_diff * 0.1)
+        ax.set_ylim(y_min - y_diff * 0.1, y_max + y_diff * 0.1)
     else:
-        ax.set_ylim(y_points[arg_y_max] + y_diff * 0.1, y_points[arg_y_min] - y_diff * 0.1)
+        ax.set_ylim(y_max + y_diff * 0.1, y_min - y_diff * 0.1)
 
 
 def histogram_plot(ax, samples, title, x_label, y_label, labels=None, min=None, max=None, num_bins=20, color=None):

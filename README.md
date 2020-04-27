@@ -128,7 +128,7 @@ I can only use the information I get from Dirt Rally 2.0 via UDP. This is Curren
 1. Max / idle RPM
 1. Max gears
 
-See [networking.py](./networking.py) for more information.
+See [networking.py](source/networking.py) for more information.
 
 ## Run and Build ##
 
@@ -166,7 +166,7 @@ So far, I had no idea how to visualize and analyze cornering. Should the car cha
 
 On the long run, comparing two or more recordings would be great. However, this is not trivial because most plots would need a common registration. Using the run time or progress won't work. Using the progress could work but would make time-dependent data hard to understand or even useless.
 
-You may see 'unknown car' or 'unknown track' in your logs. This happens when the internal database is outdated. In this case, please fill in the car names in the 'unknown cars.txt' and 'unknown tracks.txt' that you should find in the dr2logger directory. Then please send the contents of those files to me. I didn't yet buy season 3 and 4, therefore those tracks and cars are unknown.
+You may see 'unknown car' or 'unknown track' in your logs. This happens when the internal database is outdated. In this case, please fill in the car names in the 'unknown cars.txt' and 'unknown tracks.txt' that you should find in the dr2logger directory. Then please send the contents of those files to me.
 Due to ambiguous data (exactly the same idle/max RPM and number of gears), the following cars cannot be distinguished:
 - Mitsubishi Lancer Evo VI and BMW M2 Competition
 - Mitsubishi Lancer Evo X and Peugeot 208 T16
