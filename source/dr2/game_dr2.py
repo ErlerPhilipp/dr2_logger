@@ -44,7 +44,7 @@ class GameDr2(GameBase):
 
         state_str = state_str.format(
             car=car_name, track=track_name,
-            samples=num_samples, time=time, speed=speed, rpm=rpm,
+            samples=num_samples, time=time, speed=speed, rpm=rpm * 10.0,
             progress=progress, distance=distance, run_time=run_time,
             state=state
         )
@@ -73,6 +73,7 @@ class GameDr2(GameBase):
 
         # RPM will never be zero at the start (it will be the idle RPM)
         # However, RPM can be zero for some reason in the service area. Ignore then.
+        # TODO: check if RPM can be zero when the engine dies
         if receive_results[udp_data.Fields.rpm.value] == 0.0 and receive_results[udp_data.Fields.run_time.value] <= 0.1:
             return logger_backend.GameState.ignore_package
 
@@ -109,7 +110,7 @@ class GameDr2(GameBase):
             if unknown_car_data not in self.unknown_cars:
                 self.unknown_cars.add(unknown_car_data)
                 with open('unknown cars.txt', 'a+') as f:
-                    f.write('[{}, {}, {}, \'Unknown car\'],\n'.format(max_rpm, idle_rpm, max_gears))
+                    f.write('[{}, {}, {}, \'Unknown car\'],\n'.format(max_rpm * 10.0, idle_rpm * 10.0, max_gears))
 
         return car_name
 
@@ -219,6 +220,5 @@ class GameDr2(GameBase):
             brakes=session_collection[udp_data.Fields.brakes.value],
             clutch=session_collection[udp_data.Fields.clutch.value]
         )
-
 
         return plot_data
