@@ -60,7 +60,7 @@ class LoggerBackend:
                                      settings.settings['general']['ip_out'],
                                      int(settings.settings['general']['port_out']))
 
-    def save_run(self, automatic_name=False):
+    def save_run_data(self, data, automatic_name=False):
         # TODO: this will block the main thread and data from the port may be lost -> put in extra process
         import tkinter as tk
         from tkinter import filedialog
@@ -96,8 +96,11 @@ class LoggerBackend:
 
         if file_path is not None and file_path != '' and file_path != '.npz':
             utils.make_dir_for_file(file_path)
-            np.savez_compressed(file_path, self.session_collection)
-            print('Saved {} data points to {}\n'.format(self.session_collection.shape[1], os.path.abspath(file_path)))
+            np.savez_compressed(file_path, data)
+            print('Saved {} data points to {}\n'.format(data.shape[1], os.path.abspath(file_path)))
+
+    def save_run(self, automatic_name=False):
+        self.save_run_data(data=self.session_collection, automatic_name=automatic_name)
 
     def load_run(self):
         # TODO: this will block the main thread and data from the port may be lost
@@ -135,17 +138,17 @@ class LoggerBackend:
         self.last_receive_results = None
 
     def start_logging(self):
-        udp_socket = networking.open_port(settings.settings['general']['ip_in'],
+        self.udp_socket = networking.open_port(settings.settings['general']['ip_in'],
                                           int(settings.settings['general']['port_in']))
-        if udp_socket is not None:
-            print('Listening on socket {}\n'.format(udp_socket.getsockname()))
+        if self.udp_socket is not None:
+            print('Listening on socket {}\n'.format(self.udp_socket.getsockname()))
         else:
             print('Invalid input socket. Resetting...')
             settings.init_settings_input_socket()
             settings.write_settings()
-            udp_socket = networking.open_port(settings.settings['general']['ip_in'],
+            self.udp_socket = networking.open_port(settings.settings['general']['ip_in'],
                                               int(settings.settings['general']['port_in']))
-            print('Listening on socket {}\n'.format(udp_socket.getsockname()))
+            print('Listening on socket {}\n'.format(self.udp_socket.getsockname()))
 
         self.raw_data = np.zeros((self.game.get_num_fields(), 0)) if self.log_raw_data else None
 
@@ -170,7 +173,7 @@ class LoggerBackend:
 
     def check_udp_messages(self):
         self.receive_results, datagram = self.game.get_data(self.udp_socket)
-        # forward_datagram(udp_socket=udp_socket, datagram=datagram, settings=settings)
+        # forward_datagram(udp_socket=self.udp_socket, datagram=datagram, settings=settings)
 
         if self.receive_results is not None:
             if self.log_raw_data:
@@ -182,8 +185,8 @@ class LoggerBackend:
 
             self.new_state = self.game.get_game_state(self.receive_results, self.last_receive_results)
             self.last_sample = self.receive_results
-            has_new_data = self.accept_new_data(self.new_state)
-            if has_new_data:
+            self.has_new_data = self.accept_new_data(self.new_state)
+            if self.has_new_data:
                 if self.session_collection.size == 0:
                     self.session_collection = np.expand_dims(self.receive_results, 1)
                 else:
@@ -216,10 +219,10 @@ class LoggerBackend:
         if self.last_state == GameState.race_running and \
                 self.new_state == GameState.race_not_running:
             message += ['Race finished.']
-            self.save_run(self.session_collection, automatic_name=True)
+            self.save_run_data(self.session_collection, automatic_name=True)
 
             if self.log_raw_data:
-                self.save_run(self.raw_data, automatic_name=False)
+                self.save_run_data(self.raw_data, automatic_name=False)
         elif self.last_state == GameState.race_not_running and \
                 self.new_state == GameState.race_running:
             message += ['Race starting']
