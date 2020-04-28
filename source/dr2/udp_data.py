@@ -156,7 +156,7 @@ def receive(udp_socket):
     g_force_lat = bit_stream_to_float32(data, 136)
     g_force_lon = bit_stream_to_float32(data, 140)
     current_lap = bit_stream_to_float32(data, 144)  # Current lap, starts at 0
-    rpm = bit_stream_to_float32(data, 148) * 10  # RPM, requires * 10 for realistic values
+    rpm = bit_stream_to_float32(data, 148)  # RPM, requires * 10 for realistic values
     sli_pro_support = bit_stream_to_float32(data, 152)  # ignored
     car_pos = bit_stream_to_float32(data, 156)
     kers_level = bit_stream_to_float32(data, 160)  # ignored
@@ -182,8 +182,8 @@ def receive(udp_socket):
     total_laps = bit_stream_to_float32(data, 240)
     track_length = bit_stream_to_float32(data, 244)
     last_lap_time = bit_stream_to_float32(data, 248)
-    max_rpm = bit_stream_to_float32(data, 252) * 10.0  # requires * 10 for realistic values
-    idle_rpm = bit_stream_to_float32(data, 256) * 10.0  # requires * 10 for realistic values
+    max_rpm = bit_stream_to_float32(data, 252)  # requires * 10 for realistic values
+    idle_rpm = bit_stream_to_float32(data, 256)  # requires * 10 for realistic values
     max_gears = bit_stream_to_float32(data, 260)
 
     return np.array([
