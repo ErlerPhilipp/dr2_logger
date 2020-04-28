@@ -3,7 +3,13 @@ import socket
 import struct
 from enum import Enum
 
-debug = False
+debugging = False  # enable to simulate incoming UDP datagrams
+debugging_counter = -1
+if debugging:
+    debug_data = np.load(
+        r'C:\Users\pherl\Desktop\2020-03-18 21_22_15 - Peugeot 208 R2 - Kakaristo - 451.7s raw.npz')['arr_0']
+else:
+    debug_data = None
 
 # https://docs.google.com/spreadsheets/d/1UTgeE7vbnGIzDz-URRk2eBIPc_LR1vWcZklp7xD9N0Y/edit#gid=0
 # https://github.com/soong-construction/
@@ -95,10 +101,15 @@ def bit_stream_to_float32(data, pos):
 
 def receive(udp_socket):
 
-    if debug:
+    global debugging
+    global debugging_counter
+    global debug_data
+    if debugging:
         import time
-        time.sleep(0.1)
-        return np.random.rand(len(Fields))
+        time.sleep(0.01)
+        debugging_counter += 1
+        return debug_data[:, debugging_counter], None
+        #return np.random.rand(num_fields), None
 
     if udp_socket is None:
         return None, None

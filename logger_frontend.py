@@ -6,7 +6,6 @@ import queue
 from source.logger_backend import LoggerBackend
 
 
-debug = False
 log_raw_data = False
 version_string = '(Version 1.7, 2020-03-25)'
 
@@ -66,7 +65,7 @@ def main():
     print(intro_text)
     print(commands_hint)
 
-    logger_backend = LoggerBackend(game_name='Dirt Rally 2', debug=False, log_raw_data=False)
+    logger_backend = LoggerBackend(game_name='Dirt Rally 2', debugging=False, log_raw_data=False)
     logger_backend.start_logging()
 
     message_queue = queue.Queue()

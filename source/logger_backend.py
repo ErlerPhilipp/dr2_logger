@@ -19,8 +19,8 @@ class GameState(Enum):
 
 class LoggerBackend:
 
-    def __init__(self, game_name: str, debug=False, log_raw_data=False):
-        self.debug = debug
+    def __init__(self, game_name: str, debugging=False, log_raw_data=False):
+        self.debugging = debugging
         self.log_raw_data = log_raw_data
 
         self.game_name = game_name
@@ -149,10 +149,11 @@ class LoggerBackend:
 
         self.raw_data = np.zeros((self.game.get_num_fields(), 0)) if self.log_raw_data else None
 
-        if self.debug:  # start with plots
+        if self.debugging:  # start with plots
             # npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
             # npz_file = np.load('C:/Users/pherl/Desktop/dr2logger_1_6/races_auto_save/2019-12-26 16_11_35 - Unknown car (0.0, 0.0, 0.0) - Verbundsring - 216.9s.npz')
-            npz_file = np.load('C:/Users/pherl/Desktop/2020-03-18 21_22_14 - Peugeot 208 R2 - Kakaristo - 451.7s.npz')
+            #npz_file = np.load('C:/Users/pherl/Desktop/2020-03-18 21_22_14 - Peugeot 208 R2 - Kakaristo - 451.7s.npz')
+            npz_file = np.load(r'C:\Users\pherl\Desktop\2020-03-18 21_22_15 - Peugeot 208 R2 - Kakaristo - 451.7s raw.npz')
             self.session_collection = npz_file['arr_0']
             self.show_plots()
 
@@ -179,9 +180,9 @@ class LoggerBackend:
                 else:
                     self.raw_data = np.append(self.session_collection, self.receive_results_raw, axis=1)
 
-            new_state = self.game.get_game_state(self.receive_results, self.last_receive_results)
+            self.new_state = self.game.get_game_state(self.receive_results, self.last_receive_results)
             self.last_sample = self.receive_results
-            has_new_data = self.accept_new_data(new_state)
+            has_new_data = self.accept_new_data(self.new_state)
             if has_new_data:
                 if self.session_collection.size == 0:
                     self.session_collection = np.expand_dims(self.receive_results, 1)
@@ -193,7 +194,7 @@ class LoggerBackend:
             self.has_new_data = False
 
     def show_plots(self):
-        if self.debug:
+        if self.debugging:
             plots.plot_main(session_data=self.session_collection)
         else:
             try:
@@ -208,7 +209,7 @@ class LoggerBackend:
         if self.new_state == GameState.ignore_package:
             self.new_state = self.last_state
 
-        if self.debug and self.last_state != self.new_state:
+        if self.debugging and self.last_state != self.new_state:
             message += ['State changed from {} to {}'.format(self.last_state, self.new_state)]
 
         if self.last_state == GameState.race_running and \
