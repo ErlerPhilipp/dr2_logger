@@ -2,120 +2,117 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import binned_statistic
 
-import networking
-import data_processing
+from source import plot_data as pd
+from source import data_processing
 
 static_colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
                  'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
 
 
-def plot_main(session_data):
+def plot_main(plot_data: pd.PlotData):
 
-    session_data = session_data.copy()
-    if session_data.size > 0:
-        #fig = plt.figure()
-        #ax = fig.add_subplot(111, projection='3d')
-        #fig.canvas.set_window_title('3D positions (gear as color)')
-        #plot_gear_over_3d_pos(ax, session_data)
+    if plot_data.run_time.shape[0] > 0:
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111, projection='3d')
+        # fig.canvas.set_window_title('3D positions (gear as color)')
+        # plot_gear_over_3d_pos(ax, plot_data)
 
         fig, ax = plt.subplots(1, 2)
         fig.canvas.set_window_title('Map Basics')
-        plot_height_over_dist(ax[0], session_data)
-        plot_gear_over_2d_pos(ax[1], session_data)
+        plot_height_over_dist(ax[0], plot_data)
+        plot_gear_over_2d_pos(ax[1], plot_data)
 
-        fig, ax = plt.subplots(2, 1, sharex=True)
+        fig, ax = plt.subplots(2, 1, sharex='all')
         fig.canvas.set_window_title('Energy and Power')
-        energy_over_time(ax[0], session_data)
-        power_over_time(ax[1], session_data)
+        energy_over_time(ax[0], plot_data)
+        power_over_time(ax[1], plot_data)
 
         # fig, ax = plt.subplots(1, 1)
         # fig.canvas.set_window_title('Energy')
-        # plot_energy_over_2d_pos(ax, session_data)
+        # plot_energy_over_2d_pos(ax, plot_data)
 
         fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('RPM Histogram per Gear')
-        gear_rpm_bars(ax, session_data)
+        gear_rpm_bars(ax, plot_data)
 
         fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('Speed over RPM')
-        plot_v_over_rpm(ax, session_data)
+        plot_v_over_rpm(ax, plot_data)
 
-        fig, ax = plt.subplots(1, 2, sharey=True)
+        fig, ax = plt.subplots(1, 2, sharey='all')
         fig.canvas.set_window_title('Power')
-        plot_p_over_rpm(ax[0], session_data)
-        plot_p_over_vel(ax[1], session_data)
+        plot_p_over_rpm(ax[0], plot_data)
+        plot_p_over_vel(ax[1], plot_data)
 
-        #fig, ax = plt.subplots(2, 1)
-        #fig.canvas.set_window_title('G-Force')
-        #plot_g_over_rpm(ax[0], session_data)
-        #plot_g_over_throttle(ax[1], session_data)
+        # fig, ax = plt.subplots(2, 1)
+        # fig.canvas.set_window_title('G-Force')
+        # plot_g_over_rpm(ax[0], plot_data)
+        # plot_g_over_throttle(ax[1], plot_data)
 
         fig, ax = plt.subplots(1, 3)
         fig.canvas.set_window_title('Drift at 2D positions (drift angle as color)')
-        forward_over_2d_pos(ax[0], session_data)
-        drift_angle_bars(ax[1], session_data)
-        drift_angle_change_bars(ax[2], session_data)
-        #drift_over_speed(ax[1][1], session_data)
+        forward_over_2d_pos(ax[0], plot_data)
+        drift_angle_bars(ax[1], plot_data)
+        drift_angle_change_bars(ax[2], plot_data)
+        # drift_over_speed(ax[1][1], plot_data)
 
-        fig, ax = plt.subplots(2, 1, sharex=True)
+        fig, ax = plt.subplots(2, 1, sharex='all')
         fig.canvas.set_window_title('Suspension')
-        suspension_bars(ax[0], session_data)
-        suspension_l_r_f_r_bars(ax[1], session_data)
+        suspension_bars(ax[0], plot_data)
+        suspension_l_r_f_r_bars(ax[1], plot_data)
 
-        fig, ax = plt.subplots(3, 1, sharex=True)
+        fig, ax = plt.subplots(3, 1, sharex='all')
         fig.canvas.set_window_title('Wheel Speed')
-        wheel_speed_over_time(ax[0], session_data)
-        wheel_speed_lr_fr_over_time(ax[1], session_data)
-        inputs_over_time(ax[2], session_data)
+        wheel_speed_over_time(ax[0], plot_data)
+        wheel_speed_lr_fr_over_time(ax[1], plot_data)
+        inputs_over_time(ax[2], plot_data)
 
-        fig, ax = plt.subplots(3, 1, sharex=True)
+        fig, ax = plt.subplots(3, 1, sharex='all')
         fig.canvas.set_window_title('Rotation vs Suspension')
-        rotation_over_time(ax[0], session_data)
-        suspension_lr_fr_angles_over_time(ax[1], session_data)
-        suspension_l_r_f_r_over_time(ax[2], session_data)
+        rotation_over_time(ax[0], plot_data)
+        suspension_lr_fr_angles_over_time(ax[1], plot_data)
+        suspension_l_r_f_r_over_time(ax[2], plot_data)
 
-        fig, ax = plt.subplots(3, 1, sharex=True)
+        fig, ax = plt.subplots(3, 1, sharex='all')
         fig.canvas.set_window_title('Ground Contact')
-        ground_contact_over_time(ax[0], session_data)
-        suspension_l_r_f_r_over_time(ax[1], session_data)
-        # slip_over_time(ax[1], session_data)
-        suspension_vel_over_time(ax[2], session_data)
-        # suspension_vel_derived_l_r_f_r_over_time(ax[3], session_data)
-        # suspension_vel_der_diff_l_r_f_r_over_time(ax[4], session_data)
+        ground_contact_over_time(ax[0], plot_data)
+        suspension_l_r_f_r_over_time(ax[1], plot_data)
+        # slip_over_time(ax[1], plot_data)
+        suspension_vel_over_time(ax[2], plot_data)
+        # suspension_vel_derived_l_r_f_r_over_time(ax[3], plot_data)
+        # suspension_vel_der_diff_l_r_f_r_over_time(ax[4], plot_data)
 
         plt.show()
 
 
-def plot_over_3d_pos(ax, session_data, scale, color, slicing):
+def plot_over_3d_pos(ax, plot_data: pd.PlotData, scale, color, slicing):
 
-    x, y, z = data_processing.get_3d_coordinates(session_data)
-    x_min, x_middle, x_max = data_processing.get_min_middle_max(x)
-    y_min, y_middle, y_max = data_processing.get_min_middle_max(y)
-    z_min, z_middle, z_max = data_processing.get_min_middle_max(z)
+    x_min, x_middle, x_max = data_processing.get_min_middle_max(plot_data.pos_x)
+    y_min, y_middle, y_max = data_processing.get_min_middle_max(plot_data.pos_y)
+    z_min, z_middle, z_max = data_processing.get_min_middle_max(plot_data.pos_z)
 
     diff = np.array([x_max - x_min, y_max - y_min, z_max - z_min])
-    diff_max = diff.max()
-    #ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(x[::slicing], y[::slicing], z[::slicing], marker='o',
+    diff_max = np.max(diff)
+    # ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(plot_data.pos_x[::slicing], plot_data.pos_y[::slicing], plot_data.pos_z[::slicing], marker='o',
                s=scale[::slicing], c=color[::slicing], cmap='plasma')
     ax.set_xlabel('X')
     ax.set_ylabel('Z')
     ax.set_zlabel('Y')
-    ax.text(x[0], y[0], z[0], 'start')
-    ax.text(x[-1], y[-1], z[-1], 'finish')
+    ax.text(plot_data.pos_x[0], plot_data.pos_y[0], plot_data.pos_z[0], 'start')
+    ax.text(plot_data.pos_x[-1], plot_data.pos_y[-1], plot_data.pos_z[-1], 'finish')
     ax.set_xlim(x_middle - diff_max * 0.6, x_middle + diff_max * 0.6)
     ax.set_ylim(y_middle - diff_max * 0.6, y_middle + diff_max * 0.6)
     ax.set_zlim(z_middle - diff_max * 0.1, z_middle + diff_max * 1.1)
     return ax
 
 
-def plot_over_2d_pos(ax, session_data, lines_x, lines_y, scale, alpha, title, labels):
-    x, y = data_processing.get_2d_coordinates(session_data)
-    x_min, x_middle, x_max = data_processing.get_min_middle_max(x)
-    y_min, y_middle, y_max = data_processing.get_min_middle_max(y)
+def plot_over_2d_pos(ax, plot_data: pd.PlotData, lines_x, lines_y, scale, alpha, title, labels):
+    x_min, x_middle, x_max = data_processing.get_min_middle_max(plot_data.pos_x)
+    y_min, y_middle, y_max = data_processing.get_min_middle_max(plot_data.pos_y)
 
     diff = np.array([x_max - x_min, y_max - y_min])
-    diff_max = diff.max()
+    diff_max = np.max(diff)
 
     for i, g in enumerate(lines_x):
         if type(scale) == list:
@@ -132,8 +129,8 @@ def plot_over_2d_pos(ax, session_data, lines_x, lines_y, scale, alpha, title, la
         ax.set_ylim(lim_bottom, lim_top)
     if labels is not None and len(labels) > 1:
         ax.legend()
-    ax.text(x[0], y[0], 'start')
-    ax.text(x[-1], y[-1], 'finish')
+    ax.text(plot_data.pos_x[0], plot_data.pos_y[0], 'start')
+    ax.text(plot_data.pos_x[-1], plot_data.pos_y[-1], 'finish')
     ax.set_title(title)
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
@@ -178,7 +175,7 @@ def line_plot(ax, x_points, y_points, title, labels, alpha, x_label, y_label, co
         elif len(colors.shape) == 2 and colors.shape[-1] == 3:
             ax.plot(x_points[i], y_points[i], alpha=alpha, color=colors[i])
         else:
-            raise ValueError("Invalid color: {}".format(colors))
+            raise ValueError('Invalid color: {}'.format(colors))
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
@@ -192,8 +189,8 @@ def line_plot(ax, x_points, y_points, title, labels, alpha, x_label, y_label, co
         y_offset = 20
         if flip_y:
             y_offset = -y_offset
-        bbox = dict(boxstyle="round", fc="0.8")
-        arrow_props = dict(arrowstyle="->", connectionstyle="angle,angleA=0,angleB=90,rad=10")
+        bbox = dict(boxstyle='round', fc='0.8')
+        arrow_props = dict(arrowstyle='->', connectionstyle='angle,angleA=0,angleB=90,rad=10')
         ax.annotate('max: {:.2f}'.format(y_max), (x_max, y_max),
                     xytext=(x_offset, y_offset), textcoords='offset points', bbox=bbox, arrowprops=arrow_props)
         ax.annotate('min: {:.2f}'.format(y_min), (x_min, y_min),
@@ -207,19 +204,20 @@ def line_plot(ax, x_points, y_points, title, labels, alpha, x_label, y_label, co
         ax.set_ylim(y_max + y_diff * 0.1, y_min - y_diff * 0.1)
 
 
-def histogram_plot(ax, samples, title, x_label, y_label, labels=None, min=None, max=None, num_bins=20, color=None):
+def histogram_plot(ax, samples, title, x_label, y_label, labels=None,
+                   min_val=None, max_val=None, num_bins=20, color=None):
 
-        if min is None:
-            min = samples.min()
-        if max is None:
-            max = samples.max()
-        n, bins, patches = ax.hist(list(samples), num_bins, color=color, label=labels)
-        ax.set_xlabel(x_label)
-        ax.set_ylabel(y_label)
-        ax.set_xlim(min, max)
-        if labels is not None and len(labels) > 1:
-            ax.legend(labels)
-        ax.set_title(title)
+    if min_val is None:
+        min_val = samples.min()
+    if max_val is None:
+        max_val = samples.max()
+    ax.hist(list(samples), num_bins, color=color, label=labels)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_xlim(min_val, max_val)
+    if labels is not None and len(labels) > 1:
+        ax.legend(labels)
+    ax.set_title(title)
 
 
 def bar_plot(ax, data, weights, num_bins=20,
@@ -252,52 +250,49 @@ def bar_plot(ax, data, weights, num_bins=20,
     ax.set_title(title)
 
 
-def plot_gear_over_3d_pos(ax, session_data):
+def plot_gear_over_3d_pos(ax, plot_data: pd.PlotData):
 
     slicing = 100
-    x, y, z = data_processing.get_3d_coordinates(session_data)
-    dx, dy, dz = data_processing.get_forward_dir_3d(session_data)
+    dx, dy, dz = data_processing.get_forward_dir_3d(plot_data)
 
-    rpm = session_data[networking.Fields.rpm.value]
-    rpm_max = rpm.max()
+    rpm = plot_data.rpm
+    rpm_max = np.max(rpm)
     scale = 50.0
     rpm_normalized_scaled = rpm / rpm_max * scale
-    gear = session_data[networking.Fields.gear.value]
+    gear = plot_data.gear
     gear_max = max(gear)
     gear_normalized_scaled = gear / gear_max
 
-    ax = plot_over_3d_pos(ax, session_data=session_data, scale=rpm_normalized_scaled,
+    ax = plot_over_3d_pos(ax, plot_data=plot_data, scale=rpm_normalized_scaled,
                           color=gear_normalized_scaled, slicing=slicing)
-    ax.quiver(x[::slicing], y[::slicing], z[::slicing],
+    ax.quiver(plot_data.pos_x[::slicing], plot_data.pos_y[::slicing], plot_data.pos_z[::slicing],
               dx[::slicing], dy[::slicing], dz[::slicing], length=100.0, normalize=True)
 
 
-def plot_gear_over_2d_pos(ax, session_data):
+def plot_gear_over_2d_pos(ax, plot_data: pd.PlotData):
 
-    gear = session_data[networking.Fields.gear.value]
-    pos_x, pos_y = data_processing.get_2d_coordinates(session_data)
+    gear = plot_data.gear
     range_gears = np.unique(gear)
 
     labels = ['Gear {}'.format(str(g)) for g in range_gears]
     lines_x = []
     lines_y = []
     for i, g in enumerate(range_gears):
-        current_gear = session_data[networking.Fields.gear.value] == g
-        lines_x += [pos_x[current_gear]]
-        lines_y += [pos_y[current_gear]]
+        current_gear = plot_data.gear == g
+        lines_x += [plot_data.pos_x[current_gear]]
+        lines_y += [plot_data.pos_y[current_gear]]
 
-    plot_over_2d_pos(ax, session_data=session_data, lines_x=lines_x, lines_y=lines_y,
+    plot_over_2d_pos(ax, plot_data=plot_data, lines_x=lines_x, lines_y=lines_y,
                      scale=10, alpha=0.5, title='Gear at 2D positions', labels=labels)
 
 
-def plot_energy_over_2d_pos(ax, session_data):
+def plot_energy_over_2d_pos(ax, plot_data: pd.PlotData):
 
     scale_factor = 100.0
-    gear = session_data[networking.Fields.gear.value]
-    pos_x, pos_y = data_processing.get_2d_coordinates(session_data)
+    gear = plot_data.gear
     range_gears = np.unique(gear)
 
-    energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
+    energy, kinetic_energy, potential_energy = data_processing.get_energy(plot_data=plot_data)
     energy_truncated = energy - np.min(energy)
     energy_normalized = energy_truncated / np.max(energy_truncated)
 
@@ -306,23 +301,22 @@ def plot_energy_over_2d_pos(ax, session_data):
     lines_y = []
     scales = []
     for i, g in enumerate(range_gears):
-        current_gear = session_data[networking.Fields.gear.value] == g
-        lines_x += [pos_x[current_gear]]
-        lines_y += [pos_y[current_gear]]
+        current_gear = plot_data.gear == g
+        lines_x += [plot_data.pos_x[current_gear]]
+        lines_y += [plot_data.pos_y[current_gear]]
         scales += [energy_normalized[current_gear] * scale_factor]
 
-    plot_over_2d_pos(ax, session_data=session_data, lines_x=lines_x, lines_y=lines_y,
+    plot_over_2d_pos(ax, plot_data=plot_data, lines_x=lines_x, lines_y=lines_y,
                      scale=scales, alpha=0.5, title='Gear at 2D positions, scaled by energy', labels=labels)
 
 
-def gear_rpm_bars(ax, session_data):
+def gear_rpm_bars(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    time_differences = data_processing.differences(race_time)
+    time_differences = data_processing.differences(plot_data.run_time)
     # prevent negative times due to next lap
     time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
-    rpm = session_data[networking.Fields.rpm.value]
-    data_gear = session_data[networking.Fields.gear.value]
+    rpm = plot_data.rpm
+    data_gear = plot_data.gear
     range_gears = list(set(data_gear))
     range_gears.sort()
 
@@ -342,9 +336,9 @@ def gear_rpm_bars(ax, session_data):
              title='Gear RPM', x_label='RPM', y_label='Accumulated Time (s)', series_labels=series_labels)
 
 
-def energy_over_time(ax, session_data):
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
+def energy_over_time(ax, plot_data: pd.PlotData):
+    race_time = plot_data.run_time
+    energy, kinetic_energy, potential_energy = data_processing.get_energy(plot_data=plot_data)
     energy_data = np.array([energy, kinetic_energy, potential_energy])
 
     labels = ['Energy (kJ)', 'Kinetic Energy (kJ)', 'Potential Energy (kJ)']
@@ -355,11 +349,11 @@ def energy_over_time(ax, session_data):
               labels=labels, alpha=0.5, x_label='Time (s)', y_label='Energy (kJ)', min_max_annotations=False)
 
 
-def power_over_time(ax, session_data):
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
+def power_over_time(ax, plot_data: pd.PlotData):
+    race_time = plot_data.run_time
+    energy, kinetic_energy, potential_energy = data_processing.get_energy(plot_data=plot_data)
     power = data_processing.derive_no_nan(energy, race_time)
-    full_acceleration = data_processing.get_full_acceleration_mask(session_data=session_data)
+    full_acceleration = data_processing.get_full_acceleration_mask(plot_data=plot_data)
     not_full_acceleration = np.logical_not(full_acceleration)
     power_full_acceleration = power.copy()
     power_full_acceleration[not_full_acceleration] = 0.0
@@ -375,11 +369,11 @@ def power_over_time(ax, session_data):
               labels=labels, alpha=0.5, x_label='Time (s)', y_label='Power (kW)', min_max_annotations=False)
 
 
-def inputs_over_time(ax, session_data):
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    throttle = session_data[networking.Fields.throttle.value]
-    brakes = session_data[networking.Fields.brakes.value]
-    steering = session_data[networking.Fields.steering.value]
+def inputs_over_time(ax, plot_data: pd.PlotData):
+    race_time = plot_data.run_time
+    throttle = plot_data.throttle
+    brakes = plot_data.brakes
+    steering = plot_data.steering
     input_data = np.array([throttle, brakes, steering])
 
     labels = ['throttle', 'brakes', 'steering']
@@ -390,12 +384,12 @@ def inputs_over_time(ax, session_data):
               labels=labels, alpha=0.5, x_label='Time (s)', y_label='Inputs', min_max_annotations=False)
 
 
-def suspension_over_time(ax, session_data):
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    susp_fl = session_data[networking.Fields.susp_fl.value]
-    susp_fr = session_data[networking.Fields.susp_fr.value]
-    susp_rl = session_data[networking.Fields.susp_rl.value]
-    susp_rr = session_data[networking.Fields.susp_rr.value]
+def suspension_over_time(ax, plot_data: pd.PlotData):
+    race_time = plot_data.run_time
+    susp_fl = plot_data.susp_fl
+    susp_fr = plot_data.susp_fr
+    susp_rl = plot_data.susp_rl
+    susp_rr = plot_data.susp_rr
     susp_data = np.array([susp_fl, susp_fr, susp_rl, susp_rr])
 
     labels = ['front left', 'front right', 'rear left', 'rear right']
@@ -407,12 +401,12 @@ def suspension_over_time(ax, session_data):
               flip_y=True, min_max_annotations=True)
 
 
-def suspension_lr_fr_over_time(ax, session_data):
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    susp_fl = session_data[networking.Fields.susp_fl.value]
-    susp_fr = session_data[networking.Fields.susp_fr.value]
-    susp_rl = session_data[networking.Fields.susp_rl.value]
-    susp_rr = session_data[networking.Fields.susp_rr.value]
+def suspension_lr_fr_over_time(ax, plot_data: pd.PlotData):
+    race_time = plot_data.run_time
+    susp_fl = plot_data.susp_fl
+    susp_fr = plot_data.susp_fr
+    susp_rl = plot_data.susp_rl
+    susp_rr = plot_data.susp_rr
     susp_left_right = (susp_fl + susp_rl) * 0.5 - (susp_fr + susp_rr) * 0.5
     susp_front_rear = (susp_fl + susp_fr) * 0.5 - (susp_rl + susp_rr) * 0.5
     susp_data = np.array([susp_left_right, susp_front_rear])
@@ -426,13 +420,13 @@ def suspension_lr_fr_over_time(ax, session_data):
               y_label='Suspension dislocation difference (mm)', flip_y=True, min_max_annotations=True)
 
 
-def suspension_l_r_f_r_over_time(ax, session_data):
+def suspension_l_r_f_r_over_time(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    susp_fl = session_data[networking.Fields.susp_fl.value]
-    susp_fr = session_data[networking.Fields.susp_fr.value]
-    susp_rl = session_data[networking.Fields.susp_rl.value]
-    susp_rr = session_data[networking.Fields.susp_rr.value]
+    race_time = plot_data.run_time
+    susp_fl = plot_data.susp_fl
+    susp_fr = plot_data.susp_fr
+    susp_rl = plot_data.susp_rl
+    susp_rr = plot_data.susp_rr
     susp_left = (susp_fl + susp_rl) * 0.5
     susp_right = (susp_fr + susp_rr) * 0.5
     susp_front = (susp_fl + susp_fr) * 0.5
@@ -448,13 +442,13 @@ def suspension_l_r_f_r_over_time(ax, session_data):
               y_label='Suspension dislocation (mm)', flip_y=True, min_max_annotations=True)
 
 
-def suspension_vel_derived_l_r_f_r_over_time(ax, session_data):
+def suspension_vel_derived_l_r_f_r_over_time(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    susp_fl = session_data[networking.Fields.susp_fl.value]
-    susp_fr = session_data[networking.Fields.susp_fr.value]
-    susp_rl = session_data[networking.Fields.susp_rl.value]
-    susp_rr = session_data[networking.Fields.susp_rr.value]
+    race_time = plot_data.run_time
+    susp_fl = plot_data.susp_fl
+    susp_fr = plot_data.susp_fr
+    susp_rl = plot_data.susp_rl
+    susp_rr = plot_data.susp_rr
     susp_data = [susp_fl, susp_fr, susp_rl, susp_rr]
     susp_data = [data_processing.derive_no_nan(susp, race_time) for susp in susp_data]
     susp_data = np.array(susp_data)
@@ -468,20 +462,20 @@ def suspension_vel_derived_l_r_f_r_over_time(ax, session_data):
               y_label='Suspension velocity derived (mm/s)', flip_y=True, min_max_annotations=True)
 
 
-def suspension_vel_der_diff_l_r_f_r_over_time(ax, session_data):
+def suspension_vel_der_diff_l_r_f_r_over_time(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    susp_fl = session_data[networking.Fields.susp_fl.value]
-    susp_fr = session_data[networking.Fields.susp_fr.value]
-    susp_rl = session_data[networking.Fields.susp_rl.value]
-    susp_rr = session_data[networking.Fields.susp_rr.value]
+    race_time = plot_data.run_time
+    susp_fl = plot_data.susp_fl
+    susp_fr = plot_data.susp_fr
+    susp_rl = plot_data.susp_rl
+    susp_rr = plot_data.susp_rr
     susp_data = [susp_fl, susp_fr, susp_rl, susp_rr]
     susp_data = [data_processing.derive_no_nan(susp, race_time) for susp in susp_data]
 
-    susp_vel_fl = session_data[networking.Fields.susp_vel_fl.value]
-    susp_vel_fr = session_data[networking.Fields.susp_vel_fr.value]
-    susp_vel_rl = session_data[networking.Fields.susp_vel_rl.value]
-    susp_vel_rr = session_data[networking.Fields.susp_vel_rr.value]
+    susp_vel_fl = plot_data.susp_vel_fl
+    susp_vel_fr = plot_data.susp_vel_fr
+    susp_vel_rl = plot_data.susp_vel_rl
+    susp_vel_rr = plot_data.susp_vel_rr
     susp_vel = [susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr]
 
     susp_data = np.array(susp_data) - np.array(susp_vel)
@@ -495,20 +489,20 @@ def suspension_vel_der_diff_l_r_f_r_over_time(ax, session_data):
               y_label='Suspension velocity derived - given (mm/s)', flip_y=True, min_max_annotations=True)
 
 
-def suspension_bars(ax, session_data):
+def suspension_bars(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
+    race_time = plot_data.run_time
     time_differences = data_processing.differences(race_time)
     # prevent negative times due to next lap
     time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
-    susp_fl = session_data[networking.Fields.susp_fl.value]
-    susp_fr = session_data[networking.Fields.susp_fr.value]
-    susp_rl = session_data[networking.Fields.susp_rl.value]
-    susp_rr = session_data[networking.Fields.susp_rr.value]
+    susp_fl = plot_data.susp_fl
+    susp_fr = plot_data.susp_fr
+    susp_rl = plot_data.susp_rl
+    susp_rr = plot_data.susp_rr
     susp_data = np.array([susp_fl, susp_fr, susp_rl, susp_rr])
     time_data = np.repeat(np.expand_dims(time_differences, axis=0), 4, axis=0)
-    susp_min = susp_data.min()
-    susp_max = susp_data.max()
+    susp_min = np.min(susp_data)
+    susp_max = np.max(susp_data)
     susp_min_ids = (susp_min == susp_data)
     susp_max_ids = (susp_max == susp_data)
     series_labels = ['front left', 'front right', 'rear left', 'rear right']
@@ -521,24 +515,24 @@ def suspension_bars(ax, session_data):
              x_label='Suspension dislocation (mm)', y_label='Accumulated Time (s)', series_labels=series_labels)
 
 
-def suspension_l_r_f_r_bars(ax, session_data):
+def suspension_l_r_f_r_bars(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
+    race_time = plot_data.run_time
     time_differences = data_processing.differences(race_time)
     # prevent negative times due to next lap
     time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
-    susp_fl = session_data[networking.Fields.susp_fl.value]
-    susp_fr = session_data[networking.Fields.susp_fr.value]
-    susp_rl = session_data[networking.Fields.susp_rl.value]
-    susp_rr = session_data[networking.Fields.susp_rr.value]
+    susp_fl = plot_data.susp_fl
+    susp_fr = plot_data.susp_fr
+    susp_rl = plot_data.susp_rl
+    susp_rr = plot_data.susp_rr
     susp_left = (susp_fl + susp_rl) * 0.5
     susp_right = (susp_fr + susp_rr) * 0.5
     susp_front = (susp_fl + susp_fr) * 0.5
     susp_rear = (susp_rl + susp_rr) * 0.5
     susp_data = np.array([susp_left, susp_right, susp_front, susp_rear])
     time_data = np.repeat(np.expand_dims(time_differences, axis=0), 4, axis=0)
-    susp_min = susp_data.min()
-    susp_max = susp_data.max()
+    susp_min = np.min(susp_data)
+    susp_max = np.max(susp_data)
     series_labels = ['left', 'right', 'front', 'rear']
 
     bar_plot(ax, data=susp_data, weights=time_data, num_bins=20,
@@ -546,18 +540,18 @@ def suspension_l_r_f_r_bars(ax, session_data):
              x_label='Suspension dislocation (mm)', y_label='Accumulated Time (s)', series_labels=series_labels)
 
 
-def plot_height_over_dist(ax, session_data):
-    distance = session_data[networking.Fields.distance.value]
-    height = np.abs(session_data[networking.Fields.pos_y.value])
+def plot_height_over_dist(ax, plot_data: pd.PlotData):
+    distance = plot_data.distance
+    height = np.abs(plot_data.pos_y)
     ax.plot(distance, height, label='height')
     ax.set(xlabel='distance (m)', ylabel='height (m)',
            title='Track Elevation')
     ax.grid()
 
 
-def plot_g_over_rpm(ax, session_data):
+def plot_g_over_rpm(ax, plot_data: pd.PlotData):
 
-    data_gear = session_data[networking.Fields.gear.value]
+    data_gear = plot_data.gear
     range_gears = list(set(data_gear))
     range_gears.sort()
 
@@ -570,13 +564,13 @@ def plot_g_over_rpm(ax, session_data):
     y_points = []
     scales = []
     for i, g in enumerate(range_gears):
-        current_gear = session_data[networking.Fields.gear.value] == g
-        full_throttle = session_data[networking.Fields.throttle.value] == 1.0
+        current_gear = plot_data.gear == g
+        full_throttle = plot_data.throttle == 1.0
         interesting = np.logical_and(current_gear, full_throttle)
 
-        g_force_lon = session_data[networking.Fields.g_force_lon.value, interesting]
-        rpm = session_data[networking.Fields.rpm.value, interesting]
-        throttle = session_data[networking.Fields.throttle.value, interesting]
+        g_force_lon = plot_data.g_force_lon[interesting]
+        rpm = plot_data.rpm[interesting]
+        throttle = plot_data.throttle[interesting]
         throttle_scaled = [t * scale for t in throttle]
 
         x_points += [rpm]
@@ -587,9 +581,9 @@ def plot_g_over_rpm(ax, session_data):
                  labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='RPM', y_label='G-force X')
 
 
-def plot_p_over_rpm(ax, session_data):
+def plot_p_over_rpm(ax, plot_data: pd.PlotData):
 
-    data_gear = session_data[networking.Fields.gear.value]
+    data_gear = plot_data.gear
     range_gears = list(set(data_gear))
     range_gears.sort()
 
@@ -597,18 +591,18 @@ def plot_p_over_rpm(ax, session_data):
     scale = 50.0
     alphas = [0.5] * len(labels)
     colors = [static_colors[i] for i, g in enumerate(range_gears)]
-    full_acceleration_mask = data_processing.get_full_acceleration_mask(session_data=session_data)
+    full_acceleration_mask = data_processing.get_full_acceleration_mask(plot_data=plot_data)
 
-    rpm = session_data[networking.Fields.rpm.value]
-    energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
-    times_steps = data_processing.get_run_time_cleaned(session_data=session_data)
+    rpm = plot_data.rpm
+    energy, kinetic_energy, potential_energy = data_processing.get_energy(plot_data=plot_data)
+    times_steps = plot_data.run_time
     power = data_processing.derive_no_nan(x=energy, time_steps=times_steps) / 1000.0
 
     x_points = []
     y_points = []
     scales = []
     for gear in range_gears:
-        current_gear = session_data[networking.Fields.gear.value] == gear
+        current_gear = plot_data.gear == gear
         interesting = np.logical_and(current_gear, full_acceleration_mask)
 
         x_points += [rpm[interesting]]
@@ -619,9 +613,9 @@ def plot_p_over_rpm(ax, session_data):
                  labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='RPM', y_label='Power (kW)')
 
 
-def plot_p_over_vel(ax, session_data):
+def plot_p_over_vel(ax, plot_data: pd.PlotData):
 
-    data_gear = session_data[networking.Fields.gear.value]
+    data_gear = plot_data.gear
     range_gears = list(set(data_gear))
     range_gears.sort()
 
@@ -629,31 +623,32 @@ def plot_p_over_vel(ax, session_data):
     scale = 50.0
     alphas = [0.5] * len(labels)
     colors = [static_colors[i] for i, g in enumerate(range_gears)]
-    full_acceleration_mask = data_processing.get_full_acceleration_mask(session_data=session_data)
+    full_acceleration_mask = data_processing.get_full_acceleration_mask(plot_data=plot_data)
 
-    energy, kinetic_energy, potential_energy = data_processing.get_energy(session_data=session_data)
-    times_steps = data_processing.get_run_time_cleaned(session_data=session_data)
+    energy, kinetic_energy, potential_energy = data_processing.get_energy(plot_data=plot_data)
+    times_steps = plot_data.run_time
     power = data_processing.derive_no_nan(x=energy, time_steps=times_steps) / 1000.0
 
     x_points = []
     y_points = []
     scales = []
     for gear in range_gears:
-        current_gear = session_data[networking.Fields.gear.value] == gear
+        current_gear = plot_data.gear == gear
         interesting = np.logical_and(current_gear, full_acceleration_mask)
 
-        speed_ms = session_data[networking.Fields.speed_ms.value]
+        speed_ms = plot_data.speed_ms
         x_points += [speed_ms[interesting]]
         y_points += [power[interesting]]
         scales += [np.ones_like(speed_ms[interesting]) * scale]
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='Power over velocity (full throttle)',
-                 labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='Velocity (m/s)', y_label='Power (kW)')
+                 labels=labels, colors=colors, scales=scales, alphas=alphas,
+                 x_label='Velocity (m/s)', y_label='Power (kW)')
 
 
-def plot_g_over_throttle(ax, session_data):
+def plot_g_over_throttle(ax, plot_data: pd.PlotData):
 
-    data_gear = session_data[networking.Fields.gear.value]
+    data_gear = plot_data.gear
     range_gears = list(set(data_gear))
     range_gears.sort()
 
@@ -665,10 +660,10 @@ def plot_g_over_throttle(ax, session_data):
     x_points = []
     y_points = []
     for i, g in enumerate(range_gears):
-        current_gear = session_data[networking.Fields.gear.value] == g
+        current_gear = plot_data.gear == g
 
-        throttle = session_data[networking.Fields.throttle.value, current_gear]
-        g_force_lon = session_data[networking.Fields.g_force_lon.value, current_gear]
+        throttle = plot_data.throttle[current_gear]
+        g_force_lon = plot_data.g_force_lon[current_gear]
 
         x_points += [throttle]
         y_points += [g_force_lon]
@@ -677,9 +672,9 @@ def plot_g_over_throttle(ax, session_data):
                  labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='throttle', y_label='G-force X')
 
 
-def plot_v_over_rpm(ax, session_data):
+def plot_v_over_rpm(ax, plot_data: pd.PlotData):
 
-    data_gear = session_data[networking.Fields.gear.value]
+    data_gear = plot_data.gear
     range_gears = list(set(data_gear))
     range_gears.sort()
 
@@ -691,12 +686,12 @@ def plot_v_over_rpm(ax, session_data):
     x_points = []
     y_points = []
     for i, g in enumerate(range_gears):
-        current_gear = session_data[networking.Fields.gear.value] == g
-        full_throttle = session_data[networking.Fields.throttle.value] == 1.0
+        current_gear = plot_data.gear == g
+        full_throttle = plot_data.throttle == 1.0
         interesting = np.logical_and(current_gear, full_throttle)
 
-        rpm = session_data[networking.Fields.rpm.value, interesting]
-        speed_ms = session_data[networking.Fields.speed_ms.value, interesting]
+        rpm = plot_data.rpm[interesting]
+        speed_ms = plot_data.speed_ms[interesting]
 
         x_points += [rpm]
         y_points += [speed_ms]
@@ -705,22 +700,21 @@ def plot_v_over_rpm(ax, session_data):
                  labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='RPM', y_label='Speed (m/s)')
 
 
-def forward_over_2d_pos(ax, session_data):
+def forward_over_2d_pos(ax, plot_data: pd.PlotData):
 
     # if we take all data points, the plot is too crowded
     sample_rate = 10
 
-    x, y = data_processing.get_2d_coordinates(session_data)
-    x = x[::sample_rate]
-    y = y[::sample_rate]
+    x = plot_data.pos_x[::sample_rate]
+    y = plot_data.pos_y[::sample_rate]
     x_min, x_middle, x_max = data_processing.get_min_middle_max(x)
     y_min, y_middle, y_max = data_processing.get_min_middle_max(y)
 
     diff = [x_max - x_min, y_max - y_min]
     diff_max = max(diff)
 
-    pxy_normalized = data_processing.get_forward_dir_2d(session_data)
-    vxy_normalized = data_processing.get_forward_vel_2d(session_data)
+    pxy_normalized = data_processing.get_forward_dir_2d(plot_data)
+    vxy_normalized = data_processing.get_forward_vel_2d(plot_data)
     pxy_normalized = pxy_normalized[:, ::sample_rate]
     vxy_normalized = vxy_normalized[:, ::sample_rate]
 
@@ -748,14 +742,10 @@ def forward_over_2d_pos(ax, session_data):
     ax.legend()
 
 
-def wheel_speed_over_time(ax, session_data):
+def wheel_speed_over_time(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    wsp_fl = session_data[networking.Fields.wsp_fl.value]
-    wsp_fr = session_data[networking.Fields.wsp_fr.value]
-    wsp_rl = session_data[networking.Fields.wsp_rl.value]
-    wsp_rr = session_data[networking.Fields.wsp_rr.value]
-    wsp_data = np.array([wsp_fl, wsp_fr, wsp_rl, wsp_rr])
+    race_time = plot_data.run_time
+    wsp_data = np.array([plot_data.wsp_fl, plot_data.wsp_fr, plot_data.wsp_rl, plot_data.wsp_rr])
 
     labels = ['front left', 'front right', 'rear left', 'rear right']
     x_points = np.array([race_time] * len(wsp_data))
@@ -765,15 +755,11 @@ def wheel_speed_over_time(ax, session_data):
               labels=labels, alpha=0.5, x_label='Time (s)', y_label='Wheel speed (m/s)', min_max_annotations=True)
 
 
-def wheel_speed_lr_fr_over_time(ax, session_data):
+def wheel_speed_lr_fr_over_time(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    wsp_fl = session_data[networking.Fields.wsp_fl.value]
-    wsp_fr = session_data[networking.Fields.wsp_fr.value]
-    wsp_rl = session_data[networking.Fields.wsp_rl.value]
-    wsp_rr = session_data[networking.Fields.wsp_rr.value]
-    wsp_left_right = (wsp_fl + wsp_rl) * 0.5 - (wsp_fr + wsp_rr) * 0.5
-    wsp_front_rear = (wsp_fl + wsp_fr) * 0.5 - (wsp_rl + wsp_rr) * 0.5
+    race_time = plot_data.run_time
+    wsp_left_right = (plot_data.wsp_fl + plot_data.wsp_rl) * 0.5 - (plot_data.wsp_fr + plot_data.wsp_rr) * 0.5
+    wsp_front_rear = (plot_data.wsp_fl + plot_data.wsp_fr) * 0.5 - (plot_data.wsp_rl + plot_data.wsp_rr) * 0.5
     wsp_data = np.array([wsp_left_right, wsp_front_rear])
 
     labels = ['left-right', 'front-rear']
@@ -784,13 +770,13 @@ def wheel_speed_lr_fr_over_time(ax, session_data):
               alpha=0.5, x_label='Time (s)', y_label='Wheel speed difference (m/s)', min_max_annotations=True)
 
 
-def suspension_vel_over_time(ax, session_data):
+def suspension_vel_over_time(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    susp_vel_fl = session_data[networking.Fields.susp_vel_fl.value]
-    susp_vel_fr = session_data[networking.Fields.susp_vel_fr.value]
-    susp_vel_rl = session_data[networking.Fields.susp_vel_rl.value]
-    susp_vel_rr = session_data[networking.Fields.susp_vel_rr.value]
+    race_time = plot_data.run_time
+    susp_vel_fl = plot_data.susp_vel_fl
+    susp_vel_fr = plot_data.susp_vel_fr
+    susp_vel_rl = plot_data.susp_vel_rl
+    susp_vel_rr = plot_data.susp_vel_rr
 
     susp_data = np.array([susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr])
 
@@ -803,14 +789,14 @@ def suspension_vel_over_time(ax, session_data):
               y_label='Suspension velocity (mm/s)', min_max_annotations=True)
 
 
-def slip_over_time(ax, session_data):
+def slip_over_time(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    speed_ms = session_data[networking.Fields.speed_ms.value]
-    wsp_fl = session_data[networking.Fields.wsp_fl.value]
-    wsp_fr = session_data[networking.Fields.wsp_fr.value]
-    wsp_rl = session_data[networking.Fields.wsp_rl.value]
-    wsp_rr = session_data[networking.Fields.wsp_rr.value]
+    race_time = plot_data.run_time
+    speed_ms = plot_data.speed_ms
+    wsp_fl = plot_data.wsp_fl
+    wsp_fr = plot_data.wsp_fr
+    wsp_rl = plot_data.wsp_rl
+    wsp_rr = plot_data.wsp_rr
     wsp = [wsp_fl, wsp_fr, wsp_rl, wsp_rr]
     slip = [w - speed_ms for w in wsp]
     wsp_data = np.array(slip)
@@ -823,15 +809,15 @@ def slip_over_time(ax, session_data):
               labels=labels, alpha=0.5, x_label='Time (s)', y_label='Wheel slip (m/s)', min_max_annotations=True)
 
 
-def ground_contact_over_time(ax, session_data):
+def ground_contact_over_time(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
+    race_time = plot_data.run_time
 
-    def get_ground_contact(susp_vel: np.ndarray, susp_vel_lim=100.0, variance_max=100.0, filter_length=6) -> list:
+    def get_ground_contact(susp_vel_arr: np.ndarray, susp_vel_lim=100.0, variance_max=100.0, filter_length=6):
         # filter_length = 6 -> 100 ms (0.1 s) at 60 FPS
+        box_filter = np.array([1.0] * filter_length)  # filter_length = 6 -> 100 ms at 60 FPS
 
-        def get_variance_convolved(data: np.ndarray, filter_length: int):
-            box_filter = np.array([1.0] * filter_length)  # filter_length = 6 -> 100 ms at 60 FPS
+        def get_variance_convolved(data: np.ndarray):
             sum_conv = np.convolve(data, box_filter, mode='same')
             mean_conv = sum_conv / float(filter_length)
             var_sqr_conv = data - mean_conv
@@ -839,20 +825,15 @@ def ground_contact_over_time(ax, session_data):
             return var_conv
 
         # extending by max x mm/s
-        susp_vel_lim = np.logical_and(susp_vel < 0.0, susp_vel > -susp_vel_lim)
-        susp_var = get_variance_convolved(susp_vel, filter_length) < variance_max
+        susp_vel_lim = np.logical_and(susp_vel_arr < 0.0, susp_vel_arr > -susp_vel_lim)
+        susp_var = get_variance_convolved(susp_vel_arr) < variance_max
         ground_contact_mask = np.logical_and(susp_var, susp_vel_lim)
 
         # extending for more than 0.1s
-        box_filter = np.array([1.0] * filter_length)
         ground_contact_mask = np.convolve(ground_contact_mask, box_filter, mode='same') >= float(filter_length * 0.5)
         return ground_contact_mask
 
-    susp_vel_fl = session_data[networking.Fields.susp_vel_fl.value]
-    susp_vel_fr = session_data[networking.Fields.susp_vel_fr.value]
-    susp_vel_rl = session_data[networking.Fields.susp_vel_rl.value]
-    susp_vel_rr = session_data[networking.Fields.susp_vel_rr.value]
-    susp_vel = [susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr]
+    susp_vel = [plot_data.susp_vel_fl, plot_data.susp_vel_fr, plot_data.susp_vel_rl, plot_data.susp_vel_rr]
     ground_contact_masks = [get_ground_contact(susp, susp_vel_lim=100.0, variance_max=100.0, filter_length=6)
                             for susp in susp_vel]
 
@@ -872,12 +853,12 @@ def ground_contact_over_time(ax, session_data):
               y_label='Ground contact', min_max_annotations=True)
 
 
-def drift_over_speed(ax, session_data):
+def drift_over_speed(ax, plot_data: pd.PlotData):
 
-    steering = np.abs(session_data[networking.Fields.steering.value])
-    speed_ms = session_data[networking.Fields.speed_ms.value]
-    drift_angle_deg = data_processing.get_drift_angle(session_data)
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
+    steering = np.abs(plot_data.steering)
+    speed_ms = plot_data.speed_ms
+    drift_angle_deg = data_processing.get_drift_angle(plot_data)
+    race_time = plot_data.run_time
     drift_angle_deg_der = data_processing.derive_no_nan(
         drift_angle_deg, time_steps=race_time)
 
@@ -903,14 +884,14 @@ def drift_over_speed(ax, session_data):
                  x_label='Speed (m/s)', y_label='Drift angle (deg/s)')
 
 
-def drift_angle_bars(ax, session_data):
+def drift_angle_bars(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
+    race_time = plot_data.run_time
     time_differences = data_processing.differences(race_time)
     # prevent negative times due to next lap
     time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
-    speed_ms = session_data[networking.Fields.speed_ms.value]
-    drift_angle_deg = data_processing.get_drift_angle(session_data)
+    speed_ms = plot_data.speed_ms
+    drift_angle_deg = data_processing.get_drift_angle(plot_data)
 
     # filter very slow parts
     fast_enough = speed_ms > 1.0  # m/s
@@ -929,14 +910,14 @@ def drift_angle_bars(ax, session_data):
              x_label='Drift Angle (deg)', y_label='Accumulated Time (s)', series_labels=series_labels)
 
 
-def drift_angle_change_bars(ax, session_data):
+def drift_angle_change_bars(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
+    race_time = plot_data.run_time
     time_differences = data_processing.differences(race_time)
     # prevent negative times due to next lap
     time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
-    speed_ms = session_data[networking.Fields.speed_ms.value]
-    drift_angle_deg = data_processing.get_drift_angle(session_data)
+    speed_ms = plot_data.speed_ms
+    drift_angle_deg = data_processing.get_drift_angle(plot_data)
     drift_angle_deg_der = data_processing.derive_no_nan(
         drift_angle_deg, time_steps=race_time)
 
@@ -959,12 +940,12 @@ def drift_angle_change_bars(ax, session_data):
              x_label='Drift Angle Change (deg/s)', y_label='Accumulated Time (s)', series_labels=series_labels)
 
 
-def rotation_over_time(ax, session_data):
+def rotation_over_time(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
+    race_time = plot_data.run_time
 
-    forward_local_xyz = data_processing.get_forward_dir_3d(session_data)
-    sideward_local_xyz = data_processing.get_sideward_dir_3d(session_data)
+    forward_local_xyz = data_processing.get_forward_dir_3d(plot_data)
+    sideward_local_xyz = data_processing.get_sideward_dir_3d(plot_data)
 
     def get_vertical_angle_dislocation(dirs):
         global_dirs = data_processing.normalize_3d_vectors(
@@ -988,13 +969,13 @@ def rotation_over_time(ax, session_data):
               y_label='Angle (deg)', min_max_annotations=True)
 
 
-def suspension_lr_fr_angles_over_time(ax, session_data):
+def suspension_lr_fr_angles_over_time(ax, plot_data: pd.PlotData):
 
-    race_time = data_processing.get_run_time_cleaned(session_data=session_data)
-    susp_fl = session_data[networking.Fields.susp_fl.value]
-    susp_fr = session_data[networking.Fields.susp_fr.value]
-    susp_rl = session_data[networking.Fields.susp_rl.value]
-    susp_rr = session_data[networking.Fields.susp_rr.value]
+    race_time = plot_data.run_time
+    susp_fl = plot_data.susp_fl
+    susp_fr = plot_data.susp_fr
+    susp_rl = plot_data.susp_rl
+    susp_rr = plot_data.susp_rr
     susp_left_right = (susp_fl + susp_rl) * 0.5 - (susp_fr + susp_rr) * 0.5
     susp_front_rear = (susp_fl + susp_fr) * 0.5 - (susp_rl + susp_rr) * 0.5
 

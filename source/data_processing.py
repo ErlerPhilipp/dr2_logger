@@ -1,6 +1,6 @@
 import numpy as np
 
-import networking
+from source import plot_data as pd
 
 
 def normalize_2d_vectors(x, y):
@@ -40,21 +40,6 @@ def convert_coordinate_system_2d(x, z):
     return x, -z
 
 
-def get_3d_coordinates(session_data):
-
-    return convert_coordinate_system_3d(
-        session_data[networking.Fields.pos_x.value],
-        session_data[networking.Fields.pos_y.value],
-        session_data[networking.Fields.pos_z.value])
-
-
-def get_2d_coordinates(session_data):
-
-    return convert_coordinate_system_2d(
-        session_data[networking.Fields.pos_x.value],
-        session_data[networking.Fields.pos_z.value])
-
-
 def get_min_middle_max(x):
 
     x_min = x.min()
@@ -92,53 +77,30 @@ def derive_no_nan(x, time_steps):
     return x_derived
 
 
-def get_forward_dir_2d(session_data):
-    px, py = convert_coordinate_system_2d(
-        session_data[networking.Fields.pitch_x.value],
-        session_data[networking.Fields.pitch_z.value])
-    pxy_normalized = normalize_2d_vectors(px, py)
+def get_forward_dir_2d(plot_data: pd.PlotData):
+    pxy_normalized = normalize_2d_vectors(plot_data.roll_x, plot_data.roll_y)
     return pxy_normalized
 
 
-def get_forward_dir_3d(session_data):
-    px, py, pz = convert_coordinate_system_3d(
-        session_data[networking.Fields.pitch_x.value],
-        session_data[networking.Fields.pitch_y.value],
-        session_data[networking.Fields.pitch_z.value])
-    pxyz_normalized = normalize_3d_vectors(px, py, pz)
+def get_forward_dir_3d(plot_data: pd.PlotData):
+    pxyz_normalized = normalize_3d_vectors(plot_data.roll_x, plot_data.roll_y, plot_data.roll_z)
     return pxyz_normalized
 
 
-def get_sideward_dir_3d(session_data):
-    px, py, pz = convert_coordinate_system_3d(
-        session_data[networking.Fields.roll_x.value],
-        session_data[networking.Fields.roll_y.value],
-        session_data[networking.Fields.roll_z.value])
-    pxy_normalized = normalize_3d_vectors(px, py, pz)
+def get_sideward_dir_3d(plot_data: pd.PlotData):
+    pxy_normalized = normalize_3d_vectors(plot_data.pitch_x, plot_data.pitch_y, plot_data.pitch_z)
     return pxy_normalized
 
 
-def get_forward_vel_2d(session_data):
-    vx, vy = convert_coordinate_system_2d(
-        session_data[networking.Fields.vel_x.value],
-        session_data[networking.Fields.vel_z.value])
-    vxy_normalized = normalize_2d_vectors(vx, vy)
+def get_forward_vel_2d(plot_data: pd.PlotData):
+    vxy_normalized = normalize_2d_vectors(plot_data.vel_x, plot_data.vel_y)
     return vxy_normalized
 
 
-def get_sideward_vel_3d(session_data):
-    vy, vx, vz = convert_coordinate_system_3d(
-        session_data[networking.Fields.roll_x.value],
-        session_data[networking.Fields.roll_y.value],
-        session_data[networking.Fields.roll_z.value])
-    vxy_normalized = normalize_3d_vectors(vx, vy, vz)
-    return vxy_normalized
+def get_drift_angle(plot_data: pd.PlotData):
 
-
-def get_drift_angle(session_data):
-
-    pxy_normalized = get_forward_dir_2d(session_data)
-    vxy_normalized = get_forward_vel_2d(session_data)
+    pxy_normalized = get_forward_dir_2d(plot_data)
+    vxy_normalized = get_forward_vel_2d(plot_data)
 
     # dot(dir, speed) = drift
     drift = (pxy_normalized * vxy_normalized).sum(axis=0)
@@ -148,52 +110,53 @@ def get_drift_angle(session_data):
     return drift_angle_deg
 
 
-def get_energy(session_data):
+def get_energy(plot_data: pd.PlotData):
 
     mass = 1000.0  # kg, doesn't really matter because we want only the relative changes in energy
     gravity = 9.81  # m/s^2
-    velocity = session_data[networking.Fields.speed_ms.value]
-    height = session_data[networking.Fields.pos_y.value]
+    velocity = plot_data.speed_ms
+    height = plot_data.pos_y
     height_relative = height - np.min(height)
 
     kinetic_energy = 0.5 * mass * np.square(velocity)
     potential_energy = mass * gravity * height_relative
     # TODO: add rotational energy
+    # TODO: add heat energy in brakes? lol
 
     energy = kinetic_energy + potential_energy
 
     return energy, kinetic_energy, potential_energy
 
 
-def get_full_acceleration_mask(session_data):
+def get_full_acceleration_mask(plot_data: pd.PlotData):
 
     import functools
 
     # full throttle inputs
-    full_throttle = session_data[networking.Fields.throttle.value] >= 0.99
-    no_brakes = session_data[networking.Fields.brakes.value] <= 0.01
-    no_clutch = session_data[networking.Fields.clutch.value] <= 0.01
+    full_throttle = plot_data.throttle >= 0.99
+    no_brakes = plot_data.brakes <= 0.01
+    no_clutch = plot_data.clutch <= 0.01
 
     # take only times without a lot of drifting
-    no_drift = np.abs(get_drift_angle(session_data=session_data)) <= 5.0  # degree
+    no_drift = np.abs(get_drift_angle(plot_data=plot_data)) <= 5.0  # degree
 
     # # take only times without a lot of slip
-    # car_vel = session_data[networking.Fields.speed_ms.value]
-    # no_slip_fl = np.abs(session_data[networking.Fields.wsp_fl.value] - car_vel) <= 5.0
-    # no_slip_fr = np.abs(session_data[networking.Fields.wsp_fr.value] - car_vel) <= 5.0
-    # no_slip_rl = np.abs(session_data[networking.Fields.wsp_rl.value] - car_vel) <= 5.0
-    # no_slip_rr = np.abs(session_data[networking.Fields.wsp_rr.value] - car_vel) <= 5.0
+    # car_vel = plot_data.speed_ms
+    # no_slip_fl = np.abs(plot_data.wsp_fl - car_vel) <= 5.0
+    # no_slip_fr = np.abs(plot_data.wsp_fr - car_vel) <= 5.0
+    # no_slip_rl = np.abs(plot_data.wsp_rl - car_vel) <= 5.0
+    # no_slip_rr = np.abs(plot_data.wsp_rr - car_vel) <= 5.0
 
     # # take only mostly flat parts of the track
-    # small_susp_vel_fl = np.abs(session_data[networking.Fields.susp_vel_fl.value]) <= 0.01
-    # small_susp_vel_fr = np.abs(session_data[networking.Fields.susp_vel_fr.value]) <= 0.01
-    # small_susp_vel_rl = np.abs(session_data[networking.Fields.susp_vel_rl.value]) <= 0.01
-    # small_susp_vel_rr = np.abs(session_data[networking.Fields.susp_vel_rr.value]) <= 0.01
+    # small_susp_vel_fl = np.abs(plot_data.susp_vel_fl) <= 0.01
+    # small_susp_vel_fr = np.abs(plot_data.susp_vel_fr) <= 0.01
+    # small_susp_vel_rl = np.abs(plot_data.susp_vel_rl) <= 0.01
+    # small_susp_vel_rr = np.abs(plot_data.susp_vel_rr) <= 0.01
 
     # exclude times ~0.1 sec around gear shifts and gears < 1
-    gear = session_data[networking.Fields.gear.value]
+    gear = plot_data.gear
     forward_gear = gear >= 1.0
-    time_steps = get_run_time_cleaned(session_data=session_data)
+    time_steps = plot_data.run_time
     gear_changes = derive_no_nan(gear, time_steps=time_steps)
     gear_changes[gear_changes != 0.0] = 1.0  # 1.0 if the gear changed, 0.0 otherwise
     box_filter = np.array([1.0] * 10)  # 10 -> 2 * 160ms at 60 FPS
@@ -208,10 +171,3 @@ def get_full_acceleration_mask(session_data):
     ))
 
     return full_acceleration_mask
-
-
-def get_run_time_cleaned(session_data):
-    run_time_raw = session_data[networking.Fields.run_time.value]
-    start_time = run_time_raw[0]
-    run_time_cleaned = run_time_raw - start_time
-    return run_time_cleaned

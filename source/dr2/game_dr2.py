@@ -2,6 +2,8 @@
 import numpy as np
 
 from source import logger_backend
+from source import plot_data as pd
+from source import data_processing
 from source.game_base import GameBase
 from source.dr2 import udp_data
 from source.dr2 import car_data
@@ -137,3 +139,86 @@ class GameDr2(GameBase):
                 with open('unknown tracks.txt', 'a+') as f:
                     f.write('[{}, {}, \'Unknown track\'],\n'.format(length, start_z))
         return track_name
+
+    @staticmethod
+    def get_run_time_cleaned(run_time_raw: np.ndarray):
+        start_time = run_time_raw[0]
+        run_time_cleaned = run_time_raw - start_time
+        return run_time_cleaned
+
+    def get_plot_data(self, session_collection):
+
+        # make consistent with other games
+        run_time = self.get_run_time_cleaned(session_collection[udp_data.Fields.run_time.value])
+        rpm = session_collection[udp_data.Fields.rpm.value] * 10.0
+        max_rpm = session_collection[udp_data.Fields.max_rpm.value] * 10.0
+        idle_rpm = session_collection[udp_data.Fields.idle_rpm.value] * 10.0
+
+        # switch coordinate system to z - up
+        pos_x, pos_y, pos_z = data_processing.convert_coordinate_system_3d(
+            session_collection[udp_data.Fields.pos_x.value],
+            session_collection[udp_data.Fields.pos_y.value],
+            session_collection[udp_data.Fields.pos_z.value]
+        )
+        vel_x, vel_y, vel_z = data_processing.convert_coordinate_system_3d(
+            session_collection[udp_data.Fields.vel_x.value],
+            session_collection[udp_data.Fields.vel_y.value],
+            session_collection[udp_data.Fields.vel_z.value]
+        )
+        pitch_x, pitch_y, pitch_z = data_processing.convert_coordinate_system_3d(
+            session_collection[udp_data.Fields.roll_x.value],
+            session_collection[udp_data.Fields.roll_y.value],
+            session_collection[udp_data.Fields.roll_z.value]
+        )
+        roll_x, roll_y, roll_z = data_processing.convert_coordinate_system_3d(
+            session_collection[udp_data.Fields.pitch_x.value],
+            session_collection[udp_data.Fields.pitch_y.value],
+            session_collection[udp_data.Fields.pitch_z.value],
+        )
+
+        plot_data = pd.PlotData(
+            run_time=run_time,
+            lap_time=session_collection[udp_data.Fields.lap_time.value],
+            distance=session_collection[udp_data.Fields.distance.value],
+            track_length=session_collection[udp_data.Fields.track_length.value],
+            progress=session_collection[udp_data.Fields.progress.value],
+            pos_x=pos_x,
+            pos_y=pos_y,
+            pos_z=pos_z,
+            speed_ms=session_collection[udp_data.Fields.speed_ms.value],
+            vel_x=vel_x,
+            vel_y=vel_y,
+            vel_z=vel_z,
+            roll_x=roll_x,
+            roll_y=roll_y,
+            roll_z=roll_z,
+            pitch_x=pitch_x,
+            pitch_y=pitch_y,
+            pitch_z=pitch_z,
+            susp_rl=session_collection[udp_data.Fields.susp_rl.value],
+            susp_rr=session_collection[udp_data.Fields.susp_rr.value],
+            susp_fl=session_collection[udp_data.Fields.susp_fl.value],
+            susp_fr=session_collection[udp_data.Fields.susp_fr.value],
+            susp_vel_rl=session_collection[udp_data.Fields.susp_vel_rl.value],
+            susp_vel_rr=session_collection[udp_data.Fields.susp_vel_rr.value],
+            susp_vel_fl=session_collection[udp_data.Fields.susp_vel_fl.value],
+            susp_vel_fr=session_collection[udp_data.Fields.susp_vel_fr.value],
+            wsp_rl=session_collection[udp_data.Fields.wsp_rl.value],
+            wsp_rr=session_collection[udp_data.Fields.wsp_rr.value],
+            wsp_fl=session_collection[udp_data.Fields.wsp_fl.value],
+            wsp_fr=session_collection[udp_data.Fields.wsp_fr.value],
+            gear=session_collection[udp_data.Fields.gear.value],
+            g_force_lat=session_collection[udp_data.Fields.g_force_lat.value],
+            g_force_lon=session_collection[udp_data.Fields.g_force_lon.value],
+            rpm=rpm,
+            max_rpm=max_rpm,
+            idle_rpm=idle_rpm,
+            max_gear=session_collection[udp_data.Fields.max_gears.value],
+            throttle=session_collection[udp_data.Fields.throttle.value],
+            steering=session_collection[udp_data.Fields.steering.value],
+            brakes=session_collection[udp_data.Fields.brakes.value],
+            clutch=session_collection[udp_data.Fields.clutch.value]
+        )
+
+
+        return plot_data

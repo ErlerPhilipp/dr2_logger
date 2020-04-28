@@ -80,7 +80,7 @@ class Fields(Enum):
     track_length =        61
     last_lap_time =       62
     max_rpm =             63  # / 10
-    idle_rpm =            64
+    idle_rpm =            64  # / 10
     max_gears =           65
 
 

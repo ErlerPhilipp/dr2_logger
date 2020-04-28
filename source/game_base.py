@@ -35,3 +35,6 @@ class GameBase(ABC):
     def get_race_duration(self, session_collection):
         pass
 
+    @abstractmethod
+    def get_plot_data(self, session_collection):
+        pass

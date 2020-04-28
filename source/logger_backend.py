@@ -194,11 +194,12 @@ class LoggerBackend:
             self.has_new_data = False
 
     def show_plots(self):
+        plot_data = self.game.get_plot_data(self.session_collection)
         if self.debugging:
-            plots.plot_main(session_data=self.session_collection)
+            plots.plot_main(plot_data=plot_data)
         else:
             try:
-                plots.plot_main(session_data=self.session_collection)
+                plots.plot_main(plot_data=plot_data)
             except Exception:
                 print('Error during plot: {}'.format(sys.exc_info()))
 
