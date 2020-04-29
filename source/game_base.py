@@ -3,6 +3,11 @@ from abc import ABC, abstractmethod
 
 class GameBase(ABC):
 
+    @staticmethod
+    @abstractmethod
+    def get_valid_game_names() -> list:
+        pass
+
     @abstractmethod
     def get_fields_enum(self):
         pass

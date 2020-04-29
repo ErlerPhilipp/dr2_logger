@@ -5,16 +5,28 @@ from source import logger_backend
 from source import plot_data as pd
 from source import data_processing
 from source.game_base import GameBase
-from source.dr2 import udp_data
-from source.dr2 import car_data
-from source.dr2 import track_data
+from source.dirt_rally import udp_data
+from source.dirt_rally import car_data_dr1
+from source.dirt_rally import track_data_dr1
+from source.dirt_rally import car_data_dr2
+from source.dirt_rally import track_data_dr2
 
 
-class GameDr2(GameBase):
+class GameDirtRally(GameBase):
 
-    def __init__(self):
+    valid_game_name_dr1 = 'Dirt_Rally_1'
+    valid_game_name_dr2 = 'Dirt_Rally_2'
+
+    def __init__(self, game_name):
         self.unknown_cars = set()
         self.unknown_tracks = set()
+        if game_name != GameDirtRally.valid_game_name_dr1 and game_name != GameDirtRally.valid_game_name_dr2:
+            raise ValueError('Invalid game name: {}'.format(game_name))
+        self.game_name = game_name
+
+    @staticmethod
+    def get_valid_game_names():
+        return [GameDirtRally.valid_game_name_dr1, GameDirtRally.valid_game_name_dr2]
 
     def get_game_state_str(self, state, last_sample, num_samples):
 
@@ -100,6 +112,7 @@ class GameDr2(GameBase):
         max_gears = sample[udp_data.Fields.max_gears.value]
 
         key = (max_rpm, idle_rpm, max_gears)
+        car_data = car_data_dr1 if self.game_name == GameDirtRally.valid_game_name_dr1 else car_data_dr2
         if key in car_data.car_dict.keys():
             car_name = car_data.car_dict[key]
         else:
@@ -124,6 +137,7 @@ class GameDr2(GameBase):
         length = sample[udp_data.Fields.track_length.value]
         start_z = sample[udp_data.Fields.pos_z.value]
 
+        track_data = track_data_dr1 if self.game_name == GameDirtRally.valid_game_name_dr1 else track_data_dr2
         if start_z is not None and length in track_data.track_dict.keys():
             track_candidates = track_data.track_dict[length]
             track_candidates_start_z = np.array([t[0] for t in track_candidates])
@@ -134,7 +148,7 @@ class GameDr2(GameBase):
             track_name = 'Unknown track ' + str((length, start_z))
 
             # debugging, data mining
-            unknown_track_data = (length, start_z)
+            unknown_track_data = (length,)
             if unknown_track_data not in self.unknown_cars:
                 self.unknown_cars.add(unknown_track_data)
                 with open('unknown tracks.txt', 'a+') as f:

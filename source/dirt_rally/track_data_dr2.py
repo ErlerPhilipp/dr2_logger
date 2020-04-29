@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-# adapted from https://github.com/soong-construction/dirt-rally-time-recorder/blob/master/tracks.sql
+# adapted from https://github.com/soong-construction/dirt-rally-time-recorder/blob/master/resources/setup-dr2.sql
 # length, start_z, track_name
 track_data = [
     # Baumholder, Germany

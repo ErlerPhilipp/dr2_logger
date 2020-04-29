@@ -31,7 +31,8 @@ Enter:
 "a" for analysis
 "s" to save the current run
 "l" to load a saved run
-'''
+"g game_name" to switch the target game, values for game_name: {}
+'''.format(LoggerBackend.get_all_valid_games())
 
 
 def add_input(message_queue):
@@ -65,7 +66,7 @@ def main():
     print(intro_text)
     print(commands_hint)
 
-    logger_backend = LoggerBackend(game_name='Dirt Rally 2', debugging=False, log_raw_data=False)
+    logger_backend = LoggerBackend(debugging=False, log_raw_data=False)
     logger_backend.start_logging()
 
     message_queue = queue.Queue()
@@ -92,6 +93,10 @@ def main():
                 logger_backend.show_plots()
             elif command == 's':
                 logger_backend.save_run()
+            elif command.startswith('g'):
+                new_game_name = command.split(' ')[1]
+                logger_backend.change_game(new_game_name)
+                print('Switched game to "{}"'.format(logger_backend.game_name))
             elif command == 'l':
                 logger_backend.load_run()
                 print_current_state(logger_backend.get_game_state_str())

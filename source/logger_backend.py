@@ -8,7 +8,7 @@ from source import utils
 from source import plots
 from source import settings
 # from source.dr1.game_dr1 import GameDr1
-from source.dr2.game_dr2 import GameDr2
+from source.dirt_rally.game_dirt_rally import GameDirtRally
 
 
 class GameState(Enum):
@@ -19,19 +19,13 @@ class GameState(Enum):
 
 class LoggerBackend:
 
-    def __init__(self, game_name: str, debugging=False, log_raw_data=False):
+    def __init__(self, debugging=False, log_raw_data=False):
         self.debugging = debugging
         self.log_raw_data = log_raw_data
 
-        self.game_name = game_name
-        if game_name == 'Dirt Rally 2':
-            self.game = GameDr2()
-        # elif game_name == 'Dirt Rally 1':
-        #     self.game = GameDr1()
-        else:
-            print("Invalid game name in settings: {}, reverting to 'Dirt Rally 2'".format(game_name))
-            settings.init_settings_game()
-            settings.write_settings()
+        self.game_name = settings.settings['general']['game']
+        self.game = None
+        self.change_game(settings.settings['general']['game'])
 
         self.session_collection = np.zeros((self.game.get_num_fields(), 0))
         self.first_sample = np.zeros((self.game.get_num_fields(),))
@@ -44,6 +38,29 @@ class LoggerBackend:
         self.last_state = GameState.race_not_running
         self.has_new_data = False
         self.udp_socket = None
+
+    @staticmethod
+    def get_all_valid_games():
+        valid_games = GameDirtRally.get_valid_game_names()  # + ...
+        return valid_games
+
+    def change_game(self, new_game_name):
+
+        if new_game_name in GameDirtRally.get_valid_game_names():
+            self.game_name = new_game_name
+            self.game = GameDirtRally(game_name=new_game_name)
+
+            if new_game_name != settings.settings['general']['game']:
+                settings.settings['general']['game'] = new_game_name
+                settings.write_settings()
+        # elif game_name == 'Project Cars 2':
+        #     self.game = GameProjectCars2()
+        else:
+            print("Invalid game name in settings: {}, reverting to '{}'".format(
+                new_game_name, GameDirtRally.valid_game_name_dr2))
+            settings.init_settings_game(GameDirtRally.valid_game_name_dr2)
+            settings.write_settings()
+            self.change_game(GameDirtRally.valid_game_name_dr2)
 
     def forward_datagram(self, datagram):
         # forward datagram to another socket
@@ -141,13 +158,13 @@ class LoggerBackend:
         self.udp_socket = networking.open_port(settings.settings['general']['ip_in'],
                                           int(settings.settings['general']['port_in']))
         if self.udp_socket is not None:
-            print('Listening on socket {}\n'.format(self.udp_socket.getsockname()))
+            print('Listening on socket {} for data from {}\n'.format(self.udp_socket.getsockname(), self.game_name))
         else:
             print('Invalid input socket. Resetting...')
             settings.init_settings_input_socket()
             settings.write_settings()
             self.udp_socket = networking.open_port(settings.settings['general']['ip_in'],
-                                              int(settings.settings['general']['port_in']))
+                                                   int(settings.settings['general']['port_in']))
             print('Listening on socket {}\n'.format(self.udp_socket.getsockname()))
 
         self.raw_data = np.zeros((self.game.get_num_fields(), 0)) if self.log_raw_data else None

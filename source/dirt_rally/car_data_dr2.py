@@ -1,8 +1,13 @@
-# see also: https://github.com/soong-construction/dirt-rally-time-recorder/blob/master/setup-dr2.sql
+# see also: https://github.com/soong-construction/dirt-rally-time-recorder/blob/master/resources/setup-dr2.sql
 # max_rpm, idle_rpm, max_gears, car_name
 car_data = [
     # Crosskarts
     [1598.547119140625, 161.26841735839844, 6.0, 'Speedcar Xtrem'],
+
+    # RX Super 1600S
+    [994.8377075195312, 188.49555969238281, 6.0, 'Volkswagen Polo S1600'],
+    [968.6577758789062, 198.96754455566406, 6.0, 'Renault Clio RS S1600'],
+    [994.8377075195312, 198.96754455566406, 6.0, 'Opel Corsa Super 1600'],
 
     # RX Group B
     # [890.1179809570312, 167.55160522460938, 5.0, 'Lancia Delta S4 RX'],  # same as Peugeot 208 R2, non-rx
@@ -104,9 +109,9 @@ car_data = [
     [774.92620849609375, 188.49555969238281, 5.0, 'Ford Fiesta R5'],
     [785.398193359375, 178.02359008789062,  5.0, 'Peugeot 208 T16'],  # same as Mitsubishi Lancer Evolution X
     [837.758056640625, 219.91148376464844,  5.0, 'Mitsubishi Space Star R5'],
-    [774.92620849609375, 178.02359008789062, 5.0, 'Skoda Fabia R5'],
-    [774.92620849609375, 178.02359008789062, 5.0, 'Citroen C3 R5'],
-    [743.51031494140625, 185.87757873535156, 5.0, 'Volkswagen Polo GTI R5'],
+    [774.92620849609375, 178.02359008789062, 5.0, 'Skoda Fabia R5'],  # same as Volkswagen Polo GTI R5
+    [774.92620849609375, 178.02359008789062, 5.0, 'Volkswagen Polo GTI R5'],  # same as Skoda Fabia R5
+    [743.51031494140625, 185.87757873535156, 5.0, 'Citroen C3 R5'],
 
     # Rally GT
     [942.477783203125, 188.4955596923828,  6.0, 'Porsche 911 RGT Rally Spec'],
@@ -114,11 +119,6 @@ car_data = [
     [759.21820068359375, 178.02359008789062, 6.0, 'Chevrolet Camaro GT4.R'],
     [733.03826904296875, 104.71975708007812, 6.0, 'Aston Martin V8 Vantage GT4'],
     [863.9380493164062, 146.607666015625,  6.0, 'Ford Mustang GT4 Ford RS200'],
-
-    # RX Super 1600S
-    [994.8377075195312, 188.49555969238281, 6.0, 'Volkswagen Polo S1600'],
-    [968.6577758789062, 198.96754455566406, 6.0, 'Renault Clio RS S1600'],
-    [994.8377075195312, 198.96754455566406, 6.0, 'Opel Corsa Super 1600'],
 ]
 
 car_dict = dict()
