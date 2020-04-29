@@ -1,6 +1,6 @@
-# Dirt Rally 2.0 Logger #
+# Dirt Rally Logger #
 
-Dirt Rally 2.0 Logger is a logging and analysis tool for car setups in Dirt Rally 2.0 by Codemasters. 
+Dirt Rally Logger is a logging and analysis tool for car setups in [Dirt Rally 1 and 2 by Codemasters](https://dirtrally2.com/). 
 This is a free and open-source tool written by Philipp Erler.
 
 - [Executable (Version 1.7, 2020-03-25)](https://philipperler.net/dr2logger_1_7/)
@@ -18,13 +18,17 @@ This is a free and open-source tool written by Philipp Erler.
 
 ## How to Use ##
 
-1. Enable UDP data for Dirt Rally 2.0
-    1. Open the hardware_settings_config.xml (by default in "C:\Users\ [username] \Documents\My Games\DiRT Rally 2.0\hardwaresettings\hardware_settings_config.xml")
+1. Enable UDP data for Dirt Rally 1 and 2
+    1. Open the hardware_settings_config.xml 
+        1. Windows (DR 1): "C:\Users\[USERNAME]\Documents\My Games\DiRT Rally\hardwaresettings\hardware_settings_config.xml"
+        1. Windows (DR 2): "C:\Users\[USERNAME]\Documents\My Games\DiRT Rally 2.0\hardwaresettings\hardware_settings_config.xml"
+        1. Linux (DR 1): "~/.local/share/feral-interactive/DiRT Rally/VFS/User/AppData/Roaming/My Games/DiRT Rally/hardwaresettings/hardware_settings_config.xml"
+        1. Linux (DR 2 via Proton): "~/.local/share/Steam/steamapps/compatdata/690790/pfx/drive_c/users/steamuser/My Documents/My Games/DiRT Rally 2.0/hardwaresettings/hardware_settings_config.xml"
     1. Set udp enabled="true"
     1. Set extra_data=3 to get all information
-    1. Set ip="127.0.0.1" to keep the information on localhost
-    1. Set port=20777 (you would need to change the port in the dr2logger every time otherwise)
-    1. Set delay="1" so that DR2 ends the current car state at 100 FPS (important for derived values)
+    1. Set ip="127.0.0.1" to keep the data on the machine running Dirt Rally
+    1. Set port=20777 (or change the port in the logger)
+    1. Set delay="1" so that Dirt Rally sends the current car state at 100 FPS (maximum temporal resolution)
     1. You can add the 'custom_udp' line multiple times for multiple telemetry tools.
     1. Example:
         ```xml
@@ -37,14 +41,15 @@ This is a free and open-source tool written by Philipp Erler.
         </motion_platform>
         ```
 1. Download and unzip dr2logger.zip archive
-1. Run the dr2logger.exe while you play DR2
-1. After each race, the logger will save the current data
+1. Run the dr2logger.exe while you play Dirt Rally
+1. The logger is set to Dirt Rally 2.0 mode by default. To switch to Dirt Rally 1 enter 'g Dirt_Rally_1' when the logger runs.
+1. After each race, the logger will automatically save the current data
 1. At the start of a race, the logger will delete the old data
-1. Switch (Alt+Tab) from DR2 to the logger to create the plots
+1. Switch (Alt+Tab) from Dirt Rally to the logger to create the plots
 1. Remarks:
     1. You can edit the settings.ini to change the path for automatic session saves, the ip and port.
-    1. Don't save, load or analyze your run while the race is running. Otherwise, data might get lost. Pausing the race is sufficient.
-    1. This tool will probably work with other racing games by Codemaster, for example Dirt Rally 1 and Dirt 4. Those games use the same datastructure for the UDP packages. However, I didn't test it. Other racing games with UDP output, such as Project Cars, will require trivial changes in this tool's networking code.
+    1. Don't save, load or analyze your run while the race is running. Otherwise, data might get lost. Pausing the race is ok.
+    1. This tool will probably work with other racing games by Codemaster, for example Dirt 4 and F1. Those games use the same datastructure for the UDP packages. However, I didn't test it. Other racing games with UDP output, such as Project Cars, will require trivial changes in this tool's networking code.
 
 ![dr2logger](img/dr2logger.png)
 
@@ -100,7 +105,7 @@ In the upper graph with the car rotations, we can see that the lines have much l
 
 ## Raw Data ##
 
-I can only use the information I get from Dirt Rally 2.0 via UDP. This is Currently:
+I can only use the information I get from Dirt Rally via UDP. This is Currently:
 
 1. run time (starts after loading screen)
 1. lap time (starts after countdown)
@@ -186,6 +191,10 @@ If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or 
 
 ## Change Log ##
 
+- 1.8 (2020-TODO):
+    - Added support for Dirt Rally 1
+    - Mayor re-structuring to allow for different games in one logger
+    - Added setting for the target game, switch via command 'g Dirt_Rally_1'
 - 1.7 (2020-03-25):
     - Added cars and tracks for the Flat Out Pack
     - Added (experimental) ground-contact detection
@@ -210,12 +219,6 @@ If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or 
     - Added error handling for sockets.
 - 1.1 (2019-08-19): Improved plots for suspension and rot vs susp.
 - 1.0 (2019-08-17): Initial release.
-
-## TODO List ##
-
-- put socket I/O in extra thread
-- analyze slip
-- Fourier transform on suspension to check dampers?
 
 ## Related Tools ##
 
