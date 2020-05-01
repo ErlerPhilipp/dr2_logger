@@ -1,6 +1,18 @@
 # adapted from https://github.com/soong-construction/dirt-rally-time-recorder/blob/master/resources/setup-dr1.sql
 # max_rpm, idle_rpm, car_name
 car_data = [
+    # RX
+    [733.038330078125,  146.60714721679688, 4.0, 'Mini Classic Rallycross'],
+    [968.6577758789062, 198.96754455566406, 6.0, 'Opel Corsa Super 1600'],
+    [968.6577758789062, 198.96754455566406, 6.0, 'Renault Clio S1600'],
+    [968.6577758789062, 198.96754455566406, 6.0, 'Peugeot 207 S1600'],
+    [911.0618896484375, 141.37167358398438, 6.0, 'DS Automobiles DS3'],
+    [785.398193359375,  172.78750610351562, 6.0, 'Ford Fiesta Rallycross'],
+    [785.398193359375,  261.79940795898438, 6.0, 'Volkswagen Polo Rallycross'],
+    [837.758056640625,  188.49555969238281, 6.0, 'Peugeot 208 WRX'],
+    [837.758056640625,  188.49555969238281, 6.0, 'Mini Countryman Rallycross'],
+    [785.398193359375,  209.43939208984375, 6.0, 'Subaru WRX STI'],
+
     # 1960s
     [733.038,          104.72,             4.0, 'Mini Cooper S'],
     [783.304,          98.4366,            4.0, 'Lancia Fulvia HF'],

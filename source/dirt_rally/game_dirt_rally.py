@@ -123,7 +123,7 @@ class GameDirtRally(GameBase):
             if unknown_car_data not in self.unknown_cars:
                 self.unknown_cars.add(unknown_car_data)
                 with open('unknown cars.txt', 'a+') as f:
-                    f.write('[{}, {}, {}, \'Unknown car\'],\n'.format(max_rpm * 10.0, idle_rpm * 10.0, max_gears))
+                    f.write('[{}, {}, {}, \'Unknown car\'],\n'.format(max_rpm, idle_rpm, max_gears))
 
         return car_name
 

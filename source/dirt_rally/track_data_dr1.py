@@ -3,6 +3,16 @@ from collections import defaultdict
 # adapted from https://github.com/soong-construction/dirt-rally-time-recorder/blob/master/resources/setup-dr1.sql
 # length, start_z, track_name
 track_data = [
+    # RX
+    [1348.85400390625,    96.47221374511719, 'England Full'],
+    [1036.0970458984375, 125.0980453491211,  'Norway Full'],
+    [1207.18798828125,   173.65447998046875, 'Sweden Full'],
+    [575.1746215820312,   96.56448364257812, 'England Junior'],
+    [985.9498901367188,  125.1002197265625,  'Norway Clubman'],
+    [682.9323120117188,  -66.44092559814453, 'Sweden Junior'],
+    [989.7551879882812,   96.58692169189453, 'England Clubman'],
+    [936.9108276367188,  173.6415557861328,  'Sweden Clubman'],
+
     # Argolis, Greece
     [4860.1904, 0.0, 'Ampelonas Ormi'],
     [9665.9902, 0.0, 'Kathodo Leontiou'],
