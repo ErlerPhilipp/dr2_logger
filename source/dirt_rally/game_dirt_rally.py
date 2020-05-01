@@ -157,9 +157,12 @@ class GameDirtRally(GameBase):
 
     @staticmethod
     def get_run_time_cleaned(run_time_raw: np.ndarray):
-        start_time = run_time_raw[0]
-        run_time_cleaned = run_time_raw - start_time
-        return run_time_cleaned
+        if run_time_raw.shape[0] == 0:
+            return np.array([0.0])
+        else:
+            start_time = run_time_raw[0]
+            run_time_cleaned = run_time_raw - start_time
+            return run_time_cleaned
 
     def get_plot_data(self, session_collection):
 

@@ -1,3 +1,6 @@
+import matplotlib
+# TkAgg with default tk leads to the matplotlib mainloop not terminating although all plot windows are closed
+matplotlib.use('qt5agg')  # MUST BE CALLED BEFORE IMPORTING plt
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import binned_statistic

@@ -89,8 +89,11 @@ def main():
                 print('Cleared {} data points\n'.format(logger_backend.get_num_samples()))
                 logger_backend.clear_session_collection()
             elif command == 'a':
-                print('Plotting {} data points\n'.format(logger_backend.get_num_samples()))
-                logger_backend.show_plots()
+                if logger_backend.get_num_samples() == 0:
+                    print('No data points to plot\n')
+                else:
+                    print('Plotting {} data points\n'.format(logger_backend.get_num_samples()))
+                    logger_backend.show_plots()
             elif command == 's':
                 logger_backend.save_run()
             elif command.startswith('g'):
