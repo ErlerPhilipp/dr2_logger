@@ -51,9 +51,17 @@ def print_current_state(state_str):
                 import ctypes
                 ctypes.windll.kernel32.SetConsoleTitleW(state_str)
             else:
-                # for Linux (Gnome) terminals:
-                # https://stackoverflow.com/questions/25872409/set-gnome-terminal-window-title-in-python/47262154#47262154
-                sys.stdout.write('\33]0;{}\a'.format(state_str))
+                # for Linux terminals:
+                # while both Gnome Terminal and KDE's Konsole report TERM=xterm-256color,
+                # Konsole needs different control chars
+                # to change the terminal title
+                if 'KONSOLE_VERSION' in os.environ:
+                    # https://stackoverflow.com/questions/19897787/change-konsole-tab-title-from-command-line-and-make-it-persistent
+                    # TODO this works only once per stage where it's updated at the very beginning
+                    sys.stdout.write('\033]30;{}\007'.format(state_str))
+                else:
+                    # https://stackoverflow.com/questions/25872409/set-gnome-terminal-window-title-in-python/47262154#47262154
+                    sys.stdout.write('\33]0;{}\a'.format(state_str))
                 sys.stdout.flush()
         finally:
             pass
