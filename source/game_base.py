@@ -49,5 +49,9 @@ class GameBase(ABC):
         pass
 
     @abstractmethod
+    def get_progress(self, session_collection):
+        pass
+
+    @abstractmethod
     def get_plot_data(self, session_collection):
         pass

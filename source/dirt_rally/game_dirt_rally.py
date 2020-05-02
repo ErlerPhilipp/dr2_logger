@@ -62,35 +62,32 @@ class GameDirtRally(GameBase):
 
     def get_game_state_str(self, state, last_sample, num_samples):
 
-        state_str = '{car} on {track}, samples: {samples:05d}, lap time: {time:.1f}, ' \
-                    'speed: {speed:.1f} m/s, rpm: {rpm:5.1f}, ' \
-                    'progress: {progress:.2f}, distance: {distance:.1f}, run_time: {run_time:.1f}, ' \
-                    '{state}'
+        state_str = 'Race Logger {progress} Time: {time:.1f} s, ' \
+                    'ETA: {eta:.1f} s, ' \
+                    'Speed: {speed:.1f} m/s, RPM: {rpm:5.0f}, ' \
+                    'Samples: {samples:05d}, {state}'
 
         time = last_sample[udp_data.Fields.lap_time.value]
+        progress = last_sample[udp_data.Fields.progress.value]
+        bar_length = 10
+        filled_length = int(round(bar_length * progress))
+        progress_str = '|' + f'{"█" * filled_length}{"-" * (bar_length - filled_length)}' + '|'
+        eta = 0.0 if progress == 0.0 else time * (1.0 / progress)
         speed = last_sample[udp_data.Fields.speed_ms.value]
         rpm = last_sample[udp_data.Fields.rpm.value]
-        progress = last_sample[udp_data.Fields.progress.value]
-        distance = last_sample[udp_data.Fields.distance.value]
-        run_time = last_sample[udp_data.Fields.run_time.value]
-
-        car_name = self.get_car_name(last_sample)
-        track_name = self.get_track_name(last_sample)
 
         if state == logger_backend.GameState.race_not_running:
-            state = 'race not running'
+            state = 'not racing'
         elif state == logger_backend.GameState.race_running:
-            state = 'race running'
+            state = 'racing'
         elif state == logger_backend.GameState.ignore_package:
-            state = 'ignore package'
+            state = 'paused'
         else:
             raise ValueError('Invalid game state: {}'.format(state))
 
         state_str = state_str.format(
-            car=car_name, track=track_name,
-            samples=num_samples, time=time, speed=speed, rpm=rpm * 10.0,
-            progress=progress, distance=distance, run_time=run_time,
-            state=state
+            samples=num_samples, time=time, eta=eta, speed=speed, rpm=rpm * 10.0,
+            progress=progress_str, state=state
         )
         return state_str
 
@@ -163,6 +160,12 @@ class GameDirtRally(GameBase):
         race_time = session_collection[udp_data.Fields.run_time.value, -1] - \
                     session_collection[udp_data.Fields.run_time.value, 0]
         return race_time
+
+    def get_progress(self, session_collection):
+        if session_collection.shape[1] == 0:
+            return 0.0
+        else:
+            return session_collection[udp_data.Fields.progress.value, -1]
 
     def get_track_name(self, sample):
 

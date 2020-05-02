@@ -172,11 +172,9 @@ class LoggerBackend:
         self.raw_data = np.zeros((self.game.get_num_fields(), 0)) if self.log_raw_data else None
 
         if self.debugging:  # start with plots
-            # npz_file = np.load('C:/Users/Philipp/Desktop/dr2_logger/m1_ar_3.npz')
-            # npz_file = np.load('C:/Users/pherl/Desktop/dr2logger_1_6/races_auto_save/2019-12-26 16_11_35 - Unknown car (0.0, 0.0, 0.0) - Verbundsring - 216.9s.npz')
-            #npz_file = np.load('C:/Users/pherl/Desktop/2020-03-18 21_22_14 - Peugeot 208 R2 - Kakaristo - 451.7s.npz')
-            npz_file = np.load(r'C:\Users\pherl\Desktop\2020-03-18 21_22_15 - Peugeot 208 R2 - Kakaristo - 451.7s raw.npz')
-            self.session_collection = npz_file['arr_0']
+
+            self.session_collection = self.game.load_data(
+                r'C:\Users\pherl\Desktop\2020-03-18 21_22_15 - Peugeot 208 R2 - Kakaristo - 451.7s raw.npz')
             self.show_plots()
 
     @staticmethod
@@ -236,15 +234,26 @@ class LoggerBackend:
             message += ['State changed from {} to {}'.format(self.last_state, self.new_state)]
 
         if self.last_state == GameState.race_running and \
+                self.new_state == GameState.race_running:
+            game_state_str = self.get_game_state_str()
+            sys.stdout.write('\r' + game_state_str),
+            sys.stdout.flush()
+
+        if self.last_state == GameState.race_running and \
                 self.new_state == GameState.race_not_running:
-            message += ['Race finished.']
+            sys.stdout.write('\n')
+            sys.stdout.flush()
             self.save_run_data(self.session_collection, automatic_name=True)
+            message += ['Race finished']
 
             if self.log_raw_data:
                 self.save_run_data(self.raw_data, automatic_name=False)
         elif self.last_state == GameState.race_not_running and \
                 self.new_state == GameState.race_running:
-            message += ['Race starting']
+            message += ['Race starting: {} on {}'.format(
+                self.game.get_car_name(self.session_collection[:, -1]),
+                self.game.get_track_name(self.session_collection[:, -1])
+            )]
             if self.session_collection.shape[1] > 10:  # should only be less than 100 at the first race after startup
                 message += ['Cleared {} data points'.format(self.session_collection.shape[1])]
             self.clear_session_collection()
