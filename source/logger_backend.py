@@ -243,7 +243,10 @@ class LoggerBackend:
                 self.new_state == GameState.race_not_running:
             sys.stdout.write('\n')
             sys.stdout.flush()
-            self.save_run_data(self.session_collection, automatic_name=True)
+
+            race_duration = self.game.get_race_duration(self.session_collection)
+            if race_duration > 10.0:  # only save if more than 10 sec of race time
+                self.save_run_data(self.session_collection, automatic_name=True)
             message += ['Race finished']
 
             if self.log_raw_data:
