@@ -113,7 +113,7 @@ class LoggerBackend:
 
         if file_path is not None and file_path != '' and file_path != '.npz':
             utils.make_dir_for_file(file_path)
-            np.savez_compressed(file_path, data)
+            self.game.save_data(data, file_path)
             print('Saved {} data points to {}\n'.format(data.shape[1], os.path.abspath(file_path)))
 
     def save_run(self, automatic_name=False):
@@ -133,15 +133,17 @@ class LoggerBackend:
             filetypes=(("numpy", "*.npz"), ("all files", "*.*")))
         if file_path is not None and file_path != '':
             if os.path.isfile(file_path):
-                npz_file = np.load(file_path)
-                self.session_collection = npz_file['arr_0']
-                print('Loaded {} data points from {}\n'.format(self.session_collection.shape[1], file_path))
+                try:
+                    race_data = self.game.load_data(file_path)
+                    self.session_collection = race_data
+                    print('Loaded {} data points from {}\n'.format(self.session_collection.shape[1], file_path))
+                except ValueError as er:
+                    print('Error while loading race data: {}\n{}'.format(file_path, er))
+
+                if self.session_collection is not None and self.session_collection.shape[1] > 0:
+                    self.last_sample = self.session_collection[:, -1]
             else:
                 print('"{}" is no valid file!\n'.format(file_path))
-                self.clear_session_collection()
-
-        if self.session_collection is not None and self.session_collection.size > 0:
-            self.last_sample = self.session_collection[:, -1]
 
     def get_game_state_str(self):
         return self.game.get_game_state_str(self.new_state, self.last_sample, self.session_collection.shape[1])

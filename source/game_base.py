@@ -9,6 +9,14 @@ class GameBase(ABC):
         pass
 
     @abstractmethod
+    def load_data(self, file_path):
+        pass
+
+    @abstractmethod
+    def save_data(self, data, file_path):
+        pass
+
+    @abstractmethod
     def get_fields_enum(self):
         pass
 

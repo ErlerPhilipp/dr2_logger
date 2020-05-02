@@ -16,6 +16,7 @@ class GameDirtRally(GameBase):
 
     valid_game_name_dr1 = 'Dirt_Rally_1'
     valid_game_name_dr2 = 'Dirt_Rally_2'
+    current_save_version = '1.0.0'
 
     def __init__(self, game_name):
         self.unknown_cars = set()
@@ -27,6 +28,37 @@ class GameDirtRally(GameBase):
     @staticmethod
     def get_valid_game_names():
         return [GameDirtRally.valid_game_name_dr1, GameDirtRally.valid_game_name_dr2]
+
+    def load_data(self, file_path):
+        npz_file = np.load(file_path)
+        if 'arr_0' in npz_file:
+            # initial simple saves
+            samples = npz_file['arr_0']
+
+            # RPM values were saved with x10 factor -> revert here
+            samples[udp_data.Fields.rpm.value] /= 10.0
+            samples[udp_data.Fields.max_rpm.value] /= 10.0
+            samples[udp_data.Fields.idle_rpm.value] /= 10.0
+        else:
+            required_values = ['samples', 'game', 'save_version']
+            for v in required_values:
+                required_value_exists = v in npz_file
+                if not required_value_exists:
+                    raise ValueError('Saved race doesn\'t contain the required field "{}"'.format(v))
+            game_name = npz_file['game']
+            if game_name != self.game_name:
+                raise ValueError('The saved race "{}" is from game: "{}". '
+                                 'Switch the logger\'s game mode with "g {}".'.format(file_path, game_name, game_name))
+            save_version = npz_file['save_version']
+            if save_version == '1.0.0':
+                samples = npz_file['samples']
+            else:
+                raise ValueError('Unknown save version "{}" for game "{}"'.format(save_version, game_name))
+        return samples
+
+    def save_data(self, data, file_path):
+        np.savez_compressed(file_path, samples=data, game=self.game_name,
+                            save_version=GameDirtRally.current_save_version)
 
     def get_game_state_str(self, state, last_sample, num_samples):
 
