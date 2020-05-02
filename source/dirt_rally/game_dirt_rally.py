@@ -1,3 +1,4 @@
+import time
 
 import numpy as np
 
@@ -60,19 +61,20 @@ class GameDirtRally(GameBase):
         np.savez_compressed(file_path, samples=data, game=self.game_name,
                             save_version=GameDirtRally.current_save_version)
 
-    def get_game_state_str(self, state, last_sample, num_samples):
+    def get_game_state_str(self, state, last_sample, num_samples, bar_length=16):
 
-        state_str = 'Race Logger {progress} Time: {time:.1f} s, ' \
-                    'ETA: {eta:.1f} s, ' \
+        state_str = 'Race Logger {progress} Time: {time}, ' \
+                    'ETA: {eta}, ' \
                     'Speed: {speed:.1f} m/s, RPM: {rpm:5.0f}, ' \
                     'Samples: {samples:05d}, {state}'
 
-        time = last_sample[udp_data.Fields.lap_time.value]
+        current_time = last_sample[udp_data.Fields.lap_time.value]
+        current_time_str = time.strftime('%M:%S', time.gmtime(current_time))
         progress = last_sample[udp_data.Fields.progress.value]
-        bar_length = 10
         filled_length = int(round(bar_length * progress))
         progress_str = '|' + f'{"█" * filled_length}{"-" * (bar_length - filled_length)}' + '|'
-        eta = 0.0 if progress == 0.0 else time * (1.0 / progress)
+        eta = 0.0 if progress == 0.0 else current_time * (1.0 / progress)
+        eta_str = time.strftime('%M:%S', time.gmtime(eta))
         speed = last_sample[udp_data.Fields.speed_ms.value]
         rpm = last_sample[udp_data.Fields.rpm.value]
 
@@ -86,7 +88,7 @@ class GameDirtRally(GameBase):
             raise ValueError('Invalid game state: {}'.format(state))
 
         state_str = state_str.format(
-            samples=num_samples, time=time, eta=eta, speed=speed, rpm=rpm * 10.0,
+            samples=num_samples, time=current_time_str, eta=eta_str, speed=speed, rpm=rpm * 10.0,
             progress=progress_str, state=state
         )
         return state_str
