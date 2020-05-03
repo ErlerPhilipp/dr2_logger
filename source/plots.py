@@ -67,9 +67,9 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
 
         # the benefits of this plot are unclear. the idea is to see the max turning rate.
         # TODO: find maximum velocity turn rate, depending on full steering, ground contact
-        fig, ax = plt.subplots(2, 1)
+        fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('Forward G-Force' + title_post_fix)
-        plot_g_over_rpm(ax[0], plot_data)
+        plot_g_over_rpm(ax, plot_data)
         # plot_g_over_throttle(ax[1], plot_data)
 
         if additional_plots:
@@ -878,8 +878,9 @@ def ground_contact_over_time(ax, plot_data: pd.PlotData):
 
     # boolean mask to 0.0 or 1.0, also take sum
     in_air_masks = [gc.astype(np.float) for gc in in_air_masks]
-    in_air_masks_sum = [np.sum(np.array(in_air_masks), axis=0)]  # also show sum of wheels in air
-    in_air_masks = in_air_masks_sum + in_air_masks
+    in_air_masks_sum = np.sum(np.array(in_air_masks), axis=0)  # also show sum of wheels in air
+    in_air_masks_sum[in_air_masks_sum > 1.0] = 1.0
+    in_air_masks = [in_air_masks_sum] + in_air_masks
     in_air = [gc + gci * 0.05 for gci, gc in enumerate(in_air_masks)]  # small offset to avoid overlaps
     in_air_data = np.array(in_air)
 
@@ -894,7 +895,7 @@ def ground_contact_over_time(ax, plot_data: pd.PlotData):
 
     line_plot(ax, x_points=x_points, y_points=y_points, title='Wheels in air over lap time',
               labels=labels, alpha=0.5, x_label='Lap time (s)',
-              y_label='Wheels in air', min_max_annotations=True)
+              y_label='Wheels in air', min_max_annotations=False)
 
 
 def drift_over_speed(ax, plot_data: pd.PlotData):
