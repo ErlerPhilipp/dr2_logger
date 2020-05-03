@@ -7,6 +7,7 @@ from source.logger_backend import LoggerBackend
 
 
 log_raw_data = False
+debugging = False
 version_string = '(Version 1.7, 2020-03-25)'
 
 intro_text = '''
@@ -74,7 +75,7 @@ def main():
     print(intro_text)
     print(commands_hint)
 
-    logger_backend = LoggerBackend(debugging=False, log_raw_data=False)
+    logger_backend = LoggerBackend(debugging=debugging, log_raw_data=log_raw_data)
     logger_backend.start_logging()
 
     message_queue = queue.Queue()

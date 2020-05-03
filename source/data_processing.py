@@ -49,9 +49,13 @@ def get_min_middle_max(x):
     return x_min, x_middle, x_max
 
 
-def differences(x):
+def differences(x, fix_negative_dt=False):
     x_prev = np.concatenate((np.array([x[0]]), x[:-1]))
     x_diff = x - x_prev
+
+    # prevent negative times due to next lap
+    if fix_negative_dt:
+        x_diff[x_diff < 0.0] = np.finfo(x_diff.dtype).eps
     return x_diff
 
 

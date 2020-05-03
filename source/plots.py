@@ -12,72 +12,74 @@ static_colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
                  'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
 
 
-def plot_main(plot_data: pd.PlotData):
+def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str):
 
     if plot_data.run_time.shape[0] > 0:
+        title_post_fix = ' - {} on {}'.format(car_name, track_name)
+
         # fig = plt.figure()
         # ax = fig.add_subplot(111, projection='3d')
-        # fig.canvas.set_window_title('3D positions (gear as color)')
+        # fig.canvas.set_window_title('3D positions' + title_post_fix)
         # plot_gear_over_3d_pos(ax, plot_data)
 
         fig, ax = plt.subplots(1, 2)
-        fig.canvas.set_window_title('Map Basics')
+        fig.canvas.set_window_title('Map Basics' + title_post_fix)
         plot_height_over_dist(ax[0], plot_data)
         plot_gear_over_2d_pos(ax[1], plot_data)
 
         fig, ax = plt.subplots(2, 1, sharex='all')
-        fig.canvas.set_window_title('Energy and Power')
+        fig.canvas.set_window_title('Energy and Power' + title_post_fix)
         energy_over_time(ax[0], plot_data)
         power_over_time(ax[1], plot_data)
 
         # fig, ax = plt.subplots(1, 1)
-        # fig.canvas.set_window_title('Energy')
+        # fig.canvas.set_window_title('Energy' + title_post_fix)
         # plot_energy_over_2d_pos(ax, plot_data)
 
         fig, ax = plt.subplots(1, 1)
-        fig.canvas.set_window_title('RPM Histogram per Gear')
+        fig.canvas.set_window_title('RPM Histogram per Gear' + title_post_fix)
         gear_rpm_bars(ax, plot_data)
 
         fig, ax = plt.subplots(1, 1)
-        fig.canvas.set_window_title('Speed over RPM')
+        fig.canvas.set_window_title('Speed over RPM' + title_post_fix)
         plot_v_over_rpm(ax, plot_data)
 
         fig, ax = plt.subplots(1, 2, sharey='all')
-        fig.canvas.set_window_title('Power')
+        fig.canvas.set_window_title('Power' + title_post_fix)
         plot_p_over_rpm(ax[0], plot_data)
         plot_p_over_vel(ax[1], plot_data)
 
         # fig, ax = plt.subplots(2, 1)
-        # fig.canvas.set_window_title('G-Force')
+        # fig.canvas.set_window_title('G-Force' + title_post_fix)
         # plot_g_over_rpm(ax[0], plot_data)
         # plot_g_over_throttle(ax[1], plot_data)
 
         fig, ax = plt.subplots(1, 3)
-        fig.canvas.set_window_title('Drift at 2D positions (drift angle as color)')
+        fig.canvas.set_window_title('Drift at 2D positions ' + title_post_fix)
         forward_over_2d_pos(ax[0], plot_data)
         drift_angle_bars(ax[1], plot_data)
         drift_angle_change_bars(ax[2], plot_data)
         # drift_over_speed(ax[1][1], plot_data)
 
+        fig, ax = plt.subplots(1, 1)
+        fig.canvas.set_window_title('Suspension' + title_post_fix)
+        suspension_bars(ax, plot_data)
+        # suspension_l_r_f_r_bars(ax[1], plot_data)
+
         fig, ax = plt.subplots(2, 1, sharex='all')
-        fig.canvas.set_window_title('Suspension')
-        suspension_bars(ax[0], plot_data)
-        suspension_l_r_f_r_bars(ax[1], plot_data)
-
-        fig, ax = plt.subplots(3, 1, sharex='all')
-        fig.canvas.set_window_title('Wheel Speed')
+        fig.canvas.set_window_title('Wheel Speed' + title_post_fix)
         wheel_speed_over_time(ax[0], plot_data)
-        wheel_speed_lr_fr_over_time(ax[1], plot_data)
-        inputs_over_time(ax[2], plot_data)
+        # wheel_speed_lr_fr_over_time(ax[1], plot_data)
+        inputs_over_time(ax[1], plot_data)
 
         fig, ax = plt.subplots(3, 1, sharex='all')
-        fig.canvas.set_window_title('Rotation vs Suspension')
+        fig.canvas.set_window_title('Rotation vs Suspension' + title_post_fix)
         rotation_over_time(ax[0], plot_data)
         suspension_lr_fr_angles_over_time(ax[1], plot_data)
         suspension_l_r_f_r_over_time(ax[2], plot_data)
 
         fig, ax = plt.subplots(3, 1, sharex='all')
-        fig.canvas.set_window_title('Ground Contact')
+        fig.canvas.set_window_title('Ground Contact' + title_post_fix)
         ground_contact_over_time(ax[0], plot_data)
         suspension_l_r_f_r_over_time(ax[1], plot_data)
         # slip_over_time(ax[1], plot_data)
@@ -315,9 +317,7 @@ def plot_energy_over_2d_pos(ax, plot_data: pd.PlotData):
 
 def gear_rpm_bars(ax, plot_data: pd.PlotData):
 
-    time_differences = data_processing.differences(plot_data.run_time)
-    # prevent negative times due to next lap
-    time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
+    time_differences = data_processing.differences(plot_data.run_time, True)
     rpm = plot_data.rpm
     data_gear = plot_data.gear
     range_gears = list(set(data_gear))
@@ -442,7 +442,7 @@ def suspension_l_r_f_r_over_time(ax, plot_data: pd.PlotData):
 
     line_plot(ax, x_points=x_points, y_points=y_points, title='Average suspension dislocation over time',
               labels=labels, alpha=0.5, x_label='Time (s)',
-              y_label='Suspension dislocation (mm)', flip_y=True, min_max_annotations=True)
+              y_label='Suspension dislocation (mm)', flip_y=False, min_max_annotations=True)
 
 
 def suspension_vel_derived_l_r_f_r_over_time(ax, plot_data: pd.PlotData):
@@ -495,9 +495,7 @@ def suspension_vel_der_diff_l_r_f_r_over_time(ax, plot_data: pd.PlotData):
 def suspension_bars(ax, plot_data: pd.PlotData):
 
     race_time = plot_data.run_time
-    time_differences = data_processing.differences(race_time)
-    # prevent negative times due to next lap
-    time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
+    time_differences = data_processing.differences(race_time, True)
     susp_fl = plot_data.susp_fl
     susp_fr = plot_data.susp_fr
     susp_rl = plot_data.susp_rl
@@ -521,9 +519,7 @@ def suspension_bars(ax, plot_data: pd.PlotData):
 def suspension_l_r_f_r_bars(ax, plot_data: pd.PlotData):
 
     race_time = plot_data.run_time
-    time_differences = data_processing.differences(race_time)
-    # prevent negative times due to next lap
-    time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
+    time_differences = data_processing.differences(race_time, True)
     susp_fl = plot_data.susp_fl
     susp_fr = plot_data.susp_fr
     susp_rl = plot_data.susp_rl
@@ -783,7 +779,7 @@ def suspension_vel_over_time(ax, plot_data: pd.PlotData):
 
     susp_data = np.array([susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr])
 
-    labels = ['susp_vel_fl', 'susp_vel_fr', 'susp_vel_rl', 'susp_vel_rr']
+    labels = ['susp vel front left', 'susp vel front right', 'susp vel rear left', 'susp vel rear right']
     x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
@@ -814,9 +810,7 @@ def slip_over_time(ax, plot_data: pd.PlotData):
 
 def ground_contact_over_time(ax, plot_data: pd.PlotData):
 
-    race_time = plot_data.run_time
-
-    def get_ground_contact(susp_vel_arr: np.ndarray, susp_vel_lim=100.0, variance_max=100.0, filter_length=6):
+    def get_in_air_mask(susp_vel_arr: np.ndarray, susp_vel_lim=100.0, susp_vel_var_max=100.0, filter_length=6):
         # filter_length = 6 -> 100 ms (0.1 s) at 60 FPS
         box_filter = np.array([1.0] * filter_length)  # filter_length = 6 -> 100 ms at 60 FPS
 
@@ -827,33 +821,48 @@ def ground_contact_over_time(ax, plot_data: pd.PlotData):
             var_conv = var_sqr_conv * var_sqr_conv
             return var_conv
 
+        # check approximately monotonously increasing suspension velocity (less fast extension over time)
+        susp_vel_arr_next = np.concatenate([susp_vel_arr[1:], np.full((1,), susp_vel_arr[-1])], axis=0)
+        susp_vel_increasing = susp_vel_arr_next - susp_vel_arr > -0.1
+        susp_vel_inc_conv = np.convolve(susp_vel_increasing, box_filter, mode='same') == float(filter_length)
+
         # extending by max x mm/s
         susp_vel_lim = np.logical_and(susp_vel_arr < 0.0, susp_vel_arr > -susp_vel_lim)
-        susp_var = get_variance_convolved(susp_vel_arr) < variance_max
-        ground_contact_mask = np.logical_and(susp_var, susp_vel_lim)
+        susp_vel_lim_conv = np.convolve(susp_vel_lim, box_filter, mode='same') == float(filter_length)
+        susp_var = get_variance_convolved(susp_vel_arr) < susp_vel_var_max
 
-        # extending for more than 0.1s
-        ground_contact_mask = np.convolve(ground_contact_mask, box_filter, mode='same') >= float(filter_length * 0.5)
-        return ground_contact_mask
+        # and of all conditions
+        in_air_mask = np.logical_and(susp_var, susp_vel_lim_conv)
+        in_air_mask = np.logical_and(in_air_mask, susp_vel_inc_conv)
+
+        # previous convolutions shrunk the masks, now extending again
+        in_air_mask = np.convolve(in_air_mask, box_filter, mode='same') >= float(filter_length * 0.5)
+
+        return in_air_mask
 
     susp_vel = [plot_data.susp_vel_fl, plot_data.susp_vel_fr, plot_data.susp_vel_rl, plot_data.susp_vel_rr]
-    ground_contact_masks = [get_ground_contact(susp, susp_vel_lim=100.0, variance_max=100.0, filter_length=6)
-                            for susp in susp_vel]
+    in_air_masks = [get_in_air_mask(susp, susp_vel_lim=100.0, susp_vel_var_max=100.0, filter_length=6)
+                    for susp in susp_vel]
 
     # boolean mask to 0.0 or 1.0, also take sum
-    ground_contact = [gc.astype(np.float) for gc in ground_contact_masks]
-    ground_contact_sum = [np.sum(np.array(ground_contact), axis=0)]
-    ground_contact = ground_contact_sum + ground_contact
-    ground_contact = [gc + gci * 0.05 for gci, gc in enumerate(ground_contact)]  # small offset to avoid overlaps
-    ground_contact_data = np.array(ground_contact)
+    in_air_masks = [gc.astype(np.float) for gc in in_air_masks]
+    in_air_masks_sum = [np.sum(np.array(in_air_masks), axis=0)]  # also show sum of wheels in air
+    in_air_masks = in_air_masks_sum + in_air_masks
+    in_air = [gc + gci * 0.05 for gci, gc in enumerate(in_air_masks)]  # small offset to avoid overlaps
+    in_air_data = np.array(in_air)
 
-    labels = ['sum contact', 'fl contact', 'fr contact', 'rl contact', 'rr contact']
-    x_points = np.array([race_time] * len(ground_contact_data))
-    y_points = np.array(ground_contact_data)
+    # aggregate time of wheels in air
+    time_differences = data_processing.differences(plot_data.run_time, True)
+    in_air_times = [np.sum(time_differences[ia > 0.0]) for ia in in_air_masks]
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Ground contact over lap time',
+    labels = ['All wheels in air', 'Front left in air', 'Front right in air', 'Rear left in air', 'Rear right in air']
+    labels = [l + ': {:.1f} s'.format(in_air_times[li]) for li, l in enumerate(labels)]
+    x_points = np.array([plot_data.run_time] * len(in_air_data))
+    y_points = np.array(in_air_data)
+
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Wheels in air over lap time',
               labels=labels, alpha=0.5, x_label='Lap time (s)',
-              y_label='Ground contact', min_max_annotations=True)
+              y_label='Wheels in air', min_max_annotations=True)
 
 
 def drift_over_speed(ax, plot_data: pd.PlotData):
@@ -890,9 +899,7 @@ def drift_over_speed(ax, plot_data: pd.PlotData):
 def drift_angle_bars(ax, plot_data: pd.PlotData):
 
     race_time = plot_data.run_time
-    time_differences = data_processing.differences(race_time)
-    # prevent negative times due to next lap
-    time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
+    time_differences = data_processing.differences(race_time, True)
     speed_ms = plot_data.speed_ms
     drift_angle_deg = data_processing.get_drift_angle(plot_data)
 
@@ -916,9 +923,7 @@ def drift_angle_bars(ax, plot_data: pd.PlotData):
 def drift_angle_change_bars(ax, plot_data: pd.PlotData):
 
     race_time = plot_data.run_time
-    time_differences = data_processing.differences(race_time)
-    # prevent negative times due to next lap
-    time_differences[time_differences < 0.0] = np.finfo(time_differences.dtype).eps
+    time_differences = data_processing.differences(race_time, True)
     speed_ms = plot_data.speed_ms
     drift_angle_deg = data_processing.get_drift_angle(plot_data)
     drift_angle_deg_der = data_processing.derive_no_nan(

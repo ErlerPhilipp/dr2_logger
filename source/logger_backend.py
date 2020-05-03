@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import sys
+import traceback
 from enum import Enum
 
 from source import networking
@@ -175,6 +176,8 @@ class LoggerBackend:
 
             self.session_collection = self.game.load_data(
                 r'C:\Users\pherl\Desktop\2020-03-18 21_22_15 - Peugeot 208 R2 - Kakaristo - 451.7s raw.npz')
+            #self.session_collection = self.game.load_data(
+            #    r'C:\Users\pherl\repos\dr2_logger\races_auto_save\2020-03-30 23_52_57 - Subaru Impreza 1995 - Vinedos dentro del valle Parra - 217.1s.npz')
             self.show_plots()
 
     @staticmethod
@@ -215,13 +218,15 @@ class LoggerBackend:
 
     def show_plots(self):
         plot_data = self.game.get_plot_data(self.session_collection)
-        if self.debugging:
-            plots.plot_main(plot_data=plot_data)
-        else:
-            try:
-                plots.plot_main(plot_data=plot_data)
-            except Exception:
-                print('Error during plot: {}'.format(sys.exc_info()))
+        car_name = self.game.get_car_name(self.session_collection[:, -1])
+        track_name = self.game.get_track_name(self.session_collection[:, -1])
+
+        try:
+            plots.plot_main(plot_data=plot_data, car_name=car_name, track_name=track_name)
+        except Exception:
+            print('Error during plot: {}'.format(sys.exc_info()))
+            print(traceback.format_exc())
+            print('Error was caught, logger is still running...')
 
     def check_state_changes(self):
         message = []
