@@ -132,6 +132,19 @@ def get_energy(plot_data: pd.PlotData):
     return energy, kinetic_energy, potential_energy
 
 
+def get_gear_shift_mask(plot_data: pd.PlotData, shift_time_ms=100.0):
+
+    # exclude times ~0.1 sec around gear shifts and gears < 1
+    # assuming 1 UDP sample is 10 ms (delay=1 in Dirt Rally)
+    time_steps = plot_data.run_time
+    gear_changes = derive_no_nan(plot_data.gear, time_steps=time_steps)
+    gear_changes[gear_changes != 0.0] = 1.0  # 1.0 if the gear changed, 0.0 otherwise
+    box_filter_length = int(round(shift_time_ms / 2.0 / 10.0))
+    box_filter = np.array([1.0] * box_filter_length)
+    close_to_gear_changes = np.convolve(gear_changes, box_filter, mode='same') > 0.0
+    return close_to_gear_changes
+
+
 def get_full_acceleration_mask(plot_data: pd.PlotData):
 
     import functools
@@ -157,18 +170,12 @@ def get_full_acceleration_mask(plot_data: pd.PlotData):
     # small_susp_vel_rl = np.abs(plot_data.susp_vel_rl) <= 0.01
     # small_susp_vel_rr = np.abs(plot_data.susp_vel_rr) <= 0.01
 
-    # exclude times ~0.1 sec around gear shifts and gears < 1
-    gear = plot_data.gear
-    forward_gear = gear >= 1.0
-    time_steps = plot_data.run_time
-    gear_changes = derive_no_nan(gear, time_steps=time_steps)
-    gear_changes[gear_changes != 0.0] = 1.0  # 1.0 if the gear changed, 0.0 otherwise
-    box_filter = np.array([1.0] * 10)  # 10 -> 2 * 160ms at 60 FPS
-    no_close_gear_changes = np.convolve(gear_changes, box_filter, mode='same') == 0.0
+    not_close_to_gear_changes = np.logical_not(get_gear_shift_mask(plot_data=plot_data, shift_time_ms=100.0))
+    forward_gear = plot_data.gear >= 1.0
 
     full_acceleration_mask = functools.reduce(np.logical_and, (
         full_throttle, no_brakes, no_clutch,
-        forward_gear, no_close_gear_changes,
+        forward_gear, not_close_to_gear_changes,
         no_drift,
         # no_slip_fl, no_slip_fr, no_slip_rl, no_slip_rr,
         # small_susp_vel_fl, small_susp_vel_fr, small_susp_vel_rl, small_susp_vel_rr,

@@ -12,7 +12,7 @@ static_colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
                  'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
 
 
-def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str):
+def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional_plots=False):
 
     if plot_data.run_time.shape[0] > 0:
         title_post_fix = ' - {} on {}'.format(car_name, track_name)
@@ -22,70 +22,95 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str):
         # fig.canvas.set_window_title('3D positions' + title_post_fix)
         # plot_gear_over_3d_pos(ax, plot_data)
 
-        fig, ax = plt.subplots(1, 2)
-        fig.canvas.set_window_title('Map Basics' + title_post_fix)
-        plot_height_over_dist(ax[0], plot_data)
-        plot_gear_over_2d_pos(ax[1], plot_data)
+        if additional_plots:
+            # simple overview of track with height profile and 2D-plot with used gear from above
+            fig, ax = plt.subplots(1, 2)
+            fig.canvas.set_window_title('Map Basics' + title_post_fix)
+            plot_height_over_dist(ax[0], plot_data)
+            plot_gear_over_2d_pos(ax[1], plot_data)
 
-        fig, ax = plt.subplots(2, 1, sharex='all')
-        fig.canvas.set_window_title('Energy and Power' + title_post_fix)
-        energy_over_time(ax[0], plot_data)
-        power_over_time(ax[1], plot_data)
+        if additional_plots:
+            # see the car's energy on the track.
+            # this is pretty much the same as velocity + height so not much insight here.
+            # this is somewhat useful for debugging power plots but not very useful on its own
+            # TODO: power output is sometimes negative although it's full throttle
+            # TODO: -> full-throttle conditions are insufficient
+            fig, ax = plt.subplots(2, 1, sharex='all')
+            fig.canvas.set_window_title('Energy and Power' + title_post_fix)
+            energy_over_time(ax[0], plot_data)
+            power_over_time(ax[1], plot_data)
 
+        # see the car's energy on the track. this is pretty much the same as velocity + height so not much insight here.
         # fig, ax = plt.subplots(1, 1)
         # fig.canvas.set_window_title('Energy' + title_post_fix)
         # plot_energy_over_2d_pos(ax, plot_data)
 
+        # see how much you use which gear. the most-used RPM interval should be around the optimal RPM
+        # TODO: where is the optimum RPM? mark some area based on data from the power-output plot?
         fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('RPM Histogram per Gear' + title_post_fix)
         gear_rpm_bars(ax, plot_data)
 
+        # overlaps on the y axis mean the driver shifts too early or too late and/or that the gears are too close.
         fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('Speed over RPM' + title_post_fix)
         plot_v_over_rpm(ax, plot_data)
 
-        fig, ax = plt.subplots(1, 2, sharey='all')
-        fig.canvas.set_window_title('Power' + title_post_fix)
-        plot_p_over_rpm(ax[0], plot_data)
-        plot_p_over_vel(ax[1], plot_data)
+        if additional_plots:
+            # show the power output over RPM and velocity.
+            # this is meant to show the maximum power output of the engine and the optimum RPM per gear.
+            # TODO: this plot is very noisy and the optimum RPM hardly visible
+            fig, ax = plt.subplots(1, 2, sharey='all')
+            fig.canvas.set_window_title('Power Output' + title_post_fix)
+            plot_p_over_rpm(ax[0], plot_data)
+            plot_p_over_vel(ax[1], plot_data)
 
-        # fig, ax = plt.subplots(2, 1)
-        # fig.canvas.set_window_title('G-Force' + title_post_fix)
-        # plot_g_over_rpm(ax[0], plot_data)
+        # the benefits of this plot are unclear. the idea is to see the max turning rate.
+        # TODO: find maximum velocity turn rate, depending on full steering, ground contact
+        fig, ax = plt.subplots(2, 1)
+        fig.canvas.set_window_title('Forward G-Force' + title_post_fix)
+        plot_g_over_rpm(ax[0], plot_data)
         # plot_g_over_throttle(ax[1], plot_data)
 
-        fig, ax = plt.subplots(1, 3)
-        fig.canvas.set_window_title('Drift at 2D positions ' + title_post_fix)
-        forward_over_2d_pos(ax[0], plot_data)
-        drift_angle_bars(ax[1], plot_data)
-        drift_angle_change_bars(ax[2], plot_data)
-        # drift_over_speed(ax[1][1], plot_data)
+        if additional_plots:
+            # see the typical drift angle.
+            # normal distribution indicates control over the car.
+            # common, large drift angles indicate less control and perhaps bad suspension settings
+            fig, ax = plt.subplots(1, 3)
+            fig.canvas.set_window_title('Drift at 2D positions ' + title_post_fix)
+            forward_over_2d_pos(ax[0], plot_data)
+            drift_angle_bars(ax[1], plot_data)
+            drift_angle_change_bars(ax[2], plot_data)
+            # drift_over_speed(ax[1][1], plot_data)
 
+        # key plot for tuning the suspension height, dampers and springs
         fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('Suspension' + title_post_fix)
         suspension_bars(ax, plot_data)
         # suspension_l_r_f_r_bars(ax[1], plot_data)
 
-        fig, ax = plt.subplots(2, 1, sharex='all')
-        fig.canvas.set_window_title('Wheel Speed' + title_post_fix)
-        wheel_speed_over_time(ax[0], plot_data)
-        # wheel_speed_lr_fr_over_time(ax[1], plot_data)
-        inputs_over_time(ax[1], plot_data)
+        if additional_plots:
+            # mostly interesting to check slip caused by differentials.
+            # TODO: check correlation power output exists
+            fig, ax = plt.subplots(2, 1, sharex='all')
+            fig.canvas.set_window_title('Wheel Speed' + title_post_fix)
+            wheel_speed_over_time(ax[0], plot_data)
+            inputs_over_time(ax[1], plot_data)
 
-        fig, ax = plt.subplots(3, 1, sharex='all')
-        fig.canvas.set_window_title('Rotation vs Suspension' + title_post_fix)
-        rotation_over_time(ax[0], plot_data)
-        suspension_lr_fr_angles_over_time(ax[1], plot_data)
-        suspension_l_r_f_r_over_time(ax[2], plot_data)
+        if additional_plots:
+            # the benefits of this plot are unclear. it would probably need a direct comparison of different angles.
+            fig, ax = plt.subplots(3, 1, sharex='all')
+            fig.canvas.set_window_title('Rotation vs Suspension' + title_post_fix)
+            rotation_over_time(ax[0], plot_data)
+            suspension_lr_fr_angles_over_time(ax[1], plot_data)
+            suspension_l_r_f_r_over_time(ax[2], plot_data)
 
+        # mostly for tuning the dampers, but also springs and stabilizers
         fig, ax = plt.subplots(3, 1, sharex='all')
         fig.canvas.set_window_title('Ground Contact' + title_post_fix)
         ground_contact_over_time(ax[0], plot_data)
         suspension_l_r_f_r_over_time(ax[1], plot_data)
-        # slip_over_time(ax[1], plot_data)
         suspension_vel_over_time(ax[2], plot_data)
-        # suspension_vel_derived_l_r_f_r_over_time(ax[3], plot_data)
-        # suspension_vel_der_diff_l_r_f_r_over_time(ax[4], plot_data)
 
         plt.show()
 
@@ -559,13 +584,17 @@ def plot_g_over_rpm(ax, plot_data: pd.PlotData):
     alphas = [0.5] * len(labels)
     colors = [static_colors[i] for i, g in enumerate(range_gears)]
 
+    full_acceleration_mask = data_processing.get_full_acceleration_mask(plot_data=plot_data)
+
     x_points = []
     y_points = []
     scales = []
     for i, g in enumerate(range_gears):
         current_gear = plot_data.gear == g
-        full_throttle = plot_data.throttle == 1.0
-        interesting = np.logical_and(current_gear, full_throttle)
+        not_close_to_gear_changes = np.logical_not(
+            data_processing.get_gear_shift_mask(plot_data=plot_data, shift_time_ms=100.0))
+        full_in_current_gear = np.logical_and(not_close_to_gear_changes, current_gear)
+        interesting = np.logical_and(full_in_current_gear, full_acceleration_mask)
 
         g_force_lon = plot_data.g_force_lon[interesting]
         rpm = plot_data.rpm[interesting]
@@ -668,7 +697,7 @@ def plot_g_over_throttle(ax, plot_data: pd.PlotData):
         y_points += [g_force_lon]
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='G-force X over throttle',
-                 labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='throttle', y_label='G-force X')
+                 labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='Throttle', y_label='G-force X')
 
 
 def plot_v_over_rpm(ax, plot_data: pd.PlotData):
@@ -676,6 +705,8 @@ def plot_v_over_rpm(ax, plot_data: pd.PlotData):
     data_gear = plot_data.gear
     range_gears = list(set(data_gear))
     range_gears.sort()
+    not_close_to_gear_changes = np.logical_not(
+        data_processing.get_gear_shift_mask(plot_data=plot_data, shift_time_ms=100.0))
 
     labels = ['Gear {}'.format(str(g)) for g in range_gears]
     colors = [static_colors[i] for i, g in enumerate(range_gears)]
@@ -686,8 +717,9 @@ def plot_v_over_rpm(ax, plot_data: pd.PlotData):
     y_points = []
     for i, g in enumerate(range_gears):
         current_gear = plot_data.gear == g
+        full_in_current_gear = np.logical_and(not_close_to_gear_changes, current_gear)
         full_throttle = plot_data.throttle == 1.0
-        interesting = np.logical_and(current_gear, full_throttle)
+        interesting = np.logical_and(full_in_current_gear, full_throttle)
 
         rpm = plot_data.rpm[interesting]
         speed_ms = plot_data.speed_ms[interesting]

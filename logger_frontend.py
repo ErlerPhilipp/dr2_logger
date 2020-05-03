@@ -27,11 +27,12 @@ Default: C:\\Users\\ [username] \\Documents\\My Games\\DiRT Rally 2.0\\hardwares
 
 commands_hint = '''
 Enter:
-"e" to exit the program
-"c" to clear the current run
-"a" for analysis
-"s" to save the current run
-"l" to load a saved run
+"e" or "exit" to exit the program
+"c" or "clear" to clear the current run
+"p" or "plot" to show the important plots
+"pa" or "plot_all" to show all plots
+"s" or "save" to save the current run
+"l" or "load" to load a saved run
 "g game_name" to switch the target game, values for game_name: {}
 '''.format(LoggerBackend.get_all_valid_games())
 
@@ -91,25 +92,31 @@ def main():
         while not message_queue.empty():
             command = message_queue.get()
 
-            if command == 'e':
+            if command == 'e' or command == 'exit':
                 print('Exit...\n')
                 end_program = True
-            elif command == 'c':
+            elif command == 'c' or command == 'clear':
                 print('Cleared {} data points\n'.format(logger_backend.get_num_samples()))
                 logger_backend.clear_session_collection()
-            elif command == 'a':
+            elif command == 'p' or command == 'plot':
                 if logger_backend.get_num_samples() == 0:
                     print('No data points to plot\n')
                 else:
                     print('Plotting {} data points\n'.format(logger_backend.get_num_samples()))
-                    logger_backend.show_plots()
-            elif command == 's':
+                    logger_backend.show_plots(False)
+            elif command == 'pa' or command == 'plot_all':
+                if logger_backend.get_num_samples() == 0:
+                    print('No data points to plot\n')
+                else:
+                    print('Plotting {} data points\n'.format(logger_backend.get_num_samples()))
+                    logger_backend.show_plots(True)
+            elif command == 's' or command == 'save':
                 logger_backend.save_run()
             elif command.startswith('g'):
                 new_game_name = command.split(' ')[1]
                 logger_backend.change_game(new_game_name)
                 print('Switched game to "{}"'.format(logger_backend.game_name))
-            elif command == 'l':
+            elif command == 'l' or command == 'load':
                 logger_backend.load_run()
                 print_current_state(logger_backend.get_game_state_str())
             elif command == '':

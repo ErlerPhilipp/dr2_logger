@@ -79,6 +79,10 @@ class LoggerBackend:
                                      int(settings.settings['general']['port_out']))
 
     def save_run_data(self, data, automatic_name=False):
+        if data is None or len(data) == 0:
+            print('Nothing to save!')
+            return
+
         # TODO: this will block the main thread and data from the port may be lost -> put in extra process
         import tkinter as tk
         from tkinter import filedialog
@@ -173,12 +177,11 @@ class LoggerBackend:
         self.raw_data = np.zeros((self.game.get_num_fields(), 0)) if self.log_raw_data else None
 
         if self.debugging:  # start with plots
-
             self.session_collection = self.game.load_data(
                 r'C:\Users\pherl\Desktop\2020-03-18 21_22_15 - Peugeot 208 R2 - Kakaristo - 451.7s raw.npz')
             #self.session_collection = self.game.load_data(
             #    r'C:\Users\pherl\repos\dr2_logger\races_auto_save\2020-03-30 23_52_57 - Subaru Impreza 1995 - Vinedos dentro del valle Parra - 217.1s.npz')
-            self.show_plots()
+            self.show_plots(additional_plots=True)
 
     @staticmethod
     def accept_new_data(state):
@@ -216,13 +219,14 @@ class LoggerBackend:
             self.new_state = self.last_state
             self.has_new_data = False
 
-    def show_plots(self):
+    def show_plots(self, additional_plots=False):
         plot_data = self.game.get_plot_data(self.session_collection)
         car_name = self.game.get_car_name(self.session_collection[:, -1])
         track_name = self.game.get_track_name(self.session_collection[:, -1])
 
         try:
-            plots.plot_main(plot_data=plot_data, car_name=car_name, track_name=track_name)
+            plots.plot_main(
+                plot_data=plot_data, car_name=car_name, track_name=track_name, additional_plots=additional_plots)
         except Exception:
             print('Error during plot: {}'.format(sys.exc_info()))
             print(traceback.format_exc())
