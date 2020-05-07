@@ -17,6 +17,7 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
     if plot_data.run_time.shape[0] > 0:
         title_post_fix = ' - {} on {}'.format(car_name, track_name)
 
+        # experimental 3D plot. very bad performance.
         # fig = plt.figure()
         # ax = fig.add_subplot(111, projection='3d')
         # fig.canvas.set_window_title('3D positions' + title_post_fix)
@@ -879,7 +880,8 @@ def ground_contact_over_time(ax, plot_data: pd.PlotData):
     # boolean mask to 0.0 or 1.0, also take sum
     in_air_masks = [gc.astype(np.float) for gc in in_air_masks]
     in_air_masks_sum = np.sum(np.array(in_air_masks), axis=0)  # also show sum of wheels in air
-    in_air_masks_sum[in_air_masks_sum > 1.0] = 1.0
+    in_air_masks_sum[in_air_masks_sum < 4.0] = 0.0
+    in_air_masks_sum[in_air_masks_sum == 4.0] = 1.0
     in_air_masks = [in_air_masks_sum] + in_air_masks
     in_air = [gc + gci * 0.05 for gci, gc in enumerate(in_air_masks)]  # small offset to avoid overlaps
     in_air_data = np.array(in_air)
