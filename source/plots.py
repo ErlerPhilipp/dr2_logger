@@ -1,3 +1,5 @@
+from typing import List
+
 import matplotlib
 # TkAgg with default tk leads to the matplotlib mainloop not terminating although all plot windows are closed
 matplotlib.use('qt5agg')  # MUST BE CALLED BEFORE IMPORTING plt
@@ -34,8 +36,6 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
             # see the car's energy on the track.
             # this is pretty much the same as velocity + height so not much insight here.
             # this is somewhat useful for debugging power plots but not very useful on its own
-            # TODO: power output is sometimes negative although it's full throttle
-            # TODO: -> full-throttle conditions are insufficient
             fig, ax = plt.subplots(2, 1, sharex='all')
             fig.canvas.set_window_title('Energy and Power' + title_post_fix)
             energy_over_time(ax[0], plot_data)
@@ -47,7 +47,6 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
         # plot_energy_over_2d_pos(ax, plot_data)
 
         # see how much you use which gear. the most-used RPM interval should be around the optimal RPM
-        # TODO: where is the optimum RPM? mark some area based on data from the power-output plot?
         fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('RPM Histogram per Gear' + title_post_fix)
         gear_rpm_bars(ax, plot_data)
@@ -60,14 +59,12 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
         if additional_plots:
             # show the power output over RPM and velocity.
             # this is meant to show the maximum power output of the engine and the optimum RPM per gear.
-            # TODO: this plot is very noisy and the optimum RPM hardly visible
-            fig, ax = plt.subplots(1, 2, sharey='all')
+            fig, ax = plt.subplots(1, 1, sharey='all')
             fig.canvas.set_window_title('Power Output' + title_post_fix)
-            plot_p_over_rpm(ax[0], plot_data)
-            plot_p_over_vel(ax[1], plot_data)
+            plot_p_over_rpm(ax, plot_data)
+            # plot_p_over_vel(ax[1], plot_data)
 
         # the benefits of this plot are unclear. the idea is to see the max turning rate.
-        # TODO: find maximum velocity turn rate, depending on full steering, ground contact
         fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('Forward G-Force' + title_post_fix)
         plot_g_over_rpm(ax, plot_data)
@@ -92,19 +89,17 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
 
         if additional_plots:
             # mostly interesting to check slip caused by differentials.
-            # TODO: check correlation power output exists
             fig, ax = plt.subplots(2, 1, sharex='all')
             fig.canvas.set_window_title('Wheel Speed' + title_post_fix)
             wheel_speed_over_time(ax[0], plot_data)
             inputs_over_time(ax[1], plot_data)
 
-        if additional_plots:
-            # the benefits of this plot are unclear. it would probably need a direct comparison of different angles.
-            fig, ax = plt.subplots(3, 1, sharex='all')
-            fig.canvas.set_window_title('Rotation vs Suspension' + title_post_fix)
-            rotation_over_time(ax[0], plot_data)
-            suspension_lr_fr_angles_over_time(ax[1], plot_data)
-            suspension_l_r_f_r_over_time(ax[2], plot_data)
+        # this shows how much the car's body rotates because of track irregularities
+        fig, ax = plt.subplots(3, 1, sharex='all')
+        fig.canvas.set_window_title('Rotation vs Suspension' + title_post_fix)
+        rotation_over_time(ax[0], plot_data)
+        suspension_lr_fr_angles_over_time(ax[1], plot_data)
+        suspension_l_r_f_r_over_time(ax[2], plot_data)
 
         # mostly for tuning the dampers, but also springs and stabilizers
         fig, ax = plt.subplots(3, 1, sharex='all')
@@ -112,6 +107,8 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
         ground_contact_over_time(ax[0], plot_data)
         suspension_l_r_f_r_over_time(ax[1], plot_data)
         suspension_vel_over_time(ax[2], plot_data)
+
+        # TODO: find maximum turn rate over velocity, depending on full steering, ground contact
 
         plt.show()
 
@@ -167,15 +164,32 @@ def plot_over_2d_pos(ax, plot_data: pd.PlotData, lines_x, lines_y, scale, alpha,
     ax.set_ylabel('Y')
 
 
-def scatter_plot(ax, x_points, y_points, title, labels, colors, scales, alphas, x_label, y_label):
+def scatter_plot(ax: plt.axes, x_points: List, y_points: List, title: str, labels: List[str],
+                 colors: List, scales: List, alphas: List,
+                 x_label, y_label, plot_mean=True, plot_polynomial=True):
 
-    for i, g in enumerate(x_points):
+    for i in range(len(x_points)):
         ax.scatter(x=x_points[i], y=y_points[i], c=colors[i], s=scales[i], alpha=alphas[i], label=labels[i])
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     ax.set_title(title)
     if labels is not None and len(labels) > 1:
         ax.legend()
+
+    if plot_mean:
+        x_series_mean = [np.mean(p) for p in x_points]
+        y_series_mean = [np.mean(p) for p in y_points]
+        ax.scatter(x_series_mean, y_series_mean, c=colors, s=200.0, alpha=1.0, marker='X', edgecolors='k')
+
+    if plot_polynomial:
+        for i in range(len(x_points)):
+            x_min = np.min(x_points[i])
+            x_max = np.max(x_points[i])
+            poly_coefficients = np.polyfit(x_points[i], y_points[i], 3)
+            poly = np.poly1d(poly_coefficients)
+            x_poly = np.linspace(x_min, x_max, 500)
+            y_poly = poly(x_poly)
+            ax.plot(x_poly, y_poly, '-', c=colors[i])
 
 
 def line_plot(ax, x_points, y_points, title, labels, alpha, x_label, y_label, colors=None,
@@ -252,33 +266,49 @@ def histogram_plot(ax, samples, title, x_label, y_label, labels=None,
 
 
 def bar_plot(ax, data, weights, num_bins=20,
-             title=None, x_label=None, y_label=None, series_labels=None, tick_labels=None):
+             title=None, x_label=None, y_label=None, series_labels=None, tick_labels=None, highlight_value=None):
 
     if len(data) == 0 or data[0].size == 0:
         return
 
     data_min = min([d.min() for d in data])
     data_max = max([d.max() for d in data])
+    bin_edges = np.linspace(start=data_min, stop=data_max, num=num_bins+1)
 
     x = np.arange(num_bins)
+    num_series = len(series_labels)
 
     default_width = 0.8
-    width = default_width / (float(len(series_labels)) + 1)
-    for i in range(len(series_labels)):
-        data_bin_sum, bin_edges, _ = \
-            binned_statistic(data[i], weights[i], statistic='sum', bins=num_bins, range=(data_min, data_max))
+    width = default_width / (float(num_series) + 1)
+    for i in range(num_series):
+        data_bin_sum, _, _ = \
+            binned_statistic(data[i], weights[i], statistic='sum', bins=bin_edges)
         tick_labels = ['{:.0f} to\n {:.0f}'.format(bin_edges[0 + i], bin_edges[1 + i])
                        for i in range(bin_edges.shape[0] - 1)]
 
-        ax.bar(x + (0.5 + i - float(len(series_labels)) * 0.5) * width, data_bin_sum, width, label=series_labels[i])
+        ax.bar(x + (0.5 + i - float(num_series) * 0.5) * width, data_bin_sum, width, label=series_labels[i])
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    if series_labels is not None and len(series_labels) > 1:
+    if series_labels is not None and num_series > 1:
         ax.legend(series_labels)
     ax.set_xticks(x)
     ax.set_xticklabels(tick_labels)
     ax.set_title(title)
+
+    if highlight_value is not None:
+        bin_edges_smaller = bin_edges <= highlight_value
+        highlight_bin = np.sum(bin_edges_smaller) - 1
+        highlight_bin_left_edge = highlight_bin + (-float(num_series) * 0.5) * width
+        highlight_bin_right_edge = highlight_bin + (float(num_series) * 0.5) * width
+        ax.axvspan(highlight_bin_left_edge, highlight_bin_right_edge, color='green', alpha=0.25)
+
+
+def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData):
+
+    optimal_rpm, optimal_rpm_range_min, optimal_rpm_range_max = data_processing.get_optimal_rpm(plot_data=plot_data)
+    ax.axvspan(optimal_rpm_range_min, optimal_rpm_range_max, color='green', alpha=0.25)
+    ax.axvline(optimal_rpm, color='green', alpha=0.5)
 
 
 def plot_gear_over_3d_pos(ax, plot_data: pd.PlotData):
@@ -361,8 +391,10 @@ def gear_rpm_bars(ax, plot_data: pd.PlotData):
     series_labels = ['Gear {0}: {1:.1f}%'.format(
         int(g), gear_ratio[gi] * 100.0) for gi, g in enumerate(range_gears)]
 
-    bar_plot(ax, data=gear_rpms, weights=gear_times, num_bins=20,
-             title='Gear RPM', x_label='RPM', y_label='Accumulated Time (s)', series_labels=series_labels)
+    optimal_rpm, optimal_rpm_range_min, optimal_rpm_range_max = data_processing.get_optimal_rpm(plot_data=plot_data)
+    bar_plot(ax, data=gear_rpms, weights=gear_times, num_bins=16,
+             title='Gear RPM', x_label='RPM', y_label='Accumulated Time (s)', series_labels=series_labels,
+             highlight_value=optimal_rpm)
 
 
 def energy_over_time(ax, plot_data: pd.PlotData):
@@ -381,7 +413,8 @@ def energy_over_time(ax, plot_data: pd.PlotData):
 def power_over_time(ax, plot_data: pd.PlotData):
     race_time = plot_data.run_time
     energy, kinetic_energy, potential_energy = data_processing.get_energy(plot_data=plot_data)
-    power = data_processing.derive_no_nan(energy, race_time)
+    # energy is dominated by potential energy -> take only kinetic energy
+    power = data_processing.derive_no_nan(kinetic_energy, race_time)
     full_acceleration = data_processing.get_full_acceleration_mask(plot_data=plot_data)
     not_full_acceleration = np.logical_not(full_acceleration)
     power_full_acceleration = power.copy()
@@ -389,8 +422,10 @@ def power_over_time(ax, plot_data: pd.PlotData):
     power_not_full_acceleration = power.copy()
     power_not_full_acceleration[full_acceleration] = 0.0
     power_data = np.array([power_full_acceleration, power_not_full_acceleration])
+    power_data_mean = [np.mean(d) for d in power_data]
 
     labels = ['Power at full throttle (kW)', 'Power otherwise (kW)']
+    labels = [l + ', variance: {:.1f}'.format(power_data_mean[li]) for li, l in enumerate(labels)]
     y_points = power_data
     x_points = np.array([race_time] * y_points.shape[0])
 
@@ -405,7 +440,7 @@ def inputs_over_time(ax, plot_data: pd.PlotData):
     steering = plot_data.steering
     input_data = np.array([throttle, brakes, steering])
 
-    labels = ['throttle', 'brakes', 'steering']
+    labels = ['Throttle', 'Brakes', 'Steering']
     y_points = input_data
     x_points = np.array([race_time] * y_points.shape[0])
 
@@ -420,8 +455,10 @@ def suspension_over_time(ax, plot_data: pd.PlotData):
     susp_rl = plot_data.susp_rl
     susp_rr = plot_data.susp_rr
     susp_data = np.array([susp_fl, susp_fr, susp_rl, susp_rr])
+    susp_data_var = [np.var(d) for d in susp_data]
 
-    labels = ['front left', 'front right', 'rear left', 'rear right']
+    labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
+    labels = [l + ', variance: {:.1f}'.format(susp_data_var[li]) for li, l in enumerate(labels)]
     y_points = susp_data
     x_points = np.array([race_time] * y_points.shape[0])
 
@@ -439,8 +476,10 @@ def suspension_lr_fr_over_time(ax, plot_data: pd.PlotData):
     susp_left_right = (susp_fl + susp_rl) * 0.5 - (susp_fr + susp_rr) * 0.5
     susp_front_rear = (susp_fl + susp_fr) * 0.5 - (susp_rl + susp_rr) * 0.5
     susp_data = np.array([susp_left_right, susp_front_rear])
+    susp_data_var = [np.var(d) for d in susp_data]
 
-    labels = ['left-right', 'front-rear']
+    labels = ['Left-right', 'Front-rear']
+    labels = [l + ', variance: {:.1f}'.format(susp_data_var[li]) for li, l in enumerate(labels)]
     x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
@@ -461,14 +500,16 @@ def suspension_l_r_f_r_over_time(ax, plot_data: pd.PlotData):
     susp_front = (susp_fl + susp_fr) * 0.5
     susp_rear = (susp_rl + susp_rr) * 0.5
     susp_data = np.array([susp_left, susp_right, susp_front, susp_rear])
+    susp_data_var = [np.var(d) for d in susp_data]
 
-    labels = ['left', 'right', 'front', 'rear']
+    labels = ['Left', 'Right', 'Front', 'Rear']
+    labels = [l + ', variance: {:.1f}'.format(susp_data_var[li]) for li, l in enumerate(labels)]
     x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Average suspension dislocation over time',
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Average suspension compression over time',
               labels=labels, alpha=0.5, x_label='Time (s)',
-              y_label='Suspension dislocation (mm)', flip_y=False, min_max_annotations=True)
+              y_label='Suspension compression (mm)', flip_y=False, min_max_annotations=True)
 
 
 def suspension_vel_derived_l_r_f_r_over_time(ax, plot_data: pd.PlotData):
@@ -481,8 +522,10 @@ def suspension_vel_derived_l_r_f_r_over_time(ax, plot_data: pd.PlotData):
     susp_data = [susp_fl, susp_fr, susp_rl, susp_rr]
     susp_data = [data_processing.derive_no_nan(susp, race_time) for susp in susp_data]
     susp_data = np.array(susp_data)
+    susp_data_var = [np.var(d) for d in susp_data]
 
-    labels = ['susp_fl', 'susp_fr', 'susp_rl', 'susp_rr']
+    labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
+    labels = [l + ', variance: {:.1f}'.format(susp_data_var[li]) for li, l in enumerate(labels)]
     x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
@@ -508,8 +551,10 @@ def suspension_vel_der_diff_l_r_f_r_over_time(ax, plot_data: pd.PlotData):
     susp_vel = [susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr]
 
     susp_data = np.array(susp_data) - np.array(susp_vel)
+    susp_data_var = [np.var(d) for d in susp_data]
 
-    labels = ['susp_fl', 'susp_fr', 'susp_rl', 'susp_rr']
+    labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
+    labels = [l + ', variance: {:.1f}'.format(susp_data_var[li]) for li, l in enumerate(labels)]
     x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
@@ -532,14 +577,14 @@ def suspension_bars(ax, plot_data: pd.PlotData):
     susp_max = np.max(susp_data)
     susp_min_ids = (susp_min == susp_data)
     susp_max_ids = (susp_max == susp_data)
-    series_labels = ['front left', 'front right', 'rear left', 'rear right']
+    series_labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
     series_labels = [l + ', bump min: {:.1f} s, bump max: {:.1f} s'.format(
         time_differences[susp_min_ids[li]].sum(), time_differences[susp_max_ids[li]].sum())
               for li, l in enumerate(series_labels)]
 
     bar_plot(ax, data=susp_data, weights=time_data, num_bins=20,
-             title='Suspension dislocation, min: {:.1f} mm, max: {:.1f} mm'.format(susp_min, susp_max),
-             x_label='Suspension dislocation (mm)', y_label='Accumulated Time (s)', series_labels=series_labels)
+             title='Suspension compression, min: {:.1f} mm, max: {:.1f} mm'.format(susp_min, susp_max),
+             x_label='Suspension compression (mm)', y_label='Accumulated Time (s)', series_labels=series_labels)
 
 
 def suspension_l_r_f_r_bars(ax, plot_data: pd.PlotData):
@@ -558,23 +603,23 @@ def suspension_l_r_f_r_bars(ax, plot_data: pd.PlotData):
     time_data = np.repeat(np.expand_dims(time_differences, axis=0), 4, axis=0)
     susp_min = np.min(susp_data)
     susp_max = np.max(susp_data)
-    series_labels = ['left', 'right', 'front', 'rear']
+    series_labels = ['Left', 'Right', 'Front', 'Rear']
 
     bar_plot(ax, data=susp_data, weights=time_data, num_bins=20,
-             title='Average Suspension dislocation, min: {:.1f} mm, max: {:.1f} mm'.format(susp_min, susp_max),
-             x_label='Suspension dislocation (mm)', y_label='Accumulated Time (s)', series_labels=series_labels)
+             title='Average Suspension compression, min: {:.1f} mm, max: {:.1f} mm'.format(susp_min, susp_max),
+             x_label='Suspension compression (mm)', y_label='Accumulated Time (s)', series_labels=series_labels)
 
 
 def plot_height_over_dist(ax, plot_data: pd.PlotData):
     distance = plot_data.distance
     height = np.abs(plot_data.pos_y)
-    ax.plot(distance, height, label='height')
-    ax.set(xlabel='distance (m)', ylabel='height (m)',
+    ax.plot(distance, height, label='Height')
+    ax.set(xlabel='Distance (m)', ylabel='Height (m)',
            title='Track Elevation')
     ax.grid()
 
 
-def plot_g_over_rpm(ax, plot_data: pd.PlotData):
+def plot_g_over_rpm(ax: matplotlib.axes, plot_data: pd.PlotData):
 
     data_gear = plot_data.gear
     range_gears = list(set(data_gear))
@@ -607,7 +652,9 @@ def plot_g_over_rpm(ax, plot_data: pd.PlotData):
         scales += [throttle_scaled]
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='G-force over RPM (full throttle)',
-                 labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='RPM', y_label='G-force X')
+                 labels=labels, colors=colors, scales=scales, alphas=alphas,
+                 x_label='RPM', y_label='G-force X')
+    plot_optimal_rpm_region(ax=ax, plot_data=plot_data)
 
 
 def plot_p_over_rpm(ax, plot_data: pd.PlotData):
@@ -625,7 +672,7 @@ def plot_p_over_rpm(ax, plot_data: pd.PlotData):
     rpm = plot_data.rpm
     energy, kinetic_energy, potential_energy = data_processing.get_energy(plot_data=plot_data)
     times_steps = plot_data.run_time
-    power = data_processing.derive_no_nan(x=energy, time_steps=times_steps) / 1000.0
+    power = data_processing.derive_no_nan(x=kinetic_energy, time_steps=times_steps) / 1000.0
 
     x_points = []
     y_points = []
@@ -639,7 +686,9 @@ def plot_p_over_rpm(ax, plot_data: pd.PlotData):
         scales += [np.ones_like(rpm[interesting]) * scale]
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='Power over RPM (full throttle)',
-                 labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='RPM', y_label='Power (kW)')
+                 labels=labels, colors=colors, scales=scales, alphas=alphas,
+                 x_label='RPM', y_label='Power (kW)', plot_mean=True, plot_polynomial=True)
+    plot_optimal_rpm_region(ax=ax, plot_data=plot_data)
 
 
 def plot_p_over_vel(ax, plot_data: pd.PlotData):
@@ -656,7 +705,7 @@ def plot_p_over_vel(ax, plot_data: pd.PlotData):
 
     energy, kinetic_energy, potential_energy = data_processing.get_energy(plot_data=plot_data)
     times_steps = plot_data.run_time
-    power = data_processing.derive_no_nan(x=energy, time_steps=times_steps) / 1000.0
+    power = data_processing.derive_no_nan(x=kinetic_energy, time_steps=times_steps) / 1000.0
 
     x_points = []
     y_points = []
@@ -672,7 +721,7 @@ def plot_p_over_vel(ax, plot_data: pd.PlotData):
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='Power over velocity (full throttle)',
                  labels=labels, colors=colors, scales=scales, alphas=alphas,
-                 x_label='Velocity (m/s)', y_label='Power (kW)')
+                 x_label='Velocity (m/s)', y_label='Power (kW)', plot_mean=True, plot_polynomial=False)
 
 
 def plot_g_over_throttle(ax, plot_data: pd.PlotData):
@@ -729,7 +778,9 @@ def plot_v_over_rpm(ax, plot_data: pd.PlotData):
         y_points += [speed_ms]
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='Speed over RPM (full throttle)',
-                 labels=labels, colors=colors, scales=scales, alphas=alphas, x_label='RPM', y_label='Speed (m/s)')
+                 labels=labels, colors=colors, scales=scales, alphas=alphas,
+                 x_label='RPM', y_label='Speed (m/s)', plot_mean=True, plot_polynomial=True)
+    plot_optimal_rpm_region(ax=ax, plot_data=plot_data)
 
 
 def forward_over_2d_pos(ax, plot_data: pd.PlotData):
@@ -779,7 +830,7 @@ def wheel_speed_over_time(ax, plot_data: pd.PlotData):
     race_time = plot_data.run_time
     wsp_data = np.array([plot_data.wsp_fl, plot_data.wsp_fr, plot_data.wsp_rl, plot_data.wsp_rr])
 
-    labels = ['front left', 'front right', 'rear left', 'rear right']
+    labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
     x_points = np.array([race_time] * len(wsp_data))
     y_points = np.array(wsp_data)
 
@@ -811,8 +862,10 @@ def suspension_vel_over_time(ax, plot_data: pd.PlotData):
     susp_vel_rr = plot_data.susp_vel_rr
 
     susp_data = np.array([susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr])
+    susp_data_var = [np.var(d) for d in susp_data]
 
-    labels = ['susp vel front left', 'susp vel front right', 'susp vel rear left', 'susp vel rear right']
+    labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
+    labels = [l + ', variance: {:.1f}'.format(susp_data_var[li]) for li, l in enumerate(labels)]
     x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
@@ -832,8 +885,10 @@ def slip_over_time(ax, plot_data: pd.PlotData):
     wsp = [wsp_fl, wsp_fr, wsp_rl, wsp_rr]
     slip = [w - speed_ms for w in wsp]
     wsp_data = np.array(slip)
+    wsp_data_var = [np.var(d) for d in wsp_data]
 
-    labels = ['front left', 'front right', 'rear left', 'rear right']
+    labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
+    labels = [l + ', variance: {:.1f}'.format(wsp_data_var[li]) for li, l in enumerate(labels)]
     x_points = np.array([race_time] * len(wsp_data))
     y_points = np.array(wsp_data)
 
@@ -890,7 +945,7 @@ def ground_contact_over_time(ax, plot_data: pd.PlotData):
     time_differences = data_processing.differences(plot_data.run_time, True)
     in_air_times = [np.sum(time_differences[ia > 0.0]) for ia in in_air_masks]
 
-    labels = ['All wheels in air', 'Front left in air', 'Front right in air', 'Rear left in air', 'Rear right in air']
+    labels = ['All wheels', 'Front left', 'Front right', 'Rear left', 'Rear right']
     labels = [l + ': {:.1f} s'.format(in_air_times[li]) for li, l in enumerate(labels)]
     x_points = np.array([plot_data.run_time] * len(in_air_data))
     y_points = np.array(in_air_data)
@@ -1002,7 +1057,11 @@ def rotation_over_time(ax, plot_data: pd.PlotData):
     sideward_angle_deg = get_vertical_angle_dislocation(sideward_local_xyz)
     forward_angle_deg = get_vertical_angle_dislocation(forward_local_xyz)
 
-    labels = ['Sideward Rotation Angle', 'Forward Rotation Angle']
+    sideward_angle_deg_var = np.var(sideward_angle_deg)
+    forward_angle_deg_var = np.var(forward_angle_deg)
+
+    labels = ['Sidewards, variance: {:.1f}'.format(sideward_angle_deg_var),
+              'Forward, variance: {:.1f}'.format(forward_angle_deg_var)]
     x_points = np.array([race_time] * len(labels))
     y_points = np.array([sideward_angle_deg, forward_angle_deg])
 
@@ -1032,10 +1091,14 @@ def suspension_lr_fr_angles_over_time(ax, plot_data: pd.PlotData):
 
     angle_data = np.array([-angle_left_right, -angle_front_rear])
 
-    labels = ['left-right angle', 'front-rear angle']
+    sidewards_angle_deg_var = np.var(angle_left_right)
+    forward_angle_deg_var = np.var(angle_front_rear)
+
+    labels = ['Sidewards, variance: {:.3f}'.format(sidewards_angle_deg_var),
+              'Forward, variance: {:.3f}'.format(forward_angle_deg_var)]
     x_points = np.array([race_time] * len(angle_data))
     y_points = np.array(angle_data)
 
-    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension dislocation angle over time',
+    line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension compression angle over time',
               labels=labels, alpha=0.5, x_label='Time (s)',
-              y_label='Suspension dislocation angle (deg)', min_max_annotations=True)
+              y_label='Suspension compression angle (deg)', min_max_annotations=True)

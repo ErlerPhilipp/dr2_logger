@@ -1,4 +1,4 @@
-name: dr2logger
+name: dr2_logger
 channels:
   - anaconda
   - conda-forge

@@ -8,10 +8,11 @@ from source.logger_backend import LoggerBackend
 
 log_raw_data = False
 debugging = False
-version_string = '(Version 1.7, 2020-03-25)'
+version_string = '(Version 1.8, 2020-05-11)'
+# TODO: update date
 
 intro_text = '''
-Dirt Rally 2.0 Race Logger {} by Philipp Erler
+Dirt Rally 2.0 Logger {} by Philipp Erler
 https://github.com/ErlerPhilipp/dr2_logger
 
 Make sure, UDP data is enabled in the hardware_settings_config.xml 

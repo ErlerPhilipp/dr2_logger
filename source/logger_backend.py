@@ -119,7 +119,7 @@ class LoggerBackend:
         if file_path is not None and file_path != '' and file_path != '.npz':
             utils.make_dir_for_file(file_path)
             self.game.save_data(data, file_path)
-            print('Saved {} data points to {}\n'.format(data.shape[1], os.path.abspath(file_path)))
+            print('Saved {} data points to {}'.format(data.shape[1], os.path.abspath(file_path)))
 
     def save_run(self, automatic_name=False):
         self.save_run_data(data=self.session_collection, automatic_name=automatic_name)
@@ -141,14 +141,14 @@ class LoggerBackend:
                 try:
                     race_data = self.game.load_data(file_path)
                     self.session_collection = race_data
-                    print('Loaded {} data points from {}\n'.format(self.session_collection.shape[1], file_path))
+                    print('Loaded {} data points from {}'.format(self.session_collection.shape[1], file_path))
                 except ValueError as er:
                     print('Error while loading race data: {}\n{}'.format(file_path, er))
 
                 if self.session_collection is not None and self.session_collection.shape[1] > 0:
                     self.last_sample = self.session_collection[:, -1]
             else:
-                print('"{}" is no valid file!\n'.format(file_path))
+                print('"{}" is no valid file!'.format(file_path))
 
     def get_game_state_str(self):
         return self.game.get_game_state_str(self.new_state, self.last_sample, self.session_collection.shape[1])
@@ -165,23 +165,29 @@ class LoggerBackend:
         self.udp_socket = networking.open_port(settings.settings['general']['ip_in'],
                                           int(settings.settings['general']['port_in']))
         if self.udp_socket is not None:
-            print('Listening on socket {} for data from {}\n'.format(self.udp_socket.getsockname(), self.game_name))
+            print('Listening on socket {} for data from {}'.format(self.udp_socket.getsockname(), self.game_name))
         else:
             print('Invalid input socket. Resetting...')
             settings.init_settings_input_socket()
             settings.write_settings()
             self.udp_socket = networking.open_port(settings.settings['general']['ip_in'],
                                                    int(settings.settings['general']['port_in']))
-            print('Listening on socket {}\n'.format(self.udp_socket.getsockname()))
+            if self.udp_socket is None:
+                print('Failed to open socket on {}. Is another program already listening on this socket?'.format(
+                    self.udp_socket.getsockname()))
+            else:
+                print('Listening on socket {}'.format(self.udp_socket.getsockname()))
 
         self.raw_data = np.zeros((self.game.get_num_fields(), 0)) if self.log_raw_data else None
 
         if self.debugging:  # start with plots
             self.session_collection = self.game.load_data(
-                r'C:\Users\pherl\Desktop\2020-03-18 21_22_15 - Peugeot 208 R2 - Kakaristo - 451.7s raw.npz')
-            #self.session_collection = self.game.load_data(
-            #    r'C:\Users\pherl\repos\dr2_logger\races_auto_save\2020-03-30 23_52_57 - Subaru Impreza 1995 - Vinedos dentro del valle Parra - 217.1s.npz')
-            self.show_plots(additional_plots=True)
+                # r'C:\Users\pherl\Desktop\2020-03-18 21_22_15 - Peugeot 208 R2 - Kakaristo - 451.7s raw.npz')
+                r'C:\Users\pherl\repos\dr2_logger\races_auto_save\2020-05-04 23_14_13 - Renault 5 Turbo - Noorinbee Ridge Descent - 199.6s.npz')
+            # self.session_collection = self.game.load_data(
+            #     r'C:\Users\pherl\repos\dr2_logger\races_auto_save\2020-03-30 23_52_57 - Subaru Impreza 1995 - Vinedos dentro del valle Parra - 217.1s.npz')
+            # self.show_plots(additional_plots=True)
+            self.show_plots(additional_plots=False)
 
     @staticmethod
     def accept_new_data(state):
@@ -262,7 +268,7 @@ class LoggerBackend:
                 self.save_run_data(self.raw_data, automatic_name=False)
         elif self.last_state == GameState.race_not_running and \
                 self.new_state == GameState.race_running:
-            message += ['Race starting: {} on {}'.format(
+            message += ['\nRace starting: {} on {}'.format(
                 self.game.get_car_name(self.session_collection[:, -1]),
                 self.game.get_track_name(self.session_collection[:, -1])
             )]

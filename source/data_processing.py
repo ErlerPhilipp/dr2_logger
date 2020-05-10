@@ -125,6 +125,7 @@ def get_energy(plot_data: pd.PlotData):
     kinetic_energy = 0.5 * mass * np.square(velocity)
     potential_energy = mass * gravity * height_relative
     # TODO: add rotational energy
+    # TODO: add rotational energy of wheels
     # TODO: add heat energy in brakes? lol
 
     energy = kinetic_energy + potential_energy
@@ -143,6 +144,60 @@ def get_gear_shift_mask(plot_data: pd.PlotData, shift_time_ms=100.0):
     box_filter = np.array([1.0] * box_filter_length)
     close_to_gear_changes = np.convolve(gear_changes, box_filter, mode='same') > 0.0
     return close_to_gear_changes
+
+
+def get_optimal_rpm(plot_data: pd.PlotData):
+
+    # the first gear is rather unreliable because the wheels usually spin freely at the start
+    # median makes it more robust
+    full_acceleration_mask = get_full_acceleration_mask(plot_data=plot_data)
+    # energy, kinetic_energy, potential_energy = get_energy(plot_data=plot_data)
+
+    optimal_acc_per_gear = []
+    optimal_rpm_per_gear = []
+    optimal_rpm_range_min_per_gear = []
+    optimal_rpm_range_max_per_gear = []
+    data_gear = plot_data.gear
+    range_gears = list(set(data_gear))
+    range_gears.sort()
+    range_gears = [g for g in range_gears if g > 0.0]
+    for g in range_gears:
+        current_gear = plot_data.gear == g
+        not_close_to_gear_changes = np.logical_not(get_gear_shift_mask(plot_data=plot_data, shift_time_ms=100.0))
+        full_in_current_gear = np.logical_and(not_close_to_gear_changes, current_gear)
+        interesting = np.logical_and(full_in_current_gear, full_acceleration_mask)
+        acc_gear = plot_data.g_force_lon[interesting]
+        # acc_gear = kinetic_energy[interesting]
+        rpm_gear = plot_data.rpm[interesting]
+
+        rpm_min = np.min(rpm_gear)
+        rpm_max = np.max(rpm_gear)
+        poly_coefficients = np.polyfit(rpm_gear, acc_gear, 3)
+        poly = np.poly1d(poly_coefficients)
+        rpm_poly = np.linspace(rpm_min, rpm_max, 500)
+        acc_poly = poly(rpm_poly)
+        optimal_acc_per_gear.append(np.max(acc_poly))
+        optimal_rpm_per_gear.append(rpm_poly[np.argmax(acc_poly)])
+
+        acc_90_percentile = np.percentile(acc_poly, 90, interpolation='nearest')
+        acc_90_percentile_mask = acc_poly > acc_90_percentile
+        optimal_rpm_min_gear = np.min(rpm_poly[acc_90_percentile_mask])
+        optimal_rpm_max_gear = np.max(rpm_poly[acc_90_percentile_mask])
+        optimal_rpm_range_min_per_gear.append(optimal_rpm_min_gear)
+        optimal_rpm_range_max_per_gear.append(optimal_rpm_max_gear)
+
+    # optimal_acc_per_gear = np.array(optimal_acc_per_gear)
+    optimal_rpm_per_gear = np.array(optimal_rpm_per_gear)
+    optimal_rpm_range_min_per_gear = np.array(optimal_rpm_range_min_per_gear)
+    optimal_rpm_range_max_per_gear = np.array(optimal_rpm_range_max_per_gear)
+
+    optimal_rpm = np.percentile(optimal_rpm_per_gear, 50, interpolation='nearest')
+    gear_at_optimal_rpm = np.argwhere(optimal_rpm_per_gear == optimal_rpm)
+    optimal_rpm = optimal_rpm_per_gear[gear_at_optimal_rpm]
+    optimal_rpm_range_min = optimal_rpm_range_min_per_gear[gear_at_optimal_rpm]
+    optimal_rpm_range_max = optimal_rpm_range_max_per_gear[gear_at_optimal_rpm]
+
+    return optimal_rpm[0, 0], optimal_rpm_range_min[0, 0], optimal_rpm_range_max[0, 0]
 
 
 def get_full_acceleration_mask(plot_data: pd.PlotData):
