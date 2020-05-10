@@ -1,20 +1,10 @@
-# Dirt Rally Logger #
+# Dirt Rally 2.0 Logger #
 
-Dirt Rally Logger is a logging and analysis tool for car setups in [Dirt Rally 1 and 2 by Codemasters](https://dirtrally2.com/). 
+Dirt Rally 2.0 Logger is a logging and analysis tool for car setups in [Dirt Rally 1 and 2 by Codemasters](https://dirtrally2.com/). 
 This is a free and open-source tool written by Philipp Erler.
 
-- [Executable (Version 1.7, 2020-03-25)](https://philipperler.net/dr2logger_1_7/)
+- [Executable (Version 1.8, 2020-05-TODO)](https://philipperler.net/dr2_logger_1_8/)
 - [Source Code, Documentation and Support](https://github.com/ErlerPhilipp/dr2_logger)
-
-## Older Releases ##
-
-- [Executable (Version 1.6, 2019-10-14)](https://philipperler.net/dr2logger_1_6/)
-- [Executable (Version 1.5, 2019-10-01)](https://philipperler.net/dr2logger_1_5/)
-- [Executable (Version 1.4, 2019-09-14)](https://philipperler.net/dr2logger_1_4/)
-- [Executable (Version 1.3, 2019-09-02)](https://philipperler.net/dr2logger_1_3/)
-- [Executable (Version 1.2, 2019-08-25)](https://philipperler.net/dr2logger_1_2/)
-- [Executable (Version 1.1, 2019-08-19)](https://philipperler.net/dr2logger_1_1/)
-- [Executable (Version 1.0, 2019-08-17)](https://philipperler.net/dr2logger_1_0/)
 
 ## How to Use ##
 
@@ -40,8 +30,8 @@ This is a free and open-source tool written by Philipp Erler.
             <fanatec enabled="false" pedalVibrationScale="1.0" wheelVibrationScale="1.0" ledTrueForGearsFalseForSpeed="true" />
         </motion_platform>
         ```
-1. Download and unzip dr2logger.zip archive
-1. Run the dr2logger.exe while you play Dirt Rally
+1. Download and unzip the drlogger.zip archive
+1. Run the drlogger.exe while you play Dirt Rally
 1. The logger is set to Dirt Rally 2.0 mode by default. To switch to Dirt Rally 1 enter 'g Dirt_Rally_1' when the logger runs.
 1. After each race, the logger will automatically save the current data
 1. At the start of a race, the logger will delete the old data
@@ -49,63 +39,181 @@ This is a free and open-source tool written by Philipp Erler.
 1. Remarks:
     1. You can edit the settings.ini to change the path for automatic session saves, the ip and port.
     1. Don't save, load or analyze your run while the race is running. Otherwise, data might get lost. Pausing the race is ok.
-    1. This tool will probably work with other racing games by Codemaster, for example Dirt 4 and F1. Those games use the same datastructure for the UDP packages. However, I didn't test it. Other racing games with UDP output, such as Project Cars, will require trivial changes in this tool's networking code.
+    1. This tool will probably work with other racing games by Codemaster, for example Dirt 4 and F1. Those games use the same datastructure for the UDP packages. However, I didn't test it. Other racing games with UDP output, such as Project Cars, will require some changes.
 
 ![dr2logger](img/dr2logger.png)
 
-You should see this amazing command-line window.
+You should see such a command-line window explaining all available commands. You can also see a progress bar during races and messages from commands.
 
-## How to Evaluate ##
+## How to Analyze a Setup ##
 
-Let's see how to use this tool to analyze your car setups. This is an example with the Mitsubishi Lancer Evo VI on a Polish track. We can analyze how the car reacts to the high speeds, mixed road and irregular surface. I'll explain what kind of information you can pull from the plots and how you can improve certain aspects of the setup.
+Let's see how to use this tool to analyze your car setups. This is an example with the Renault 5 Turbo (H3 RWD class) on Noorinbee Ridge Descent, Australia (dry, no events, optimal surface degradation). I chose this pretty crazy combination of a bitchy car on a fast and bumpy track to check the influence of the setup with minimal influence of skill. Driving slow is not an option. So, if I reach the end without major mistakes, it will be a good time. After several attempts I managed to finish with 202.5 seconds with the default setup, which gave me the 41st place in the leaderboard. Improving only the gear setup gave me 202.2 seconds after only few attempts. With all setup changes, I managed to improve my time to 199.6 seconds, which was place 16! Here, I present the plots that helped me tuning and my thoughts.
 
-### Track Information ###
+### Improved Setup ###
 
-![Track info](img/track.png)
+This is the Improved setup for my experiment with the Renault 5 Turbo on Noorinbee Ridge Descent, Australia. All unmentioned options are at default values.
+1. Alignment:
+    1. (Front) Camber Angle = -1.20°
+    1. (Rear) Camber Angle = -1.00°
+1. Gearing:
+    1. 1st Gear = 0.475
+    1. 2nd Gear = 0.576
+    1. 3rd Gear = 0.692
+    1. 4th Gear = 0.822
+    1. 5th Gear = 0.976
+    1. Final Drive = 0.223 (minimum)
+1. Damping:
+    1. All = -2.00
+1. Springs:
+    1. (Front) Ride Height = 10.00 mm
+    1. (Front) Spring Rate = 48.47 N/mm
+    1. (Front) Anti-Roll Bar = 13.50 N/mm
+    1. (Rear) Ride Height = 10.00 mm
+    1. (Rear) Spring Rate = 59.15 N/mm
+    1. (Rear) Anti-Roll Bar = 6.00 N/mm
 
-This plot gives some basic information about the track such as elevation, route and used gear.
+### Gear Utilization ###
 
-### Gears ###
+Default:
+![RPM](img/plots/default/RPM_Histogram_per_Gear_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
 
-![RPM](img/rpm.png)
+Improved:
+![RPM](img/plots/final/RPM_Histogram_per_Gear_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
 
-This plot shows how much time you spent in which gear at which RPM. I spent most time in gear 4 and 5 while the other gears are hardly used. The lower three gears should be set much longer while the higher three gears should be somewhat shorter.
+This plot shows how much time you spent in which gear at which RPM. The predicted optimal RPM range is overlaid with green. 
 
-![RPM](img/speed_rpm.png)
+In the default setup, the first gear was only used at the start and therefore pretty useless. I used the other gears very differently: I used the third and fourth much more than the second gear and fifth gears. This depends on my manual shifting, of course. I tried to shift at the optimal RPM or at least before the RPM meter turns red.
 
-This plot shows the speed at varying RPM. The blue series of points in the lower right corner is the acceleration from the start line. The traction is too low, therefore the wheels are spinning without really pushing the car. The slope of the different point groups varies with the gears. This might be wanted but can also be a hint that the gear ranges are off. The RPM histograms back the hint in this case.
+In my improved setup, I used the gears much more equally. The first gear is a bit special because I tuned it so that I can use it through the sharpest corners. I spent significantly more time in the optimal RPM range and much less time far away from the optimal RPM.
 
-### Wheel Speeds and Differential ###
+A note from my data analysis: There can be too much shifting as each shift costs around 0.1 s where the engine can't transfer power to the wheels. That's in modern cars. Older cars have much longer times.
 
-![Drift](img/drift.png)
+### Speed over RPM ###
 
-In this plot, you can see the forward direction of the car and its movement direction. The more these vectors disagree, the more your car is drifting. The histogram in the middle shows how often you drifted how much while the right histogram shows how fast the drift angle changed. The Evo VI is a rather easy to control car. The histograms tell that the drift angle was mostly below 20 degree. The angular velocity was also mostly below 20 degrees per second and therefore quite controlled. This supports the claim that the car can be controlled with the current setup. 
+Default:
+![RPM](img/plots/default/Speed_over_RPM_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
 
-![Wheel Speed](img/wheel_speed.png)
+Improved:
+![RPM](img/plots/final/Speed_over_RPM_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
 
-This plot shows the wheel speeds. While the topmost graph is about individual wheels, the middle plot compares sides of the car. As an example, one line is the average of the left wheels minus the average of the right wheels. The graph at the bottom shows the inputs, i.e. throttle, brakes and steering. Make sure to use the magnifying glass to zoom into the plots. This plot is rather hard to interpret but you should still be able to find hints of bad setups. The four wheels have approximately the same speed most of the time. Only strong steering accompanied with throttle or brakes make a significant difference. So, the setup is probably ok. This is again a hint that the Evo VI is rather easy to handle. 
+This plot shows the speed at varying RPM. The predicted optimal RPM value is marked with a green bar. 
 
-Let's analyze the 'bubble' in the middle of the upper graph in more detail. Here, the front-left and rear-right wheels were considerably faster than the other wheels. It seems that the differential took action here. While one wheel of each axis accelerated, the other wheel decelerated. Probably, the surface was bumpy here. The decelerated wheels are unfortunately the ones that have contact to the road. Therefore, you might want to set the differential stronger to be faster in such situations. Also, there is a sudden change in steering direction together with sudden full throttle. This weight transfer combined with bumps is not handled nicely by the suspension. The next two plots give more insight into such issues.
+You can again see that I didn't use the first gear after the start anymore with the default setup. Also, the gears couldn't take profit of the full RPM range for all gears. I could not use the 1st and 5th gear in the optimal RPM range. The other gears span the optimal RPM range but overlap to some degree. The improved setup is much more regular and more centered around the optimal RPM.
+
+A note about the 1st gear: The lowest series of blue points is the acceleration from the start. The traction is too low, therefore the wheels are spinning without really pushing the car.
+
+
+### Acceleration over RPM ###
+
+Default:
+![RPM](img/plots/default/Forward_G-Force_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](img/plots/final/Forward_G-Force_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+This plot shows the forward acceleration over RPM. The mean values of the gear samples are marked as crosses. The lines are polynomials of degree 3 fitted into the samples.
+
+In the default setup, you can see rather distinct clusters for the gears, and the polynomials are quite irregular, which indicates that the gears are tuned unequally. In the optimized setup, the clusters are mostly overlapping, and the maxima are almost at the same RPM value, which is assumed to be the optimum. This plot is the basis for the predicted optimum RPM value that is used in other plots.
+
 
 ### Suspension ###
 
-![Suspension](img/suspension.png)
+Default:
+![RPM](img/plots/default/Suspension_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
 
-This plot shows the suspension dislocation of individual wheels and compares sides of the car. A negative dislocation means that the spring is compressed. Quite often, the springs were fully compressed at -100 mm. Since there is no information transmitted from DR2, we can only assume that the bump stops were hit at this dislocation. Hitting the bump stops is very bad for the stability and can cause crashes. If you see such a behavior, you should definitely increase the ride height. If it's already at the limit, you can still stiffen the springs and damping. Better a harder suspension than hitting the bump stops.
+Improved:
+![RPM](img/plots/final/Suspension_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
 
-The lower graph displays the averaged front/back and left/right statistics. You can see that the rear springs are more often fully compressed. Therefore, you should probably stiffen the rear springs or dampers.
+This plot shows the suspension compression of individual wheels. It looks like the default setup is already good because the bump stops are hardly touched. The optimal setting would be probably when the full range of the suspension is used without touching the bump stops. This should maximize the ground contact.
 
-![Rotation vs Suspension](img/rot_vs_susp.png)
+The front springs are less compressed although the rear springs are stiffer, which probably can't counteract the weight of the engine in the rear. The difference between left and right wheels is due to the track with its camber and slanted jumps. My final setup distributes the dislocation a bit broader (note the different y-scale) without notably changing the bump stop times. The front-rear distribution is still unequal, which leaves some space for improvement.
 
-This last plot (for now) compares spring dislocation with car roll and pitch. With a good suspension, the car should be almost unaffected by surface irregularities. However, when the terrain is too rough, e.g. with camber, the car must tilt to the side. Similarly, driving over bumps shouldn't throw the car around but slopes and jumps of course rotate the car around its pitch axis.
+A note about bump-stops: Because DR2 doesn't transmit the extension limits, we can only assume that the bump stops were hit when the same maximum and minimum values appear many times in the data.
 
-The suspension angles are approximated for the width and length of the Audi Quattro S1. So, the absolute values of the suspension rotation graph will be off for other cars. But we care mostly for the relation between both graphs, anyway.
+### Ground Contact ###
 
-In the upper graph with the car rotations, we can see that the lines have much lower frequencies than the middle graph with the suspension angles, as it should be. Looking at the center of the car rotation graph (upper graph), we see that the car rotates quickly backwards because the springs (middle graph) could not compensate the pressure anymore since they were already fully compressed (lower graph). This was probably the landing after a longer jump.
+Default:
+![RPM](img/plots/default/Ground_Contact_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](img/plots/final/Ground_Contact_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+This plot shows the suspension dislocation, suspension velocity and wheel-in-air detection. With my improved setup the wheels where a bit longer in the air, which surprises me a bit. My guess is that the somewhat softer suspension and dampers didn't change much with the critical moments when the wheels were almost leaving the ground. This is currently not detected in this heuristic. Anyway, I was certainly faster due to the (at least subjectively) improved grip, and therefore I was jumping further and longer.
+
+A note about ground-contact estimation: DR2 doesn't explicitly offer this information. I assume wheels to be in the air when the springs extend continuously over a rather long time (> 0.1 seconds) where the dampers lead to a decrease in extension speed. This means that the springs' compression speed is negative with a low variance. Low-friction situations can't be detected with this heuristic.
+
+
+### Bonus: Rotation vs Suspension ###
+
+Default:
+![RPM](img/plots/default/Rotation_vs_Suspension_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](img/plots/final/Rotation_vs_Suspension_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+This plot compares spring dislocation with car roll and pitch. With a good suspension, the car should be less affected by surface irregularities. However, when the terrain is too rough, e.g. with camber, the car must roll to the side. Similarly, driving over bumps shouldn't throw the car around but slopes and jumps of course rotate the car around its pitch axis.
+
+The car rotations have much lower frequencies than the suspension angles, as it should be. With the improved setup, the body rotation is reduced a lot, which improves stability and control. As shown with the increased variance, the suspension absorbs more bumps now than with the default setup.
+
+A note about suspension roll and pitch: The suspension angles are approximated for the width and length of the Audi Quattro S1. Therefore, the absolute values of the suspension rotation graph will be off for other cars. Anyway, the relation between both graphs is still relevant.
+
+
+### Bonus: Track Information ###
+
+Default:
+![RPM](img/plots/default/Map_Basics_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](img/plots/final/Map_Basics_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+This plot gives some basic information about the track such as elevation, route and used gear at each position.
+
+### Bonus: Energy and Power ###
+
+Default:
+![RPM](img/plots/default/Energy_and_Power_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](img/plots/final/Energy_and_Power_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+This plot shows your car's kinetic and potential energy over time. It also shows the derived power output of the engine. The power output is only the change of kinetic velocity and therefore an approximation.
+
+
+### Bonus: Power over RPM ###
+
+Default:
+![RPM](img/plots/default/Power_Output_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](img/plots/final/Power_Output_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+This plot shows the power output (change of kinetic energy) of your car depending on the RPM. In the improved setup, you can see clusters that are more centered around the predicted optimal RPM value.
+
+
+### Bonus: Drift Angles ###
+
+Default:
+![RPM](img/plots/default/Drift_at_2D_positions__-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](img/plots/final/Drift_at_2D_positions__-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+In this plot, you can see the forward direction of the car and its movement direction. The more these vectors disagree, the more your car is drifting. The histogram in the middle shows how often you drifted how much while the right histogram shows how fast the drift angle changed. With the improved setup, I drifted overall with a smaller angle but with faster changes of the drift angles. That is an additional hint that I had better control over my cars.
+
+### Bonus: Wheel Speeds and Differential ###
+
+Default:
+![RPM](img/plots/default/Wheel_Speed_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](img/plots/final/Wheel_Speed_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+This plot shows the wheel speeds. While the top graph is about individual wheels, while the bottom graph shows the inputs (throttle, brakes and steering). Make sure to use the magnifying glass to zoom into the plots. The powered wheels are usually faster than the non-powered wheels. Downward spikes indicate that wheels are blocking when braking while upward spikes indicate freely spinning wheels caused by a lack of grip. With some fantasy, I think that the improved setup creates less strong spikes or at least symmetric ones.
+
 
 ## Raw Data ##
 
-I can only use the information I get from Dirt Rally via UDP. This is Currently:
+I can only use the information I get from Dirt Rally 1 and 2 via UDP. This is Currently:
 
 1. run time (starts after loading screen)
 1. lap time (starts after countdown)
@@ -151,50 +259,56 @@ git clone https://github.com/ErlerPhilipp/dr2_logger.git
 cd dr2_logger
 
 # create a conda environment with the required packages
-conda env create --file dr2logger.yml
+conda env create --file dr2_logger.yml
 
 # activate the new conda environment
-conda activate dr2logger
+conda activate dr2_logger
 
 # run the logger with Python
-python dr2logger.py
+python dr2_logger.py
 ~~~~
 
 To build an executable, run \
-`pyinstaller dr2logger.py`
+`pyinstaller dr2_logger.py`
+
 
 ## Open Issues and Contributing ##
 
-Please, feel free to send pull requests when you have improvements for the code and documentation.
+Please, feel free to open issues and send pull requests when you have ideas for improvements.
 
-So far, I had no idea how to visualize and analyze cornering. Should the car change its direction faster? How much speed is lost in the process? How does e.g. toe and camber angle affect the acceleration and speed on straights? I think, you probably have a good feeling for the required steering and the overall performance can be measured simply with the race time. In contrast, you can hardly have a feeling for optimal gear and suspension setting. So, I focused more on these things. Anyway, if you have suggestions for missing plots, for improving plots and for more derived information, please tell me (in the project forum).
+On the long run, comparing two or more recordings would be great. However, this is not trivial because most plots would need a common registration. Using the run time won't work and using the progress would make time-dependent data hard to understand.
 
-On the long run, comparing two or more recordings would be great. However, this is not trivial because most plots would need a common registration. Using the run time or progress won't work. Using the progress could work but would make time-dependent data hard to understand or even useless.
-
-You may see 'unknown car' or 'unknown track' in your logs. This happens when the internal database is outdated. In this case, please fill in the car names in the 'unknown cars.txt' and 'unknown tracks.txt' that you should find in the dr2logger directory. Then please send the contents of those files to me.
-Due to ambiguous data (exactly the same idle/max RPM and number of gears), the following cars cannot be distinguished:
-- Mitsubishi Lancer Evo VI and BMW M2 Competition
-- Mitsubishi Lancer Evo X and Peugeot 208 T16
+You may see 'unknown car' or 'unknown track' in your logs. This happens when the internal database is outdated. In this case, please fill in the car names in the 'unknown cars.txt' and 'unknown tracks.txt' that you should find in the logger's directory. Then send the contents of those files to me.
+Due to ambiguous data (exactly the same idle/max RPM and number of gears), the following cars in DR2 cannot be distinguished:
 - Lancia Delta S4 RX, non-RX and Peugeot 208 R2
 - Peugeot 205 T16 RX and non-RX
-- Skoda Fabia Rally and Subaru WRX STI RX
-- Renault Megane R.S. RX (2019) and Subaru Impreza WRX STI NR4
-- Peugeot 208 WRX Supercars (2019) and Renault Clio R.S. RX
 - Audi S1 EKS RX Quattro Supercars (2019) and Volkswagen Polo R Supercar
+- Peugeot 208 WRX Supercars (2019) and Renault Clio R.S. RX
+- Renault Megane R.S. RX (2019) and Subaru Impreza WRX STI NR4 and Fiat 131 Abarth Rally 
 - Ford Fiesta RXS Evo 5 and Ford Fiesta RX (Stard)
+- Ford Focus RS Rally 2001 and Seat Ibiza RX
+- Mitsubishi Lancer Evo VI and BMW M2 Competition
+- Mitsubishi Lancer Evo X and Peugeot 208 T16
+- Skoda Fabia Rally and Subaru WRX STI RX
+- Skoda Fabia R5 and Volkswagen Polo GTI R5
+
 
 ## License ##
 
 All parts of this project are published under the permissive [MIT license](./LICENSE). In short, you can do with the code, documentation, images and so on whatever you want. But don't complain if it doesn't work as expected.
 
-If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or link my work. If you find this tool useful, please drop me a message. This would make me feel good :)
+If you share (parts of) this repository, I'd be happy if you mention or link my work. If you find this tool useful, please leave some feedback, e.g. as an issue.
+
 
 ## Change Log ##
 
-- 1.8 (2020-TODO):
+- 1.8 (2020-05-11):
     - Added support for Dirt Rally 1
     - Mayor re-structuring to allow for different games in one logger
     - Added setting for the target game, switch via command 'g Dirt_Rally_1'
+    - Many improvements for plots
+    - Added estimation of optimum RPM
+    - Improved ground-contact detection
 - 1.7 (2020-03-25):
     - Added cars and tracks for the Flat Out Pack
     - Added (experimental) ground-contact detection
@@ -219,6 +333,19 @@ If you share (parts of) the dirt rally 2 logger, I'd be happy if you mention or 
     - Added error handling for sockets.
 - 1.1 (2019-08-19): Improved plots for suspension and rot vs susp.
 - 1.0 (2019-08-17): Initial release.
+
+
+## Older Releases ##
+
+- [Executable (Version 1.7, 2020-03-25)](https://philipperler.net/dr2logger_1_7/)
+- [Executable (Version 1.6, 2019-10-14)](https://philipperler.net/dr2logger_1_6/)
+- [Executable (Version 1.5, 2019-10-01)](https://philipperler.net/dr2logger_1_5/)
+- [Executable (Version 1.4, 2019-09-14)](https://philipperler.net/dr2logger_1_4/)
+- [Executable (Version 1.3, 2019-09-02)](https://philipperler.net/dr2logger_1_3/)
+- [Executable (Version 1.2, 2019-08-25)](https://philipperler.net/dr2logger_1_2/)
+- [Executable (Version 1.1, 2019-08-19)](https://philipperler.net/dr2logger_1_1/)
+- [Executable (Version 1.0, 2019-08-17)](https://philipperler.net/dr2logger_1_0/)
+
 
 ## Related Tools ##
 

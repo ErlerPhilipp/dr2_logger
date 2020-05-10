@@ -10,18 +10,18 @@ car_data = [
     [994.8377075195312, 198.96754455566406, 6.0, 'Opel Corsa Super 1600'],
 
     # RX Group B
-    # [890.1179809570312, 167.55160522460938, 5.0, 'Lancia Delta S4 RX'],  # same as Peugeot 208 R2, non-rx
+    [890.1179809570312, 167.55160522460938, 5.0, 'Lancia Delta S4 RX'],  # same as Peugeot 208 R2 and Lancia Delta S4
     [942.477783203125, 167.55160522460938, 5.0, 'Ford RS200 Evolution'],
-    # [837.758056640625, 209.43951416015625, 5.0, 'Peugeot 205 T16 Evo 2 RX'],  # same as non-rx
+    [837.758056640625, 209.43951416015625, 5.0, 'Peugeot 205 T16 Evo 2 RX'],  # same as non-rx
     [994.8377075195312, 115.19173431396484, 5.0, 'MG Metro 6R4 RX'],
 
     # RX2
     [837.758056640625, 167.55160522460938, 6.0, 'Ford Fiesta OMSE SuperCar Lites'],
 
     # RX Supercars
-    [874.4099731445312, 209.43951416015625, 6.0, 'Volkswagen Polo R Supercar'],
-    [874.4099731445312, 209.43951416015625, 6.0, 'Audi S1 EKS RX quattro'],
-    [837.758056640625, 178.02359008789062, 6.0, 'Peugeot 208 WRX'],
+    [874.4099731445312, 209.43951416015625, 6.0, 'Volkswagen Polo R Supercar'],  # same as Audi S1 EKS RX quattro
+    [874.4099731445312, 209.43951416015625, 6.0, 'Audi S1 EKS RX Quattro'],  # same as Volkswagen Polo R Supercar
+    [837.758056640625, 178.02359008789062, 6.0, 'Peugeot 208 WRX'],  # same as Renault Clio R.S. RX
     [816.81414794921875, 172.78759765625, 5.0, 'Renault Megane RS'],
     [811.578125, 188.49555969238281, 6.0, 'Ford Fiesta RX (MK8)'],
     [785.398193359375, 172.78759765625, 6.0, 'Ford Fiesta RX (MK7)'],
@@ -29,8 +29,8 @@ car_data = [
 
     # RX Supercars 2019
     [837.758056640625, 178.02359008789062, 5.0, 'Renault Megane R.S. RX'],  # same as Subaru Impreza WRX STI NR4
-    [837.758056640625, 178.02359008789062, 6.0, 'Peugeot 208 WRX'],  # same as Peugeot 208 WRX
-    [874.4099731445312, 209.43951416015625, 6.0, 'Audi S1 EKS RX Quattro'],  # same as Audi S1 EKS RX quattro
+    [837.758056640625, 178.02359008789062, 6.0, 'Peugeot 208 WRX'],  # same as Renault Clio R.S. RX
+    [874.4099731445312, 209.43951416015625, 6.0, 'Audi S1 EKS RX Quattro'],  # same as Volkswagen Polo R Supercar
     [837.758056640625, 178.02359008789062, 6.0, 'Renault Clio R.S. RX'],  # same as Peugeot 208 WRX
     [837.758056640625, 188.49555969238281, 6.0, 'Ford Fiesta RXS Evo 5'],  # same as Ford Fiesta RX (Stard)
     [811.578125, 188.49555969238281, 6.0, 'Ford Fiesta RX (MK8)'],  # same as Ford Fiesta RX (MK8)
@@ -50,16 +50,16 @@ car_data = [
     # H2 RWD
     [994.8377075195312, 125.66371154785156, 5.0, 'Ford Escort Mk II'],
     [837.758056640625, 167.55160522460938, 5.0, 'Renault Alpine A110 1600 S'],
-    [837.758056640625, 178.02359008789062, 5.0, 'Fiat 131 Abarth Rally'],
+    [837.758056640625, 178.02359008789062, 5.0, 'Fiat 131 Abarth Rally'],  # same as Renault Megane R.S. RX
     [942.477783203125, 157.07963562011719, 5.0, 'Opel Kadett C GT/E'],
 
     # H3 RWD
-    [932.005859375, 115.19173431396484,     6.0, 'BMW E30 Evo Rally'],
-    [785.398193359375, 136.13568115234375,  5.0, 'Opel Ascona 400'],
+    [932.005859375, 115.19173431396484, 6.0, 'BMW E30 Evo Rally'],
+    [785.398193359375, 136.13568115234375, 5.0, 'Opel Ascona 400'],
     [890.1179809570312, 104.71975708007812, 5.0, 'Lancia Stratos'],
-    [837.758056640625, 151.84365844726562,  5.0, 'Renault 5 Turbo'],
-    [779.7432861328125, 80.42477416992188,  5.0, 'Datsun 240Z'],
-    [785.398193359375, 115.19173431396484,  5.0, 'Ford Sierra Cosworth RS500'],
+    [837.758056640625, 151.84365844726562, 5.0, 'Renault 5 Turbo'],
+    [779.7432861328125, 80.42477416992188, 5.0, 'Datsun 240Z'],
+    [785.398193359375, 115.19173431396484, 5.0, 'Ford Sierra Cosworth RS500'],
 
     # F2 Kit Car
     [1151.9173583984375, 198.96754455566406, 6.0, 'Peugeot 306 Maxi'],
@@ -85,10 +85,10 @@ car_data = [
     [890.1179809570312, 167.55160522460938, 5.0, 'Peugeot 208 R2'],  # same as Lancia Delta S4
 
     # Group A
-    [733.03826904296875, 146.607666015625,  6.0, 'Mitsubishi Lancer Evo VI'],  # same as BMW M2 Competition
+    [733.03826904296875, 146.607666015625, 6.0, 'Mitsubishi Lancer Evo VI'],  # same as BMW M2 Competition
     [733.03826904296875, 115.19173431396484, 6.0, 'Subaru Impreza 1995'],
-    [785.398193359375, 104.71975708007812,  6.0, 'Lancia Delta HF Integrale'],
-    [733.03826904296875, 146.607666015625,  7.0, 'Ford Escort RS Cosworth'],
+    [785.398193359375, 104.71975708007812, 6.0, 'Lancia Delta HF Integrale'],
+    [733.03826904296875, 146.607666015625, 7.0, 'Ford Escort RS Cosworth'],
     [791.1577758789062, 202.4232940673828, 6.0, 'Subaru Legacy RS'],
 
     # NR4/R4
@@ -101,24 +101,24 @@ car_data = [
     [769.69024658203125, 186.92477416992188, 5.0, 'Ford Focus RS Rally 2007'],
     [785.398193359375, 219.91148376464844, 6.0, 'Subaru Impreza 2008'],
     [785.398193359375, 178.02359008789062, 6.0, 'Ford Focus RS Rally 2001'],  # same as Seat Ibiza RX
-    [837.758056640625, 204.2035369873047,  6.0, 'Subaru Impreza 2001'],
-    [680.678466796875, 157.0796356201172,  5.0, 'Peugeot 206 Rally'],
+    [837.758056640625, 204.2035369873047, 6.0, 'Subaru Impreza 2001'],
+    [680.678466796875, 157.0796356201172, 5.0, 'Peugeot 206 Rally'],
     [816.8141479492188, 207.34512329101562, 6.0, 'Subaru Impreza S4 Rally'],
 
     # R5
     [774.92620849609375, 188.49555969238281, 5.0, 'Ford Fiesta R5'],
-    [785.398193359375, 178.02359008789062,  5.0, 'Peugeot 208 T16'],  # same as Mitsubishi Lancer Evolution X
-    [837.758056640625, 219.91148376464844,  5.0, 'Mitsubishi Space Star R5'],
+    [785.398193359375, 178.02359008789062, 5.0, 'Peugeot 208 T16'],  # same as Mitsubishi Lancer Evolution X
+    [837.758056640625, 219.91148376464844, 5.0, 'Mitsubishi Space Star R5'],
     [774.92620849609375, 178.02359008789062, 5.0, 'Skoda Fabia R5'],  # same as Volkswagen Polo GTI R5
     [774.92620849609375, 178.02359008789062, 5.0, 'Volkswagen Polo GTI R5'],  # same as Skoda Fabia R5
     [743.51031494140625, 185.87757873535156, 5.0, 'Citroen C3 R5'],
 
     # Rally GT
-    [942.477783203125, 188.4955596923828,  6.0, 'Porsche 911 RGT Rally Spec'],
-    [733.03826904296875, 146.607666015625,  6.0, 'BMW M2 Competition'],  # Mitsubishi Lancer Evo VI
+    [942.477783203125, 188.4955596923828, 6.0, 'Porsche 911 RGT Rally Spec'],
+    [733.03826904296875, 146.607666015625, 6.0, 'BMW M2 Competition'],  # Mitsubishi Lancer Evo VI
     [759.21820068359375, 178.02359008789062, 6.0, 'Chevrolet Camaro GT4.R'],
     [733.03826904296875, 104.71975708007812, 6.0, 'Aston Martin V8 Vantage GT4'],
-    [863.9380493164062, 146.607666015625,  6.0, 'Ford Mustang GT4 Ford RS200'],
+    [863.9380493164062, 146.607666015625, 6.0, 'Ford Mustang GT4 Ford RS200'],
 ]
 
 car_dict = dict()
