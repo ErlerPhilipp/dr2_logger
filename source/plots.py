@@ -5,6 +5,7 @@ import matplotlib
 matplotlib.use('qt5agg')  # MUST BE CALLED BEFORE IMPORTING plt
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy  # don't remove this or pyinstaller may fail to include this
 from scipy.stats import binned_statistic
 
 from source import plot_data as pd

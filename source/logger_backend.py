@@ -24,9 +24,12 @@ class LoggerBackend:
         self.debugging = debugging
         self.log_raw_data = log_raw_data
 
-        self.game_name = settings.settings['general']['game']
+        self.game_name = None
         self.game = None
-        self.change_game(settings.settings['general']['game'])
+        if 'game' not in settings.settings['general']:
+            self.change_game(None)
+        else:
+            self.change_game(settings.settings['general']['game'])
 
         self.session_collection = np.zeros((self.game.get_num_fields(), 0))
         self.first_sample = np.zeros((self.game.get_num_fields(),))
@@ -57,8 +60,9 @@ class LoggerBackend:
         # elif game_name == 'Project Cars 2':
         #     self.game = GameProjectCars2()
         else:
-            print("Invalid game name in settings: {}, reverting to '{}'".format(
-                new_game_name, GameDirtRally.valid_game_name_dr2))
+            if new_game_name is not None:
+                print("Invalid game name in settings: {}, reverting to '{}'".format(
+                    new_game_name, GameDirtRally.valid_game_name_dr2))
             settings.init_settings_game(GameDirtRally.valid_game_name_dr2)
             settings.write_settings()
             self.change_game(GameDirtRally.valid_game_name_dr2)
