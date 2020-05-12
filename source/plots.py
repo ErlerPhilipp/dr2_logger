@@ -184,13 +184,14 @@ def scatter_plot(ax: plt.axes, x_points: List, y_points: List, title: str, label
 
     if plot_polynomial:
         for i in range(len(x_points)):
-            x_min = np.min(x_points[i])
-            x_max = np.max(x_points[i])
-            poly_coefficients = np.polyfit(x_points[i], y_points[i], 3)
-            poly = np.poly1d(poly_coefficients)
-            x_poly = np.linspace(x_min, x_max, 500)
-            y_poly = poly(x_poly)
-            ax.plot(x_poly, y_poly, '-', c=colors[i])
+            if x_points[i].shape[0] > 0:
+                x_min = np.min(x_points[i])
+                x_max = np.max(x_points[i])
+                poly_coefficients = np.polyfit(x_points[i], y_points[i], 3)
+                poly = np.poly1d(poly_coefficients)
+                x_poly = np.linspace(x_min, x_max, 500)
+                y_poly = poly(x_poly)
+                ax.plot(x_poly, y_poly, '-', c=colors[i])
 
 
 def line_plot(ax, x_points, y_points, title, labels, alpha, x_label, y_label, colors=None,
@@ -333,8 +334,8 @@ def plot_gear_over_3d_pos(ax, plot_data: pd.PlotData):
 
 def plot_gear_over_2d_pos(ax, plot_data: pd.PlotData):
 
-    gear = plot_data.gear
-    range_gears = np.unique(gear)
+    range_gears = np.unique(plot_data.gear)
+    range_gears = np.sort(range_gears)
 
     labels = ['Gear {}'.format(str(g)) for g in range_gears]
     lines_x = []
@@ -351,8 +352,8 @@ def plot_gear_over_2d_pos(ax, plot_data: pd.PlotData):
 def plot_energy_over_2d_pos(ax, plot_data: pd.PlotData):
 
     scale_factor = 100.0
-    gear = plot_data.gear
-    range_gears = np.unique(gear)
+    range_gears = np.unique(plot_data.gear)
+    range_gears = np.sort(range_gears)
 
     energy, kinetic_energy, potential_energy = data_processing.get_energy(plot_data=plot_data)
     energy_truncated = energy - np.min(energy)
@@ -376,12 +377,11 @@ def gear_rpm_bars(ax, plot_data: pd.PlotData):
 
     time_differences = data_processing.differences(plot_data.run_time, True)
     rpm = plot_data.rpm
-    data_gear = plot_data.gear
-    range_gears = list(set(data_gear))
-    range_gears.sort()
+    range_gears = np.unique(plot_data.gear)
+    range_gears = np.sort(range_gears)
 
     total_time = time_differences.sum()
-    gear_ids = [data_gear == gear for gear in range_gears]
+    gear_ids = [plot_data.gear == gear for gear in range_gears]
     gear_times = [time_differences[g] for g in gear_ids]
     gear_rpms = [rpm[g] for g in gear_ids]
     gear_time_sums = [gt.sum() for gt in gear_times]
@@ -622,9 +622,9 @@ def plot_height_over_dist(ax, plot_data: pd.PlotData):
 
 def plot_g_over_rpm(ax: matplotlib.axes, plot_data: pd.PlotData):
 
-    data_gear = plot_data.gear
-    range_gears = list(set(data_gear))
-    range_gears.sort()
+    range_gears = np.unique(plot_data.gear)
+    range_gears = np.sort(range_gears)
+    range_gears = range_gears[range_gears > 0.0]
 
     labels = ['Gear {}'.format(str(g)) for g in range_gears]
     scale = 50.0
@@ -636,7 +636,7 @@ def plot_g_over_rpm(ax: matplotlib.axes, plot_data: pd.PlotData):
     x_points = []
     y_points = []
     scales = []
-    for i, g in enumerate(range_gears):
+    for g in range_gears:
         current_gear = plot_data.gear == g
         not_close_to_gear_changes = np.logical_not(
             data_processing.get_gear_shift_mask(plot_data=plot_data, shift_time_ms=100.0))
@@ -660,9 +660,9 @@ def plot_g_over_rpm(ax: matplotlib.axes, plot_data: pd.PlotData):
 
 def plot_p_over_rpm(ax, plot_data: pd.PlotData):
 
-    data_gear = plot_data.gear
-    range_gears = list(set(data_gear))
-    range_gears.sort()
+    range_gears = np.unique(plot_data.gear)
+    range_gears = np.sort(range_gears)
+    range_gears = range_gears[range_gears > 0.0]
 
     labels = ['Gear {}'.format(str(g)) for g in range_gears]
     scale = 50.0
@@ -694,9 +694,9 @@ def plot_p_over_rpm(ax, plot_data: pd.PlotData):
 
 def plot_p_over_vel(ax, plot_data: pd.PlotData):
 
-    data_gear = plot_data.gear
-    range_gears = list(set(data_gear))
-    range_gears.sort()
+    range_gears = np.unique(plot_data.gear)
+    range_gears = np.sort(range_gears)
+    range_gears = range_gears[range_gears > 0.0]
 
     labels = ['Gear {}'.format(str(g)) for g in range_gears]
     scale = 50.0
@@ -727,9 +727,9 @@ def plot_p_over_vel(ax, plot_data: pd.PlotData):
 
 def plot_g_over_throttle(ax, plot_data: pd.PlotData):
 
-    data_gear = plot_data.gear
-    range_gears = list(set(data_gear))
-    range_gears.sort()
+    range_gears = np.unique(plot_data.gear)
+    range_gears = np.sort(range_gears)
+    range_gears = range_gears[range_gears > 0.0]
 
     labels = ['Gear {}'.format(str(g)) for g in range_gears]
     colors = [static_colors[i] for i, g in enumerate(range_gears)]
@@ -738,7 +738,7 @@ def plot_g_over_throttle(ax, plot_data: pd.PlotData):
 
     x_points = []
     y_points = []
-    for i, g in enumerate(range_gears):
+    for g in range_gears:
         current_gear = plot_data.gear == g
 
         throttle = plot_data.throttle[current_gear]
@@ -753,9 +753,9 @@ def plot_g_over_throttle(ax, plot_data: pd.PlotData):
 
 def plot_v_over_rpm(ax, plot_data: pd.PlotData):
 
-    data_gear = plot_data.gear
-    range_gears = list(set(data_gear))
-    range_gears.sort()
+    range_gears = np.unique(plot_data.gear)
+    range_gears = np.sort(range_gears)
+    range_gears = range_gears[range_gears > 0.0]
     not_close_to_gear_changes = np.logical_not(
         data_processing.get_gear_shift_mask(plot_data=plot_data, shift_time_ms=100.0))
 

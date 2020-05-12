@@ -109,7 +109,6 @@ def receive(udp_socket):
         time.sleep(0.01)
         debugging_counter += 1
         return debug_data[:, debugging_counter], None
-        #return np.random.rand(num_fields), None
 
     if udp_socket is None:
         return None, None

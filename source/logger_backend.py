@@ -82,8 +82,8 @@ class LoggerBackend:
                                      settings.settings['general']['ip_out'],
                                      int(settings.settings['general']['port_out']))
 
-    def save_run_data(self, data, automatic_name=False):
-        if data is None or len(data) == 0:
+    def save_run_data(self, data: np.ndarray, automatic_name=False):
+        if data is None or data.shape[1] == 0:
             print('Nothing to save!')
             return
 
@@ -101,10 +101,10 @@ class LoggerBackend:
             os.makedirs(settings.settings['general']['session_path'], exist_ok=True)
 
         # assemble default name
-        last_sample = self.session_collection[:, -1]
+        last_sample = data[:, -1]
         car_name = self.game.get_car_name(last_sample)
         track_name = self.game.get_track_name(last_sample)
-        race_time = self.game.get_race_duration(self.session_collection)
+        race_time = self.game.get_race_duration(data)
         total_race_time = '{:.1f}'.format(race_time)
         now = datetime.now()
         now_str = now.strftime('%Y-%m-%d %H_%M_%S')
@@ -234,20 +234,20 @@ class LoggerBackend:
         car_name = self.game.get_car_name(self.session_collection[:, -1])
         track_name = self.game.get_track_name(self.session_collection[:, -1])
 
-        try:
+        if self.debugging:
             plots.plot_main(
                 plot_data=plot_data, car_name=car_name, track_name=track_name, additional_plots=additional_plots)
-        except Exception:
-            print('Error during plot: {}'.format(sys.exc_info()))
-            print(traceback.format_exc())
-            print('Error was caught, logger is still running...')
+        else:
+            try:
+                plots.plot_main(
+                    plot_data=plot_data, car_name=car_name, track_name=track_name, additional_plots=additional_plots)
+            except Exception:
+                print('Error during plot: {}'.format(sys.exc_info()))
+                print(traceback.format_exc())
+                print('Error was caught, logger is still running...')
 
     def check_state_changes(self):
         message = []
-
-        # simply ignore state changes through duplicates
-        if self.new_state == GameState.ignore_package:
-            self.new_state = self.last_state
 
         if self.debugging and self.last_state != self.new_state:
             message += ['State changed from {} to {}'.format(self.last_state, self.new_state)]
@@ -257,6 +257,10 @@ class LoggerBackend:
             game_state_str = self.get_game_state_str()
             sys.stdout.write('\r' + game_state_str),
             sys.stdout.flush()
+
+        # simply ignore state changes through duplicates
+        if self.new_state == GameState.ignore_package:
+            self.new_state = self.last_state
 
         if self.last_state == GameState.race_running and \
                 self.new_state == GameState.race_not_running:
