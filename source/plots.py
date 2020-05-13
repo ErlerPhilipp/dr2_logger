@@ -106,7 +106,7 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
         fig, ax = plt.subplots(3, 1, sharex='all')
         fig.canvas.set_window_title('Ground Contact' + title_post_fix)
         ground_contact_over_time(ax[0], plot_data)
-        suspension_l_r_f_r_over_time(ax[1], plot_data)
+        suspension_over_time(ax[1], plot_data)
         suspension_vel_over_time(ax[2], plot_data)
 
         # TODO: find maximum turn rate over velocity, depending on full steering, ground contact
@@ -426,7 +426,7 @@ def power_over_time(ax, plot_data: pd.PlotData):
     power_data_mean = [np.mean(d) for d in power_data]
 
     labels = ['Power at full throttle (kW)', 'Power otherwise (kW)']
-    labels = [l + ', variance: {:.1f}'.format(power_data_mean[li]) for li, l in enumerate(labels)]
+    labels = [l + ', mean: {:.1f}'.format(power_data_mean[li]) for li, l in enumerate(labels)]
     y_points = power_data
     x_points = np.array([race_time] * y_points.shape[0])
 
@@ -456,10 +456,10 @@ def suspension_over_time(ax, plot_data: pd.PlotData):
     susp_rl = plot_data.susp_rl
     susp_rr = plot_data.susp_rr
     susp_data = np.array([susp_fl, susp_fr, susp_rl, susp_rr])
-    susp_data_var = [np.var(d) for d in susp_data]
+    susp_data_stdev = [np.sqrt(np.var(d)) for d in susp_data]
 
     labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
-    labels = [l + ', variance: {:.1f}'.format(susp_data_var[li]) for li, l in enumerate(labels)]
+    labels = [l + ', stdev: {:.1f}'.format(susp_data_stdev[li]) for li, l in enumerate(labels)]
     y_points = susp_data
     x_points = np.array([race_time] * y_points.shape[0])
 
@@ -477,10 +477,10 @@ def suspension_lr_fr_over_time(ax, plot_data: pd.PlotData):
     susp_left_right = (susp_fl + susp_rl) * 0.5 - (susp_fr + susp_rr) * 0.5
     susp_front_rear = (susp_fl + susp_fr) * 0.5 - (susp_rl + susp_rr) * 0.5
     susp_data = np.array([susp_left_right, susp_front_rear])
-    susp_data_var = [np.var(d) for d in susp_data]
+    susp_data_stdev = [np.sqrt(np.var(d)) for d in susp_data]
 
     labels = ['Left-right', 'Front-rear']
-    labels = [l + ', variance: {:.1f}'.format(susp_data_var[li]) for li, l in enumerate(labels)]
+    labels = [l + ', stdev: {:.1f}'.format(susp_data_stdev[li]) for li, l in enumerate(labels)]
     x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
@@ -501,10 +501,10 @@ def suspension_l_r_f_r_over_time(ax, plot_data: pd.PlotData):
     susp_front = (susp_fl + susp_fr) * 0.5
     susp_rear = (susp_rl + susp_rr) * 0.5
     susp_data = np.array([susp_left, susp_right, susp_front, susp_rear])
-    susp_data_var = [np.var(d) for d in susp_data]
+    susp_data_stdev = [np.sqrt(np.var(d)) for d in susp_data]
 
     labels = ['Left', 'Right', 'Front', 'Rear']
-    labels = [l + ', variance: {:.1f}'.format(susp_data_var[li]) for li, l in enumerate(labels)]
+    labels = [l + ', stdev: {:.1f}'.format(susp_data_stdev[li]) for li, l in enumerate(labels)]
     x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
@@ -523,10 +523,10 @@ def suspension_vel_derived_l_r_f_r_over_time(ax, plot_data: pd.PlotData):
     susp_data = [susp_fl, susp_fr, susp_rl, susp_rr]
     susp_data = [data_processing.derive_no_nan(susp, race_time) for susp in susp_data]
     susp_data = np.array(susp_data)
-    susp_data_var = [np.var(d) for d in susp_data]
+    susp_data_stdev = [np.sqrt(np.var(d)) for d in susp_data]
 
     labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
-    labels = [l + ', variance: {:.1f}'.format(susp_data_var[li]) for li, l in enumerate(labels)]
+    labels = [l + ', stdev: {:.1f}'.format(susp_data_stdev[li]) for li, l in enumerate(labels)]
     x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
@@ -552,10 +552,10 @@ def suspension_vel_der_diff_l_r_f_r_over_time(ax, plot_data: pd.PlotData):
     susp_vel = [susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr]
 
     susp_data = np.array(susp_data) - np.array(susp_vel)
-    susp_data_var = [np.var(d) for d in susp_data]
+    susp_data_stdev = [np.sqrt(np.var(d)) for d in susp_data]
 
     labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
-    labels = [l + ', variance: {:.1f}'.format(susp_data_var[li]) for li, l in enumerate(labels)]
+    labels = [l + ', stdev: {:.1f}'.format(susp_data_stdev[li]) for li, l in enumerate(labels)]
     x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
@@ -863,10 +863,10 @@ def suspension_vel_over_time(ax, plot_data: pd.PlotData):
     susp_vel_rr = plot_data.susp_vel_rr
 
     susp_data = np.array([susp_vel_fl, susp_vel_fr, susp_vel_rl, susp_vel_rr])
-    susp_data_var = [np.var(d) for d in susp_data]
+    susp_data_stdev = [np.sqrt(np.var(d)) for d in susp_data]
 
     labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
-    labels = [l + ', variance: {:.1f}'.format(susp_data_var[li]) for li, l in enumerate(labels)]
+    labels = [l + ', stdev: {:.1f}'.format(susp_data_stdev[li]) for li, l in enumerate(labels)]
     x_points = np.array([race_time] * len(susp_data))
     y_points = np.array(susp_data)
 
@@ -889,7 +889,7 @@ def slip_over_time(ax, plot_data: pd.PlotData):
     wsp_data_var = [np.var(d) for d in wsp_data]
 
     labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
-    labels = [l + ', variance: {:.1f}'.format(wsp_data_var[li]) for li, l in enumerate(labels)]
+    labels = [l + ', stdev: {:.1f}'.format(wsp_data_var[li]) for li, l in enumerate(labels)]
     x_points = np.array([race_time] * len(wsp_data))
     y_points = np.array(wsp_data)
 
@@ -1055,16 +1055,14 @@ def rotation_over_time(ax, plot_data: pd.PlotData):
         dirs_angle_deg = np.rad2deg(dirs_angle)
         return dirs_angle_deg
 
-    sideward_angle_deg = get_vertical_angle_dislocation(sideward_local_xyz)
-    forward_angle_deg = get_vertical_angle_dislocation(forward_local_xyz)
+    directions = [forward_local_xyz, sideward_local_xyz]
+    angle_deg = [get_vertical_angle_dislocation(d) for d in directions]
+    angle_deg_stdev = [np.sqrt(np.var(a)) for a in angle_deg]
 
-    sideward_angle_deg_var = np.var(sideward_angle_deg)
-    forward_angle_deg_var = np.var(forward_angle_deg)
-
-    labels = ['Sidewards, variance: {:.1f}'.format(sideward_angle_deg_var),
-              'Forward, variance: {:.1f}'.format(forward_angle_deg_var)]
+    labels = ['Sidewards, stdev: {:.1f}'.format(angle_deg_stdev[0]),
+              'Forward, stdev: {:.1f}'.format(angle_deg_stdev[1])]
     x_points = np.array([race_time] * len(labels))
-    y_points = np.array([sideward_angle_deg, forward_angle_deg])
+    y_points = np.array(angle_deg)
 
     line_plot(ax, x_points=x_points, y_points=y_points,
               title='Rotation Angles over Time',
@@ -1092,11 +1090,11 @@ def suspension_lr_fr_angles_over_time(ax, plot_data: pd.PlotData):
 
     angle_data = np.array([-angle_left_right, -angle_front_rear])
 
-    sidewards_angle_deg_var = np.var(angle_left_right)
-    forward_angle_deg_var = np.var(angle_front_rear)
+    sidewards_angle_deg_stdev = np.sqrt(np.var(angle_left_right))
+    forward_angle_deg_stdev = np.sqrt(np.var(angle_front_rear))
 
-    labels = ['Sidewards, variance: {:.3f}'.format(sidewards_angle_deg_var),
-              'Forward, variance: {:.3f}'.format(forward_angle_deg_var)]
+    labels = ['Sidewards, stdev: {:.3f}'.format(sidewards_angle_deg_stdev),
+              'Forward, stdev: {:.3f}'.format(forward_angle_deg_stdev)]
     x_points = np.array([race_time] * len(angle_data))
     y_points = np.array(angle_data)
 
