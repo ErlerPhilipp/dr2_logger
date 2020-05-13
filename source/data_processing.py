@@ -212,12 +212,12 @@ def get_full_acceleration_mask(plot_data: pd.PlotData):
     # take only times without a lot of drifting
     no_drift = np.abs(get_drift_angle(plot_data=plot_data)) <= 5.0  # degree
 
-    # # take only times without a lot of slip
-    # car_vel = plot_data.speed_ms
-    # no_slip_fl = np.abs(plot_data.wsp_fl - car_vel) <= 5.0
-    # no_slip_fr = np.abs(plot_data.wsp_fr - car_vel) <= 5.0
-    # no_slip_rl = np.abs(plot_data.wsp_rl - car_vel) <= 5.0
-    # no_slip_rr = np.abs(plot_data.wsp_rr - car_vel) <= 5.0
+    # take only times without a lot of slip
+    car_vel = plot_data.speed_ms
+    no_slip_fl = np.abs(plot_data.wsp_fl - car_vel) <= 5.0
+    no_slip_fr = np.abs(plot_data.wsp_fr - car_vel) <= 5.0
+    no_slip_rl = np.abs(plot_data.wsp_rl - car_vel) <= 5.0
+    no_slip_rr = np.abs(plot_data.wsp_rr - car_vel) <= 5.0
 
     # # take only mostly flat parts of the track
     # small_susp_vel_fl = np.abs(plot_data.susp_vel_fl) <= 0.01
@@ -232,7 +232,7 @@ def get_full_acceleration_mask(plot_data: pd.PlotData):
         full_throttle, no_brakes, no_clutch,
         forward_gear, not_close_to_gear_changes,
         no_drift,
-        # no_slip_fl, no_slip_fr, no_slip_rl, no_slip_rr,
+        no_slip_fl, no_slip_fr, no_slip_rl, no_slip_rr,
         # small_susp_vel_fl, small_susp_vel_fr, small_susp_vel_rl, small_susp_vel_rr,
     ))
 
