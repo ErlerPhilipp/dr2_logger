@@ -153,8 +153,8 @@ def get_optimal_rpm(plot_data: pd.PlotData):
     full_acceleration_mask = get_full_acceleration_mask(plot_data=plot_data)
     # energy, kinetic_energy, potential_energy = get_energy(plot_data=plot_data)
 
-    optimal_acc_per_gear = []
-    optimal_rpm_per_gear = []
+    optimal_y_per_gear = []
+    optimal_x_per_gear = []
     optimal_rpm_range_min_per_gear = []
     optimal_rpm_range_max_per_gear = []
     data_gear = plot_data.gear
@@ -166,34 +166,37 @@ def get_optimal_rpm(plot_data: pd.PlotData):
         not_close_to_gear_changes = np.logical_not(get_gear_shift_mask(plot_data=plot_data, shift_time_ms=100.0))
         full_in_current_gear = np.logical_and(not_close_to_gear_changes, current_gear)
         interesting = np.logical_and(full_in_current_gear, full_acceleration_mask)
-        acc_gear = plot_data.g_force_lon[interesting]
+        # acc_gear = plot_data.g_force_lon[interesting]  # optimal RPM prediction is noisy with acceleration
+        vel_gear = plot_data.speed_ms[interesting]
         # acc_gear = kinetic_energy[interesting]
         rpm_gear = plot_data.rpm[interesting]
 
         rpm_min = np.min(rpm_gear)
         rpm_max = np.max(rpm_gear)
-        poly_coefficients = np.polyfit(rpm_gear, acc_gear, 3)
+        # poly_coefficients = np.polyfit(rpm_gear, acc_gear, 3)
+        poly_coefficients = np.polyfit(rpm_gear, vel_gear, 3)
         poly = np.poly1d(poly_coefficients)
-        rpm_poly = np.linspace(rpm_min, rpm_max, 500)
-        acc_poly = poly(rpm_poly)
-        optimal_acc_per_gear.append(np.max(acc_poly))
-        optimal_rpm_per_gear.append(rpm_poly[np.argmax(acc_poly)])
+        poly_derived = np.polyder(poly)
+        x_poly = np.linspace(rpm_min, rpm_max, 500)
+        y_poly = poly_derived(x_poly)
+        optimal_y_per_gear.append(np.max(y_poly))
+        optimal_x_per_gear.append(x_poly[np.argmax(y_poly)])
 
-        acc_90_percentile = np.percentile(acc_poly, 90, interpolation='nearest')
-        acc_90_percentile_mask = acc_poly > acc_90_percentile
-        optimal_rpm_min_gear = np.min(rpm_poly[acc_90_percentile_mask])
-        optimal_rpm_max_gear = np.max(rpm_poly[acc_90_percentile_mask])
+        y_90_percentile = np.percentile(y_poly, 90, interpolation='nearest')
+        y_90_percentile_mask = y_poly > y_90_percentile
+        optimal_rpm_min_gear = np.min(x_poly[y_90_percentile_mask])
+        optimal_rpm_max_gear = np.max(x_poly[y_90_percentile_mask])
         optimal_rpm_range_min_per_gear.append(optimal_rpm_min_gear)
         optimal_rpm_range_max_per_gear.append(optimal_rpm_max_gear)
 
-    # optimal_acc_per_gear = np.array(optimal_acc_per_gear)
-    optimal_rpm_per_gear = np.array(optimal_rpm_per_gear)
+    # optimal_y_per_gear = np.array(optimal_y_per_gear)
+    optimal_x_per_gear = np.array(optimal_x_per_gear)
     optimal_rpm_range_min_per_gear = np.array(optimal_rpm_range_min_per_gear)
     optimal_rpm_range_max_per_gear = np.array(optimal_rpm_range_max_per_gear)
 
-    optimal_rpm = np.percentile(optimal_rpm_per_gear, 50, interpolation='nearest')
-    gear_at_optimal_rpm = np.argwhere(optimal_rpm_per_gear == optimal_rpm)
-    optimal_rpm = optimal_rpm_per_gear[gear_at_optimal_rpm]
+    optimal_rpm = np.percentile(optimal_x_per_gear, 50, interpolation='nearest')
+    gear_at_optimal_rpm = np.argwhere(optimal_x_per_gear == optimal_rpm)
+    optimal_rpm = optimal_x_per_gear[gear_at_optimal_rpm]
     optimal_rpm_range_min = optimal_rpm_range_min_per_gear[gear_at_optimal_rpm]
     optimal_rpm_range_max = optimal_rpm_range_max_per_gear[gear_at_optimal_rpm]
 

@@ -65,11 +65,12 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
             plot_p_over_rpm(ax, plot_data)
             # plot_p_over_vel(ax[1], plot_data)
 
-        # the benefits of this plot are unclear. the idea is to see the max turning rate.
-        fig, ax = plt.subplots(1, 1)
-        fig.canvas.set_window_title('Forward G-Force' + title_post_fix)
-        plot_g_over_rpm(ax, plot_data)
-        # plot_g_over_throttle(ax[1], plot_data)
+        if additional_plots:
+            # the benefits of this plot are unclear. the idea is to see the max turning rate.
+            fig, ax = plt.subplots(1, 1)
+            fig.canvas.set_window_title('Forward G-Force' + title_post_fix)
+            plot_g_over_rpm(ax, plot_data)
+            # plot_g_over_throttle(ax[1], plot_data)
 
         if additional_plots:
             # see the typical drift angle.

@@ -100,24 +100,9 @@ Default:
 Improved:
 ![RPM](img/plots/final/Speed_over_RPM_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
 
-This plot shows the speed at varying RPM. The predicted optimal RPM value is marked with a green bar. 
+This plot shows the speed at varying RPM. The predicted optimal RPM value is marked with a green bar. The mean values of the gear samples are marked as crosses. The lines are polynomials of degree 3 fitted into the samples. The optimal RPM is the median of their derivatives' maxima.
 
 You can again see that I didn't use the first gear after the start anymore with the default setup. Also, the gears couldn't take profit of the full RPM range for all gears. I could not use the 1st and 5th gear in the optimal RPM range. The other gears span the optimal RPM range but overlap to some degree. The improved setup is much more regular and more centered around the optimal RPM.
-
-A note on the 1st gear: The lowest series of blue points is the acceleration from the start. The traction is too low, therefore the wheels are spinning without really pushing the car.
-
-
-### Acceleration over RPM ###
-
-Default:
-![RPM](img/plots/default/Forward_G-Force_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
-
-Improved:
-![RPM](img/plots/final/Forward_G-Force_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
-
-This plot shows the forward acceleration over RPM. The mean values of the gear samples are marked as crosses. The lines are polynomials of degree 3 fitted into the samples.
-
-In the default setup, you can see rather distinct clusters for the gears, and the polynomials are quite irregular, which indicates that the gears are tuned unequally. In the optimized setup, the clusters are mostly overlapping, and the maxima are almost at the same RPM value, which is assumed to be the optimum. This plot is the basis for the predicted optimum RPM value that is used in other plots.
 
 
 ### Suspension ###
@@ -194,6 +179,19 @@ Improved:
 ![RPM](img/plots/final/Power_Output_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
 
 This plot shows the power output (change of kinetic energy) of your car depending on the RPM. In the improved setup, you can see clusters that are more centered around the predicted optimal RPM value.
+
+
+### Bonus: Acceleration over RPM ###
+
+Default:
+![RPM](img/plots/default/Forward_G-Force_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](img/plots/final/Forward_G-Force_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+
+This plot shows the forward acceleration over RPM. The mean values of the gear samples are marked as crosses. The lines are polynomials of degree 3 fitted into the samples.
+
+In the default setup, you can see rather distinct clusters for the gears, and the polynomials are quite irregular, which indicates that the gears are tuned unequally. In the optimized setup, the clusters are mostly overlapping, and the maxima are almost at the same RPM value, which is assumed to be the optimum.
 
 
 ### Bonus: Drift Angles ###
