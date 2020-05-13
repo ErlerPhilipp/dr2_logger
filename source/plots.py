@@ -1,4 +1,5 @@
 from typing import List
+import functools
 
 import matplotlib
 # TkAgg with default tk leads to the matplotlib mainloop not terminating although all plot windows are closed
@@ -466,7 +467,7 @@ def suspension_over_time(ax, plot_data: pd.PlotData):
 
     line_plot(ax, x_points=x_points, y_points=y_points, title='Suspension dislocation over time',
               labels=labels, alpha=0.5, x_label='Time (s)', y_label='Suspension dislocation (mm)',
-              flip_y=True, min_max_annotations=True)
+              flip_y=False, min_max_annotations=True)
 
 
 def suspension_lr_fr_over_time(ax, plot_data: pd.PlotData):
@@ -577,11 +578,9 @@ def suspension_bars(ax, plot_data: pd.PlotData):
     time_data = np.repeat(np.expand_dims(time_differences, axis=0), 4, axis=0)
     susp_min = np.min(susp_data)
     susp_max = np.max(susp_data)
-    susp_min_ids = (susp_min == susp_data)
     susp_max_ids = (susp_max == susp_data)
     series_labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
-    series_labels = [l + ', bump min: {:.1f} s, bump max: {:.1f} s'.format(
-        time_differences[susp_min_ids[li]].sum(), time_differences[susp_max_ids[li]].sum())
+    series_labels = [l + ', bump stops hit: {:.1f} s'.format(time_differences[susp_max_ids[li]].sum())
               for li, l in enumerate(series_labels)]
 
     bar_plot(ax, data=susp_data, weights=time_data, num_bins=20,
@@ -900,7 +899,8 @@ def slip_over_time(ax, plot_data: pd.PlotData):
 
 def ground_contact_over_time(ax, plot_data: pd.PlotData):
 
-    def get_in_air_mask(susp_vel_arr: np.ndarray, susp_vel_lim=100.0, susp_vel_var_max=100.0, filter_length=6):
+    def get_in_air_mask(susp_vel_arr: np.ndarray, time_steps: np.ndarray,
+                        susp_vel_lim=100.0, susp_vel_var_max=100.0, filter_length=6):
         # filter_length = 6 -> 100 ms (0.1 s) at 60 FPS
         box_filter = np.array([1.0] * filter_length)  # filter_length = 6 -> 100 ms at 60 FPS
 
@@ -911,19 +911,32 @@ def ground_contact_over_time(ax, plot_data: pd.PlotData):
             var_conv = var_sqr_conv * var_sqr_conv
             return var_conv
 
-        # check approximately monotonously increasing suspension velocity (less fast extension over time)
-        susp_vel_arr_next = np.concatenate([susp_vel_arr[1:], np.full((1,), susp_vel_arr[-1])], axis=0)
-        susp_vel_increasing = susp_vel_arr_next - susp_vel_arr > -0.1
-        susp_vel_inc_conv = np.convolve(susp_vel_increasing, box_filter, mode='same') == float(filter_length)
+        # check if the suspension velocity is declining continuously over a certain time
+        susp_acc = data_processing.derive_no_nan(susp_vel_arr, time_steps)
+        susp_acc_pos = (susp_acc > -10.0).astype(np.float)
+        susp_acc_pos_conv = np.convolve(susp_acc_pos, box_filter, mode='same') == float(filter_length)
 
-        # extending by max x mm/s
-        susp_vel_lim = np.logical_and(susp_vel_arr < 0.0, susp_vel_arr > -susp_vel_lim)
-        susp_vel_lim_conv = np.convolve(susp_vel_lim, box_filter, mode='same') == float(filter_length)
-        susp_var = get_variance_convolved(susp_vel_arr) < susp_vel_var_max
+        # check if the suspension velocity is negative for a certain time
+        susp_vel_neg = (susp_acc > -10.0).astype(np.float)
+        susp_vel_neg_conv = np.convolve(susp_vel_neg, box_filter, mode='same') == float(filter_length)
+
+        # # check approximately monotonously increasing suspension velocity (less fast extension over time)
+        # susp_vel_arr_next = np.concatenate([susp_vel_arr[1:], np.full((1,), susp_vel_arr[-1])], axis=0)
+        # susp_vel_increasing = susp_vel_arr_next - susp_vel_arr > -0.1
+        # susp_vel_inc_conv = np.convolve(susp_vel_increasing, box_filter, mode='same') == float(filter_length)
+
+        # # extending by max x mm/s
+        # susp_vel_lim = np.logical_and(susp_vel_arr < 0.0, susp_vel_arr > -susp_vel_lim)
+        # susp_vel_lim_conv = np.convolve(susp_vel_lim, box_filter, mode='same') == float(filter_length)
+        # susp_var = get_variance_convolved(susp_vel_arr) < susp_vel_var_max
 
         # and of all conditions
-        in_air_mask = np.logical_and(susp_var, susp_vel_lim_conv)
-        in_air_mask = np.logical_and(in_air_mask, susp_vel_inc_conv)
+        # in_air_mask = np.logical_and(susp_var, susp_vel_lim_conv)
+        # in_air_mask = np.logical_and(in_air_mask, susp_vel_inc_conv)
+
+        in_air_mask = functools.reduce(np.logical_and, (
+            susp_acc_pos_conv, susp_vel_neg_conv  # susp_var, susp_vel_lim_conv, susp_vel_inc_conv,
+        ))
 
         # previous convolutions shrunk the masks, now extending again
         in_air_mask = np.convolve(in_air_mask, box_filter, mode='same') >= float(filter_length * 0.5)
@@ -931,7 +944,8 @@ def ground_contact_over_time(ax, plot_data: pd.PlotData):
         return in_air_mask
 
     susp_vel = [plot_data.susp_vel_fl, plot_data.susp_vel_fr, plot_data.susp_vel_rl, plot_data.susp_vel_rr]
-    in_air_masks = [get_in_air_mask(susp, susp_vel_lim=100.0, susp_vel_var_max=100.0, filter_length=6)
+    in_air_masks = [get_in_air_mask(susp_vel_arr=susp, time_steps=plot_data.run_time,
+                                    susp_vel_lim=100.0, susp_vel_var_max=100.0, filter_length=6)
                     for susp in susp_vel]
 
     # boolean mask to 0.0 or 1.0, also take sum
@@ -939,7 +953,7 @@ def ground_contact_over_time(ax, plot_data: pd.PlotData):
     in_air_masks_sum = np.sum(np.array(in_air_masks), axis=0)  # also show sum of wheels in air
     in_air_masks_sum[in_air_masks_sum < 4.0] = 0.0
     in_air_masks_sum[in_air_masks_sum == 4.0] = 1.0
-    in_air_masks = [in_air_masks_sum] + in_air_masks
+    in_air_masks = in_air_masks + [in_air_masks_sum]
     in_air = [gc + gci * 0.05 for gci, gc in enumerate(in_air_masks)]  # small offset to avoid overlaps
     in_air_data = np.array(in_air)
 
@@ -947,7 +961,7 @@ def ground_contact_over_time(ax, plot_data: pd.PlotData):
     time_differences = data_processing.differences(plot_data.run_time, True)
     in_air_times = [np.sum(time_differences[ia > 0.0]) for ia in in_air_masks]
 
-    labels = ['All wheels', 'Front left', 'Front right', 'Rear left', 'Rear right']
+    labels = ['Front left', 'Front right', 'Rear left', 'Rear right', 'All wheels']
     labels = [l + ': {:.1f} s'.format(in_air_times[li]) for li, l in enumerate(labels)]
     x_points = np.array([plot_data.run_time] * len(in_air_data))
     y_points = np.array(in_air_data)
