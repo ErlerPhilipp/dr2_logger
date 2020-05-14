@@ -151,6 +151,8 @@ def get_optimal_rpm(plot_data: pd.PlotData):
     # the first gear is rather unreliable because the wheels usually spin freely at the start
     # median makes it more robust
     full_acceleration_mask = get_full_acceleration_mask(plot_data=plot_data)
+    if not np.any(full_acceleration_mask):
+        return None, None, None
     # energy, kinetic_energy, potential_energy = get_energy(plot_data=plot_data)
 
     optimal_y_per_gear = []
@@ -217,10 +219,10 @@ def get_full_acceleration_mask(plot_data: pd.PlotData):
 
     # take only times without a lot of slip
     car_vel = plot_data.speed_ms
-    no_slip_fl = np.abs(plot_data.wsp_fl - car_vel) <= 5.0
-    no_slip_fr = np.abs(plot_data.wsp_fr - car_vel) <= 5.0
-    no_slip_rl = np.abs(plot_data.wsp_rl - car_vel) <= 5.0
-    no_slip_rr = np.abs(plot_data.wsp_rr - car_vel) <= 5.0
+    no_slip_fl = np.abs(plot_data.wsp_fl - car_vel) <= 15.0
+    no_slip_fr = np.abs(plot_data.wsp_fr - car_vel) <= 15.0
+    no_slip_rl = np.abs(plot_data.wsp_rl - car_vel) <= 15.0
+    no_slip_rr = np.abs(plot_data.wsp_rr - car_vel) <= 15.0
 
     # # take only mostly flat parts of the track
     # small_susp_vel_fl = np.abs(plot_data.susp_vel_fl) <= 0.01

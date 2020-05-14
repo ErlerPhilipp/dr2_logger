@@ -311,8 +311,10 @@ def bar_plot(ax, data, weights, num_bins=20,
 def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData):
 
     optimal_rpm, optimal_rpm_range_min, optimal_rpm_range_max = data_processing.get_optimal_rpm(plot_data=plot_data)
-    ax.axvspan(optimal_rpm_range_min, optimal_rpm_range_max, color='green', alpha=0.25)
-    ax.axvline(optimal_rpm, color='green', alpha=0.5)
+    if optimal_rpm is not None:
+        ax.axvline(optimal_rpm, color='green', alpha=0.5)
+    if optimal_rpm_range_min is not None and optimal_rpm_range_max is not None:
+        ax.axvspan(optimal_rpm_range_min, optimal_rpm_range_max, color='green', alpha=0.25)
 
 
 def plot_gear_over_3d_pos(ax, plot_data: pd.PlotData):
