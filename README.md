@@ -348,6 +348,7 @@ When you share (parts of) this repository, please mention or link my work. If yo
 
 ## Older Releases ##
 
+- [Executable (Version 1.8, 2020-05-11)](https://philipperler.net/dr2_logger_1_8/)
 - [Executable (Version 1.7, 2020-03-25)](https://philipperler.net/dr2logger_1_7/)
 - [Executable (Version 1.6, 2019-10-14)](https://philipperler.net/dr2logger_1_6/)
 - [Executable (Version 1.5, 2019-10-01)](https://philipperler.net/dr2logger_1_5/)
