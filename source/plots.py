@@ -919,7 +919,7 @@ def ground_contact_over_time(ax, plot_data: pd.PlotData):
         susp_acc_pos_conv = np.convolve(susp_acc_pos, box_filter, mode='same') == float(filter_length)
 
         # check if the suspension velocity is negative for a certain time
-        susp_vel_neg = (susp_acc > -10.0).astype(np.float)
+        susp_vel_neg = (susp_vel_arr < 10.0).astype(np.float)
         susp_vel_neg_conv = np.convolve(susp_vel_neg, box_filter, mode='same') == float(filter_length)
 
         # # check approximately monotonously increasing suspension velocity (less fast extension over time)
@@ -1072,7 +1072,7 @@ def rotation_over_time(ax, plot_data: pd.PlotData):
         dirs_angle_deg = np.rad2deg(dirs_angle)
         return dirs_angle_deg
 
-    directions = [forward_local_xyz, sideward_local_xyz]
+    directions = [sideward_local_xyz, forward_local_xyz]
     angle_deg = [get_vertical_angle_dislocation(d) for d in directions]
     angle_deg_stdev = [np.sqrt(np.var(a)) for a in angle_deg]
 

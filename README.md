@@ -3,7 +3,7 @@
 Dirt Rally 2.0 Logger is a logging and analysis tool for car setups in [Dirt Rally 1 and 2 by Codemasters](https://dirtrally2.com/). 
 This is a free and open-source software written by Philipp Erler.
 
-- [Executable (Version 1.8, 2020-05-11)](https://philipperler.net/dr2_logger_1_8/)
+- [Executable (Version 1.8.1, 2020-05-15)](https://philipperler.net/dr2_logger_1_8_1/)
 - [Source Code, Documentation and Support](https://github.com/ErlerPhilipp/dr2_logger)
 
 
@@ -78,10 +78,10 @@ This is the improved setup for my experiment with the Renault 5 Turbo on Noorinb
 ### Gear Utilization ###
 
 Default:
-![RPM](img/plots/default/RPM_Histogram_per_Gear_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/default/RPM_Histogram_per_Gear_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 Improved:
-![RPM](img/plots/final/RPM_Histogram_per_Gear_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/final/RPM_Histogram_per_Gear_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 This plot shows how much time you spent in which gear at which RPM. The predicted optimal RPM range is highlighted in green. 
 
@@ -95,10 +95,10 @@ A note on my data analysis: There can be too much shifting as each shift costs a
 ### Speed over RPM ###
 
 Default:
-![RPM](img/plots/default/Speed_over_RPM_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/default/Speed_over_RPM_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 Improved:
-![RPM](img/plots/final/Speed_over_RPM_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/final/Speed_over_RPM_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 This plot shows the speed at varying RPM. The predicted optimal RPM value is marked with a green bar. The mean values of the gear samples are marked as crosses. The lines are polynomials of degree 3 fitted into the samples. The optimal RPM is the median of their derivatives' maxima.
 
@@ -108,10 +108,10 @@ You can again see that I didn't use the first gear after the start anymore with 
 ### Suspension ###
 
 Default:
-![RPM](img/plots/default/Suspension_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/default/Suspension_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 Improved:
-![RPM](img/plots/final/Suspension_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/final/Suspension_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 This plot shows the suspension compression of individual wheels. It looks like the default setup is already good because the bump stops are hardly ever touched. The optimal setting probably would be when the full range of the suspension is used without touching the bump stops. This should maximize the ground contact.
 
@@ -123,12 +123,12 @@ A note on bump-stops: Because DR2 doesn't transmit the extension limits, we can 
 ### Ground Contact ###
 
 Default:
-![RPM](img/plots/default/Ground_Contact_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/default/Ground_Contact_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 Improved:
-![RPM](img/plots/final/Ground_Contact_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/final/Ground_Contact_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
-This plot shows the suspension dislocation, suspension velocity and wheel-in-air detection. With my improved setup the wheels where a bit longer in the air, which surprises me a bit. My guess is that the somewhat softer suspension and dampers didn't change much with the critical moments when the wheels were almost leaving the ground. This is currently not detected in this heuristic. Anyway, I was certainly faster due to the (at least subjectively) improved grip, and therefore I was jumping further and longer.
+This plot shows the wheel-in-air detection, suspension dislocation and suspension velocity. With my improved setup the wheels where a bit shorter in the air, although I was faster and therefore jumping longer. The somewhat softer suspension and dampers mitigates the critical moments when the wheels are almost leaving the ground. I noticed that hard-to-control cars are behaving significantly better when I maximize the ground contact.
 
 A note on ground-contact estimation: DR2 doesn't explicitly offer this information. I assume wheels to be in the air when the springs extend continuously over a rather long time (> 0.1 seconds) where the dampers lead to a decrease in extension speed. This means that the springs' compression speed is negative with a low variance. Low-friction situations can't be detected with this heuristic.
 
@@ -136,10 +136,10 @@ A note on ground-contact estimation: DR2 doesn't explicitly offer this informati
 ### Rotation vs Suspension ###
 
 Default:
-![RPM](img/plots/default/Rotation_vs_Suspension_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/default/Rotation_vs_Suspension_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 Improved:
-![RPM](img/plots/final/Rotation_vs_Suspension_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/final/Rotation_vs_Suspension_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 This plot compares spring dislocation with car roll and pitch. With a good suspension, the car should be less affected by surface irregularities. However, when the terrain is too rough, e.g. with camber, the car must roll to the side. Similarly, driving over bumps shouldn't throw the car around but slopes and jumps of course rotate the car around its pitch axis.
 
@@ -151,10 +151,10 @@ A note on suspension roll and pitch: The suspension angles are approximated for 
 ### Bonus: Track Information ###
 
 Default:
-![RPM](img/plots/default/Map_Basics_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/default/Map_Basics_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 Improved:
-![RPM](img/plots/final/Map_Basics_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/final/Map_Basics_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 This plot gives some basic information about the track such as elevation, route and used gear at each position.
 
@@ -162,10 +162,10 @@ This plot gives some basic information about the track such as elevation, route 
 ### Bonus: Energy and Power ###
 
 Default:
-![RPM](img/plots/default/Energy_and_Power_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/default/Energy_and_Power_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 Improved:
-![RPM](img/plots/final/Energy_and_Power_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/final/Energy_and_Power_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 This plot shows your car's kinetic and potential energy over time. It also shows the derived power output of the engine. The power output is only the change of kinetic velocity and therefore an approximation.
 
@@ -173,10 +173,10 @@ This plot shows your car's kinetic and potential energy over time. It also shows
 ### Bonus: Power over RPM ###
 
 Default:
-![RPM](img/plots/default/Power_Output_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/default/Power_Output_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 Improved:
-![RPM](img/plots/final/Power_Output_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/final/Power_Output_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 This plot shows the power output (change of kinetic energy) of your car depending on the RPM. In the improved setup, you can see clusters that are more centered around the predicted optimal RPM value.
 
@@ -184,10 +184,10 @@ This plot shows the power output (change of kinetic energy) of your car dependin
 ### Bonus: Acceleration over RPM ###
 
 Default:
-![RPM](img/plots/default/Forward_G-Force_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/default/Forward_G-Force_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 Improved:
-![RPM](img/plots/final/Forward_G-Force_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/final/Forward_G-Force_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 This plot shows the forward acceleration over RPM. The mean values of the gear samples are marked as crosses. The lines are polynomials of degree 3 fitted into the samples.
 
@@ -197,10 +197,10 @@ In the default setup, you can see rather distinct clusters for the gears, and th
 ### Bonus: Drift Angles ###
 
 Default:
-![RPM](img/plots/default/Drift_at_2D_positions__-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/default/Drift_at_2D_positions__-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 Improved:
-![RPM](img/plots/final/Drift_at_2D_positions__-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/final/Drift_at_2D_positions__-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 In this plot, you can see the forward direction of the car and its movement direction. The more these vectors disagree, the more your car is drifting. The histogram in the middle shows how often you drifted and how much. The right histogram shows how fast the drift angle changed. With the improved setup, I drifted overall with a smaller angle but with faster changes of the drift angles. That is an additional hint that I had better control over my cars.
 
@@ -208,10 +208,10 @@ In this plot, you can see the forward direction of the car and its movement dire
 ### Bonus: Wheel Speeds and Differential ###
 
 Default:
-![RPM](img/plots/default/Wheel_Speed_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/default/Wheel_Speed_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 Improved:
-![RPM](img/plots/final/Wheel_Speed_-_Renault_5_Turbo_on_Noorinbee_Ridge_Descent.png)
+![RPM](img/plots/final/Wheel_Speed_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 This plot shows the wheel speeds. The top graph is about individual wheels while the bottom graph shows the inputs (throttle, brakes and steering). Make sure to use the magnifying glass to zoom into the plots. The powered wheels are usually faster than the non-powered wheels. Downward spikes indicate that wheels are blocking when braking while upward spikes indicate freely spinning wheels caused by a lack of grip. The improved setup creates smaller spikes or at least symmetric ones.
 
@@ -308,6 +308,11 @@ When you share (parts of) this repository, please mention or link my work. If yo
 
 ## Change Log ##
 
+- 1.8.1 (2020-05-15):
+    - Prevent several crashes and other bugfixes.
+    - Add country code and region to track names.
+    - Improved optimal RPM detection.
+    - Improved wheel-in-air detection.
 - 1.8 (2020-05-11):
     - Added support for Dirt Rally 1.
     - Mayor re-structuring to allow for different games in one logger.
