@@ -187,7 +187,8 @@ class LoggerBackend:
         if self.debugging:  # start with plots
             self.session_collection = self.game.load_data(
                 # r'C:\Users\pherl\Desktop\2020-03-18 21_22_15 - Peugeot 208 R2 - Kakaristo - 451.7s raw.npz')
-                r'C:\Users\pherl\repos\dr2_logger\races_auto_save\2020-05-04 23_14_13 - Renault 5 Turbo - Noorinbee Ridge Descent - 199.6s.npz')
+                # r'C:\Users\pherl\Desktop\dr2_tools\dr2_logger_1_8\races_auto_save\2020-05-04 23_14_13 - Renault 5 Turbo - Noorinbee Ridge Descent - 199.6s.npz')
+                r'C:\Users\pherl\Desktop\logger_crash_2.npz')
             # self.session_collection = self.game.load_data(
             #     r'C:\Users\pherl\repos\dr2_logger\races_auto_save\2020-03-30 23_52_57 - Subaru Impreza 1995 - Vinedos dentro del valle Parra - 217.1s.npz')
             # self.show_plots(additional_plots=True)

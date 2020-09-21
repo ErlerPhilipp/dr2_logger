@@ -1,0 +1,201 @@
+# Tuning Guidelines #
+
+Disclaimer:
+I'm an enthusiast but not an expert. I read some guides (see [References](#references)) but those are also mostly made by non-experts. I have some basic knowledge about physics but not really about cars. Furthermore, I'm not a pro-driver in Dirt Rally. If you disagree with anything, please open an issue and discuss it.
+
+This guide is aiming at Dirt Rally 2 but will also work with Dirt Rally 1 and at least partially with other Rally sims.
+
+
+## Contents ##
+
+1. [Cornering](tuning_guide.md/#cornering)
+1. [Gearing](tuning_guide.md/#gearing)
+1. [Suspension](tuning_guide.md/#suspension)
+
+
+## Cornering ##
+
+TLDR:
+- Camber:
+    - Default settings are usually fine.
+    - Try more negative camber in wet conditions and curved roads.
+    - Try more negative camber on fast and curvy tracks, especially tarmac.
+    - Keep front and rear equal.
+- Toe:
+    - Default settings are usually fine.
+    - When you can't turn fast enough into hairpins, try more toe-out.
+    - When the car doesn't move straight although the track is straight, try toe-in.
+    - To get more oversteer, try more toe out at the rear.
+- Differential:
+    - Front: Make as strong as possible without causing understeer.
+    - Rear: Make as strong as possible without causing crashes (snap-oversteer).
+    - Tarmac: Make loose enough so wheels don't slip in sharp corners.
+    - Pre-Load: Make as loose as possible. Make stronger when a sudden decrease of acceleration causes instability.
+    - Breaking lock: Default settings are usually fine.
+- Brakes:
+    - Default settings are usually fine.
+    - When you have too much oversteer, move the brake bias to the front.
+    - If you want stronger breaks without changing the blocking behavior, try a stronger breaking differential.
+
+What is good cornering, what bad? This seems rather subjective and is hard to measure. Still, these guidelines and some of the plots should help you.
+
+
+### Camber ###
+
+Negative camber means that the upper part of the wheel is closer to the car than the lower part. This can increase the grip in corners. However, too much camber decreases the traction significantly and with it the acceleration. Camber also has an effect on the transition between normal turning and drifting. Negative camber makes it smoother and therefore easier to control.
+
+
+### Toe In/Out ###
+
+Toe in means that the front of the wheels is pointed towards the car's middle line. More toe-out means that the car reacts faster to steering inputs. Toe-in tends to stabilize when accelerating, which can help with oversteering cars. Both directions increase drag and therefore decrease your maximum velocity.
+
+
+### Differential ###
+
+For loose surfaces, set the front differential as strong as possible. When you point the front wheels in the right direction, they will pull you where you want to go. This is my personal taste and probably works only in Dirt Rally. Extremely strong settings may cause understeer, though.
+The rear differential on loose surfaces is similar but extremely strong settings may lead to snap-oversteer. That's especially important in hard-to-handle cars like the Lancia Stratos.
+
+For tarmac: Drive through the sharpest corner of the track without breaking and accelerating. If a wheel starts skidding, you lose traction or perhaps even experience a sudden over/under-steer, you should loosen the differential. However, be careful with this experiment because such bad cornering can also be caused by bad suspension setting (e.g. too loose stabilizers).
+
+Pre-load is a rather abstract setting. My experience is that a too strong setting is hard to notice but will affect your times. A too loose setting can be noticed sometimes when you lose control after sudden weight transfers caused e.g. by jumps and strong breaking.
+
+Breaking lock
+
+
+### Breakes ###
+
+affect weight transfer
+
+
+#### Drift Angles ####
+
+Default:
+![RPM](../img/plots/default/Drift_at_2D_positions__-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](../img/plots/final/Drift_at_2D_positions__-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+With the improved setup, I drifted overall with a smaller angle but with faster changes of the drift angles. That is an additional hint that I had better control over my cars.
+
+
+#### Wheel Speeds and Differential ####
+
+Default:
+![RPM](../img/plots/default/Wheel_Speed_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](../img/plots/final/Wheel_Speed_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+The improved setup creates smaller spikes or at least symmetric ones.
+
+
+## Gearing ##
+
+TLDR:
+- First Gear
+    - Ignore the start, optimize for the sharpest corners.
+    - Make long enough to prevent excessive traction loss when accelerating strongly.
+- Top Gear
+    - Make as short as possible.
+    - Make long enough to prevent red-lining on the fastest straights, unless these parts are negligible.
+- Middle Gears
+    - If the track is flat, interpolate linearly between the first and the top gear.
+    - If the track is mostly up-hill, stack the lower gears: shorter lower gears, longer higher gears.
+    - If the track is mostly down-hill, stack the upper gears: longer lower gears, shorter higher gears.
+- Final Drive
+    - Make as short as possible.
+    - Make longer if you can't make the top gear long enough. Remember to update the lower gears.
+
+
+As a basic guideline, I stick with the advice from [GTR Technical](https://www.youtube.com/channel/UCQ05BZF9F6q2xKyV6viCBGg): "A lower final drive aims towards better acceleration. Where as a higher final drive aims towards top speed. Seen as rally cars very rarely achieve top speed I focus my setups heavily towards acceleration only increasing the final drive as and when I start redlining in top gear."
+
+When trying the default setups in DR2, I often notice that I use the first gear only at the start and the top gear not at all. This is clearly not optimal.
+
+The optimizing the first gear, you can usually ignore the influence of the start. Instead, the sharpest corners of the track are much more important and might require significantly higher speed.
+
+Still, you can use the start to check if the first gear is too short. If the engine is powerful, the wheels may spin uncontrolled with minimal traction. Make the first gear long enough to prevent excessive traction loss when accelerating strongly. Keep in mind that this will also be affected by the differential and tyre choice.
+
+Let's assume that using all gears equally is optimal. However, the first and top gears are a bit special. Let's also assume that there is an optimal RPM point where the engine can generate the most power. This RPM point is specific to every car and can change with the setup.
+
+![RPM](../img/plots/default/RPM_Histogram_per_Gear_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+This [gear histogram](plots_description.md/#gear-utilization) shows a setup that breaks our assumptions. The first gear is hardly used, and the second gear is used much less than the other gears. Also, the most used RPM range (peaks) of all gears is a bit off the optimal RPM range.
+
+You should shorten the final drive in order to move the peaks to the right, towards the optimal RPM. To increase the time of the first gear, you should make it longer. Because this requires a larger change, you should also make the next gear longer.
+
+
+## Suspension ##
+
+TLDR:
+- Dampers
+    - Make as soft as possible.
+    - Make stronger when the car swings too much or bottoms out.
+- Springs
+    - Make as soft as possible.
+    - Make stronger when the car bottoms out or steers too slowly.
+- Height
+    - Make as low as possible.
+    - Make higher when the car bottoms out.
+    - Tune together with spring strength.
+- Stabilizers
+    - Make as soft as possible.
+    - Try stronger when you suffer from snap-oversteer.
+
+The aim of the suspension settings is to maximize the friction between the wheels and the track. Additionally, the suspension should prevent the car body from touching the ground.
+
+
+![RPM](../img/plots/default/Suspension_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+
+
+The default setup is already looks quite good because the bump stops are hardly ever touched. The optimal setting is probably when the full range of the suspension is used without touching the bump stops. This should maximize the ground contact.
+
+The front springs are less compressed although the rear springs are stiffer. The reason may be that the stiffer springs still can't counteract the weight of the engine in the rear. The difference between left and right wheels is due to the track with its camber and slanted jumps. My final setup distributes the dislocation a bit more broadly (note the different y-scale) without notably changing the bump stop times. The front-rear distribution is still unequal, which leaves some space for improvement.
+
+
+### Ground Contact ###
+
+Default:
+![RPM](../img/plots/default/Ground_Contact_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](../img/plots/final/Ground_Contact_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+With my improved setup, the wheels were a bit shorter in the air, although I was faster and therefore jumped longer. The somewhat softer suspension and dampers mitigates the critical moments when the wheels are almost leaving the ground. I noticed that hard-to-control cars are behaving significantly better when I maximize the ground contact.
+
+
+### Rotation vs Suspension ###
+
+![RPM](../img/plots/default/Rotation_vs_Suspension_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](../img/plots/final/Rotation_vs_Suspension_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+The car rotations have much lower frequencies than the suspension angles, as it should probably be. With the improved setup, the body rotation is reduced a lot, which improves stability and control. As shown with the increased variance, the suspension absorbs more bumps now than with the default setup.
+
+If the car rotates more left-right than front-back, something is off. Either the stabilizers are much too strong or too soft, which causes the car to bottom out on a side. It may also happen that the track has a lot of extreme camber.
+
+
+## References ##
+
+I mostly described simplistic if ... then ... guidelines with little explanation. If you are interested in the technical details, have a look at these sources.
+
+There are a ton of great setups shown in the YouTube channel [GTR Technical](https://www.youtube.com/channel/UCQ05BZF9F6q2xKyV6viCBGg).
+
+[Paradigm Shift Racing](https://www.paradigmshiftracing.com/racing-basics/) has a lot of content for racing amateurs and professionals. We can use their knowledge for racing simulations, too. Their focus is on tarmac racing tracks, so we need to adapt some aspects for loose surfaces.
+Two pages are especially interesting:
+- [Glossary](https://www.paradigmshiftracing.com/racing-basics/racing-and-motorsports-terms-glossary#/)
+- [Setup Guide](https://www.paradigmshiftracing.com/racing-basics/step-by-step-race-car-setup-guide#/)
+
+[This guide for Forza Horizon 4 Rally](https://www.youtube.com/watch?v=5U2t_2yberY) and [this guide for WRC8](https://www.youtube.com/watch?v=Y6f4ar0IHwQ) are also applicable to Dirt Rally.
+
+The Steam Community has several good guides to setups. [This guide for Dirt Rally 1](https://steamcommunity.com/sharedfiles/filedetails/?id=456484010) is well-written and detailed enough for most players. 
+[This guide for Dirt Rally 2](https://steamcommunity.com/sharedfiles/filedetails/?id=2028926468) is even more extensive and provides extremely detailed background information. This one is the main reference for my guide.
+
+
+## Further Information ##
+
+[See a description of the plots here.](docs/plots_description.md)
+
+[Here, I explain how I used the logger to optimize the setup of the Renault 5 Turbo for Noorinbee Ridge Descent, Australia.](docs/example.md)
+

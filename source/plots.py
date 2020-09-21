@@ -1084,7 +1084,7 @@ def rotation_over_time(ax, plot_data: pd.PlotData):
     line_plot(ax, x_points=x_points, y_points=y_points,
               title='Rotation Angles over Time',
               labels=labels, alpha=0.5, x_label='Time (s)',
-              y_label='Angle (deg)', min_max_annotations=True)
+              y_label='Car rotation angle (deg)', min_max_annotations=True)
 
 
 def suspension_lr_fr_angles_over_time(ax, plot_data: pd.PlotData):
