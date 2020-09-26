@@ -19,11 +19,9 @@ The setups are meant for driving without assists, i.e. without ABS and traction 
 
 - Cornering:
     - Camber:
-        - Default settings are usually fine.
         - Try more negative camber in wet conditions and on fast, curvy tracks (typically tarmac).
         - Keep front and rear equal.
     - Toe:
-        - Default settings are usually fine.
         - When you can't turn fast enough into hairpins, try more toe-out.
         - When the car doesn't move straight, try toe-in.
         - To get more oversteer, try more toe out at the rear.
@@ -34,7 +32,6 @@ The setups are meant for driving without assists, i.e. without ABS and traction 
         - Pre-Load: Set as loose as possible. Make stronger when sudden weight transfers cause instability.
         - Breaking lock: Default settings are usually fine.
     - Brakes:
-        - Default settings are usually fine.
         - When you have too much oversteer, move the brake bias to the front.
         - If you want stronger breaks without changing the blocking behavior, try a stronger breaking differential.
 - Gearing:
@@ -104,31 +101,6 @@ Bias: When you try to turn into a corner with blocked wheels, you will experienc
 Break strength: While it's simple on the first sight - set breaks stronger to decelerate stronger - it also affects the weight transfer and wheel blocking. Stronger breaks block the wheels more quickly, of course. This can make the car very sensitive to inputs and may cause dangerous understeer, especially on tarmac. If racing on loose surfaces and you can't block the wheels, you should increase the break strength.
 
 
-### Helpful Plots ###
-
-
-#### Drift Angles ####
-
-Default:
-![RPM](../img/plots/default/Drift_at_2D_positions__-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-Improved:
-![RPM](../img/plots/final/Drift_at_2D_positions__-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-With the improved setup, I drifted overall with a smaller angle but with faster changes of the drift angles. That is a hint that I had more control over my cars.
-
-
-#### Wheel Speeds and Differential ####
-
-Default:
-![RPM](../img/plots/default/Wheel_Speed_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-Improved:
-![RPM](../img/plots/final/Wheel_Speed_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-The improved setup creates smaller spikes or at least symmetric ones.
-
-
 ## Gearing ##
 
 As a basic guideline, I stick with the advice from [GTR Technical](https://www.youtube.com/channel/UCQ05BZF9F6q2xKyV6viCBGg): "A lower final drive aims towards better acceleration. Where as a higher final drive aims towards top speed. Seen as rally cars very rarely achieve top speed I focus my setups heavily towards acceleration only increasing the final drive as and when I start redlining in top gear."
@@ -162,15 +134,6 @@ For significant up-hill, you should concentrate the middle gears closer to the f
 You should shorten the final drive in order to move the peaks to the right, towards the optimal RPM. To increase the time of the first gear, you should make it longer. Because this requires a larger change, you should also make the next gear longer.
 
 
-### Helpful Plots ###
-
-I assume that there is an optimal RPM point where the engine can output the most power. This RPM point is specific to every car and can change with the gear setup.
-
-![RPM](../img/plots/default/RPM_Histogram_per_Gear_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-This [gear histogram](plots_description.md/#gear-utilization) shows a setup that breaks these assumptions. The first gear is hardly used and the second gear is used much less than the other gears. Also, the most used RPM ranges (peaks) of all gears are a bit off the optimal RPM point.
-
-
 ## Suspension ##
 
 The suspension setup is essentially a trade-off between stability and responsiveness. You'll want to maximize the friction between the wheels and the track while preserving a fast response to steering inputs. These settings are very complicated and influence many properties. Please see the [guide by Tolga Yilmaz](https://steamcommunity.com/sharedfiles/filedetails/?id=2028926468) for more details and recommendations.
@@ -202,7 +165,40 @@ With good rebound settings, the wheels will get ground contact quickly again aft
 Fast bump should be a bit softer than the slow settings to better absorb sudden strong hits from e.g. single stones. After the stones, the wheel should not instantly bounce back but stay a bit more stable. Therefore, fast rebound (if available) should be a bit firmer than slow rebound. The threshold for the fast settings is difficult to find, I simply use the default settings.
 
 
-### Helpful Plots ###
+### Finding hints in Plots ###
+
+These plots show how to find typical setup problems.
+
+
+#### Drift Angles ####
+
+Default:
+![RPM](../img/plots/default/Drift_at_2D_positions__-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](../img/plots/final/Drift_at_2D_positions__-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+With the improved setup, I drifted overall with a smaller angle but with faster changes of the drift angles. That is a hint that I had more control over my cars.
+
+
+#### Wheel Speeds and Differential ####
+
+Default:
+![RPM](../img/plots/default/Wheel_Speed_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](../img/plots/final/Wheel_Speed_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+The improved setup creates smaller spikes or at least symmetric ones.
+
+
+### Gear Utilization ###
+
+I assume that there is an optimal RPM point where the engine can output the most power. This RPM point is specific to every car and can change with the gear setup.
+
+![RPM](../img/plots/default/RPM_Histogram_per_Gear_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+This [gear histogram](plots_description.md/#gear-utilization) shows a setup that breaks these assumptions. The first gear is hardly used and the second gear is used much less than the other gears. Also, the most used RPM ranges (peaks) of all gears are a bit off the optimal RPM point.
 
 #### Springs ####
 
