@@ -17,7 +17,7 @@ The setups are meant for driving without assists, i.e. without ABS and traction 
 
 ## TLDR ##
 
-Cornering:
+- Cornering:
     - Camber:
         - Default settings are usually fine.
         - Try more negative camber in wet conditions and on fast, curvy tracks (typically tarmac).
@@ -75,7 +75,7 @@ What is good cornering, what bad? This seems rather subjective and is hard to me
 
 ### Camber ###
 
-Negative camber means that the upper part of the wheel is closer to the car than the lower part. This can increase the grip in corners. However, too much camber decreases the traction significantly and with it the acceleration. Camber also has an effect on the transition between normal turning and drifting. Negative camber makes this transition smoother and therefore easier to control.
+Negative camber means that the upper part of the wheel is closer to the car than the lower part. This can increase the grip in corners. However, too much camber decreases the traction significantly and with it the acceleration. Camber also influences the transition between normal turning and drifting. Negative camber makes this transition smoother and therefore easier to control.
 
 
 ### Toe In/Out ###
@@ -97,7 +97,7 @@ Breaking lock: When you want to decelerate more quickly but don't want to change
 
 ### Brakes ###
 
-First, blocked wheels are not necessarily a bad thing. On gravel, they will assemble a tiny dirt heap in front of the wheels that decelerates you more quickly. On tarmac, however, blocked wheels will have less traction and therefore decelerate worse. Also, skidding destroys the tyres' profile very quickly.  
+First, blocked wheels are not necessarily a bad thing. On gravel, they will assemble a tiny dirt heap in front of the wheels that decelerates you more quickly. On tarmac, however, blocked wheels will have less traction and therefore decelerate worse. Also, skidding destroys the tires' profile very quickly.  
 
 Bias: When you try to turn into a corner with blocked wheels, you will experience extremely strong understeer. Therefore, you need to release the break and maybe even accelerate through the corner. The break bias determines which wheels block first. Usually, all wheels should block at the same time. However, this is also influenced by the track's slope and the weight transfer. When you lose control while breaking, you should move the bias to the front. Too much front bias will cause understeer and can reduce the deceleration.
 
@@ -140,7 +140,7 @@ When trying the default setups in DR2, I often notice that I use the first gear 
 
 The optimizing the first gear, you can usually ignore the influence of the start. Instead, the sharpest corners of the track are much more important and might require significantly higher speed.
 
-Still, you can use the start to check if the first gear is too short. If the engine is powerful, the wheels may spin uncontrolled with minimal traction. Make the first gear long enough to prevent excessive traction loss when accelerating strongly. Keep in mind that this will also be affected by the differential and tyre choice.
+Still, you can use the start to check if the first gear is too short. If the engine is powerful, the wheels may spin uncontrolled with minimal traction. Make the first gear long enough to prevent excessive traction loss when accelerating strongly. Keep in mind that this will also be affected by the differential and tire choice.
 
 
 ### Top Gear ###
@@ -197,7 +197,7 @@ Dampers reduce the energy in the suspension over time. This means that stronger 
 
 Furthermore, these settings control how fast the car reacts to corners and weight transfer. If you have issues at e.g. chicanes, try firmer dampers.
 
-With good rebound settings, the wheels will will get ground contact quickly again after a crest. Too firm settings will keep the wheels in the air while too soft settings can push the car into the air. Rebound settings should be similar to bump settings.
+With good rebound settings, the wheels will get ground contact quickly again after a crest. Too firm settings will keep the wheels in the air while too soft settings can push the car into the air. Rebound settings should be similar to bump settings.
 
 Fast bump should be a bit softer than the slow settings to better absorb sudden strong hits from e.g. single stones. After the stones, the wheel should not instantly bounce back but stay a bit more stable. Therefore, fast rebound (if available) should be a bit firmer than slow rebound. The threshold for the fast settings is difficult to find, I simply use the default settings.
 
@@ -238,18 +238,12 @@ If the car rotates more left-right than front-back, something is off. Either the
 
 ## References ##
 
-I mostly described simplistic if ... then ... guidelines with little explanation. If you are interested in the technical details, have a look at these sources.
-
-There are a ton of great setups shown in the YouTube channel [GTR Technical](https://www.youtube.com/channel/UCQ05BZF9F6q2xKyV6viCBGg).
-
-[Paradigm Shift Racing](https://www.paradigmshiftracing.com/racing-basics/) has a lot of content for racing amateurs and professionals. We can use their knowledge for racing simulations, too. Their focus is on tarmac racing tracks, so we need to adapt some aspects for loose surfaces.
-Two pages are especially interesting:
-- [Glossary](https://www.paradigmshiftracing.com/racing-basics/racing-and-motorsports-terms-glossary#/)
-- [Setup Guide](https://www.paradigmshiftracing.com/racing-basics/step-by-step-race-car-setup-guide#/)
-
-[This guide for Forza Horizon 4 Rally](https://www.youtube.com/watch?v=5U2t_2yberY) and [this guide for WRC8](https://www.youtube.com/watch?v=Y6f4ar0IHwQ) are also applicable to Dirt Rally.
-
-The Steam Community has several good guides to setups. [This guide for Dirt Rally 1](https://steamcommunity.com/sharedfiles/filedetails/?id=456484010) is well-written and detailed enough for most players. 
+If you are interested in the technical details, have a look at these sources:
+- There are a ton of great setups shown in the YouTube channel [GTR Technical](https://www.youtube.com/channel/UCQ05BZF9F6q2xKyV6viCBGg).
+- [Paradigm Shift Racing](https://www.paradigmshiftracing.com/racing-basics/) has a lot of content for racing amateurs and professionals. We can use their knowledge for racing simulations, too. Their focus is on tarmac racing tracks, so we need to adapt some aspects for loose surfaces.
+Two pages are especially interesting: the [Glossary](https://www.paradigmshiftracing.com/racing-basics/racing-and-motorsports-terms-glossary#/) and the [Setup Guide](https://www.paradigmshiftracing.com/racing-basics/step-by-step-race-car-setup-guide#/)
+- [This guide for Forza Horizon 4 Rally](https://www.youtube.com/watch?v=5U2t_2yberY) and [this guide for WRC8](https://www.youtube.com/watch?v=Y6f4ar0IHwQ) are also applicable to Dirt Rally.
+- The Steam Community has several good guides to setups. [This guide for Dirt Rally 1](https://steamcommunity.com/sharedfiles/filedetails/?id=456484010) is well-written and detailed enough for most players. 
 [This guide for Dirt Rally 2](https://steamcommunity.com/sharedfiles/filedetails/?id=2028926468) is even more extensive and provides extremely detailed background information. This one is the main reference for my guide.
 
 
