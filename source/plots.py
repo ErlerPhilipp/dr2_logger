@@ -1,5 +1,6 @@
 from typing import List
 import functools
+import os
 
 import matplotlib
 # TkAgg with default tk leads to the matplotlib mainloop not terminating although all plot windows are closed
@@ -14,6 +15,17 @@ from source import data_processing
 
 static_colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
                  'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
+
+
+def save_plot(title: str, title_post_fix: str, fig):
+
+    path = r'.'
+    file_path = os.path.join(path, title + title_post_fix + '.png')
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
+    fig.set_size_inches((16, 9), forward=False)
+    plt.savefig(file_path, dpi=150, facecolor='w', edgecolor='w',
+                orientation='landscape', transparent=False, bbox_inches='tight',  pad_inches=0.1)
 
 
 def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional_plots=False):

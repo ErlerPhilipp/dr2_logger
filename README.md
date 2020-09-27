@@ -17,11 +17,13 @@ This Logger is mostly a command-line tool where you can see the available comman
 You can get plots of a race's statistics like this one:
 ![dr2logger](img/plots/final/RPM_Histogram_per_Gear_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
-[See a description of the plots here.](docs/plots_description.md)
 
-[Here, I explain how I used the logger to optimize the setup of the Renault 5 Turbo for Noorinbee Ridge Descent, Australia.](docs/example.md)
+## Usage ##
 
-[Have a look at some general guidelines for tuning and a if...then list.](docs/tuning_guide.md)
+Here is more information about how to use this tool:
+- [Plots](docs/plots_description.md)
+- [Example: Optimizing the setup of the Renault 5 Turbo for Noorinbee Ridge Descent, Australia.](docs/example.md)
+- [General tuning guide](docs/tuning_guide.md)
 
 
 ## Details ##
@@ -54,7 +56,6 @@ When you share (parts of) this repository, please mention or link my work. If yo
 
 - 1.8.2 (TBD):
     - Add guidelines for tuning.
-    - Support automatic releases.
 - 1.8.1 (2020-05-15):
     - Prevent several crashes and other bugfixes.
     - Add country code and region to track names.

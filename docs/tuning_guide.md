@@ -3,7 +3,7 @@
 Disclaimer:
 I'm an enthusiast but not an expert. I read some guides (see [References](tuning_guide.md/#references)) but those are also mostly made by non-experts. I have some basic knowledge about physics but not really about cars. Furthermore, I'm not a pro-driver in Dirt Rally. If you disagree with anything, please open an issue and discuss it.
 
-This guide is aiming at Dirt Rally 2 but will also work with Dirt Rally 1 and at least partially with other Rally sims.
+This guide is aiming at Dirt Rally 2 but will also work with Dirt Rally 1 and at least partially with other rally sims.
 
 The setups are meant for driving without assists, i.e. without ABS and traction control.
 
@@ -56,7 +56,7 @@ The setups are meant for driving without assists, i.e. without ABS and traction 
         - Set as low as possible.
         - Set higher when the car bottoms out.
         - Tune together with spring strength.
-    - Stabilizers (Anti-Roll Bar)
+    - Anti-Roll Bar
         - Set softer when you suffer from snap-oversteer.
         - Set firmer when the car is unresponsive.
     - Dampers
@@ -149,9 +149,9 @@ Softer springs transfer less ground irregularities to the car body. However, fir
 Softer springs cause more suspension travel. This means that you should also increase the height to avoid hitting the bump stops or the ground, e.g. after jumps.
 
 
-### Stabilizers ###
+### Anti-Roll Bars ###
 
-Also known as anti-roll bars, stabilizers are meant to control the roll of the car. A too firm setting can cause the inside wheel (closer to the turn's center) to lose ground contact, which in turn can lead to snap-oversteer. You should use firm settings for fast tracks and soft settings for slow and curvy tracks. You should also set it softer on very bumpy tracks.
+Also known as stabilizers, anti-roll bars are meant to control the roll of the car. A too firm setting can cause the inside wheel (closer to the turn's center) to lose ground contact, which in turn can lead to snap-oversteer. You should use firm settings for fast tracks and soft settings for slow and curvy tracks. You should also set it softer on very bumpy tracks.
 
 
 ### Dampers ###
@@ -163,73 +163,6 @@ Furthermore, these settings control how fast the car reacts to corners and weigh
 With good rebound settings, the wheels will get ground contact quickly again after a crest. Too firm settings will keep the wheels in the air while too soft settings can push the car into the air. Rebound settings should be similar to bump settings.
 
 Fast bump should be a bit softer than the slow settings to better absorb sudden strong hits from e.g. single stones. After the stones, the wheel should not instantly bounce back but stay a bit more stable. Therefore, fast rebound (if available) should be a bit firmer than slow rebound. The threshold for the fast settings is difficult to find, I simply use the default settings.
-
-
-### Finding hints in Plots ###
-
-These plots show how to find typical setup problems.
-
-
-#### Drift Angles ####
-
-Default:
-![RPM](../img/plots/default/Drift_at_2D_positions__-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-Improved:
-![RPM](../img/plots/final/Drift_at_2D_positions__-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-With the improved setup, I drifted overall with a smaller angle but with faster changes of the drift angles. That is a hint that I had more control over my cars.
-
-
-#### Wheel Speeds and Differential ####
-
-Default:
-![RPM](../img/plots/default/Wheel_Speed_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-Improved:
-![RPM](../img/plots/final/Wheel_Speed_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-The improved setup creates smaller spikes or at least symmetric ones.
-
-
-### Gear Utilization ###
-
-I assume that there is an optimal RPM point where the engine can output the most power. This RPM point is specific to every car and can change with the gear setup.
-
-![RPM](../img/plots/default/RPM_Histogram_per_Gear_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-This [gear histogram](plots_description.md/#gear-utilization) shows a setup that breaks these assumptions. The first gear is hardly used and the second gear is used much less than the other gears. Also, the most used RPM ranges (peaks) of all gears are a bit off the optimal RPM point.
-
-#### Springs ####
-
-![RPM](../img/plots/default/Suspension_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-The default setup already looks quite good because the bump stops are hardly ever touched. The optimal setting is probably when the full range of the suspension is used without touching the bump stops. This should maximize the ground contact.
-
-The front springs are less compressed although the rear springs are stiffer. The reason may be that the stiffer springs still can't counteract the weight of the engine in the rear. The difference between left and right wheels is due to the track with its camber and slanted jumps. My final setup distributes the dislocation a bit more broadly (note the different y-scale) without notably changing the bump stop times. The front-rear distribution is still unequal, which leaves some space for improvement.
-
-
-#### Ground Contact ####
-
-Default:
-![RPM](../img/plots/default/Ground_Contact_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-Improved:
-![RPM](../img/plots/final/Ground_Contact_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-With my improved setup, the wheels were a bit shorter in the air, although I was faster and therefore jumped longer. The somewhat softer suspension and dampers mitigates the critical moments when the wheels are almost leaving the ground. I noticed that hard-to-control cars are behaving significantly better when I maximize the ground contact.
-
-
-#### Rotation vs Suspension ####
-
-![RPM](../img/plots/default/Rotation_vs_Suspension_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-Improved:
-![RPM](../img/plots/final/Rotation_vs_Suspension_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-The car rotations have much lower frequencies than the suspension angles, as it should probably be. With the improved setup, the body rotation is reduced a lot, which improves stability and control. As shown with the increased variance, the suspension absorbs more bumps now than with the default setup.
-
-If the car rotates more left-right than front-back, something is off. Either the stabilizers are much too strong or too soft, which causes the car to bottom out on a side. It may also happen that the track has a lot of extreme camber.
 
 
 ## References ##
