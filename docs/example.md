@@ -2,7 +2,7 @@
 
 Here is how I used the logger to optimize the setups for the Renault 5 Turbo (H3 RWD class) on Noorinbee Ridge Descent, Australia (dry, no events, optimal surface degradation). I chose this pretty crazy combination of a bitchy car on a fast and bumpy track to check the influence of the setup with minimal influence of skill and practice. For reliable comparisons, I tried to get to the finish line as quickly as possible without crashes. Basically, if I get through, it's fast. After several attempts I managed to finish at 202.5 seconds with the default setup, which gave me the 41st place in the leaderboard. Improving only the gear setup gave me 202.2 seconds after only few attempts. With all setup changes, I managed to improve my time to 199.6 seconds, which was place 16! Here, I present the plots that helped me tune the setup, with some comments.
 
-[If you don't know the plots, read this description first.](docs/plots_description.md)
+[If you don't know the plots, read this description first.](plots_description.md)
 
 ## Improved Setup ##
 
@@ -133,7 +133,7 @@ The improved setup creates smaller spikes or at least symmetric ones.
 
 ## Further Information ##
 
-[See a description of the plots here.](docs/plots_description.md)
+[See a description of the plots here.](plots_description.md)
 
-[Have a look at some general guidelines for tuning and a if...then list.](docs/tuning_guide.md)
+[Have a look at some general guidelines for tuning and a if...then list.](tuning_guide.md)
 

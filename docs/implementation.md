@@ -62,7 +62,7 @@ I can only use the information I get from Dirt Rally 1 and 2 via UDP. This is cu
 1. Max / idle RPM
 1. Max gears
 
-See [networking.py](source/networking.py) for more information.
+See [networking.py](../source/dirt_rally/udp_data.py) for more information.
 
 
 ## Open Issues and Contributing ##

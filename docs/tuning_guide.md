@@ -178,7 +178,7 @@ Two pages are especially interesting: the [Glossary](https://www.paradigmshiftra
 
 ## Further Information ##
 
-[See a description of the plots here.](docs/plots_description.md)
+[See a description of the plots here.](plots_description.md)
 
-[Here, I explain how I used the logger to optimize the setup of the Renault 5 Turbo for Noorinbee Ridge Descent, Australia.](docs/example.md)
+[Here, I explain how I used the logger to optimize the setup of the Renault 5 Turbo for Noorinbee Ridge Descent, Australia.](example.md)
 
