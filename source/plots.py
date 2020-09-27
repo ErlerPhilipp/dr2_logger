@@ -201,11 +201,14 @@ def scatter_plot(ax: plt.axes, x_points: List, y_points: List, title: str, label
             if x_points[i].shape[0] > 0:
                 x_min = np.min(x_points[i])
                 x_max = np.max(x_points[i])
+                try:
                 poly_coefficients = np.polyfit(x_points[i], y_points[i], 3)
                 poly = np.poly1d(poly_coefficients)
                 x_poly = np.linspace(x_min, x_max, 500)
                 y_poly = poly(x_poly)
                 ax.plot(x_poly, y_poly, '-', c=colors[i])
+                except np.linalg.LinAlgError as _:
+                    pass  # sometimes LinAlgError("SVD did not converge in Linear Least Squares"), maybe first gear
 
 
 def line_plot(ax, x_points, y_points, title, labels, alpha, x_label, y_label, colors=None,
