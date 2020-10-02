@@ -1,0 +1,42 @@
+name: CI
+
+# Controls when the action will run.
+on:
+  push:
+    branches: '**'
+    tags: '**'
+  pull_request:
+    branches: '**'
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    #- name: Set up Python 3.8
+    #  uses: actions/setup-python@v1
+    #  with:
+    #    python-version: 3.8
+
+    #- uses: s-weigand/setup-conda@v1
+    #  with:
+    #    update-conda: true
+    #    activate-conda: false
+    #- run: conda --version
+    #- run: which python
+
+    - name: PyInstaller Windows
+      uses: JackMcKew/pyinstaller-action-windows@v0.1.2
+      with:
+        path: .
+
+    - name Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: dr2_logger_test.exe
+        path: dist/windows
+
