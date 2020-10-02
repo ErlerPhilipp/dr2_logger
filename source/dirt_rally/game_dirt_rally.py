@@ -158,10 +158,13 @@ class GameDirtRally(GameBase):
 
         return car_name
 
-    def get_race_duration(self, session_collection):
-        race_time = session_collection[udp_data.Fields.run_time.value, -1] - \
-                    session_collection[udp_data.Fields.run_time.value, 0]
-        return race_time
+    def get_race_duration(self, session_collection: np.ndarray):
+        if session_collection.shape[1] == 0:
+            return 0.0
+        else:
+            race_time = session_collection[udp_data.Fields.run_time.value, -1] - \
+                        session_collection[udp_data.Fields.run_time.value, 0]
+            return race_time
 
     def get_progress(self, session_collection):
         if session_collection.shape[1] == 0:
