@@ -112,6 +112,7 @@ car_data = [
     [774.92620849609375, 178.02359008789062, 5.0, 'Skoda Fabia R5'],  # same as Volkswagen Polo GTI R5
     [774.92620849609375, 178.02359008789062, 5.0, 'Volkswagen Polo GTI R5'],  # same as Skoda Fabia R5
     [743.51031494140625, 185.87757873535156, 5.0, 'Citroen C3 R5'],
+    [774.9262084960938, 183.2595672607422, 5.0, 'Ford Fiesta R5 MKII'],
 
     # Rally GT
     [942.477783203125, 188.4955596923828, 6.0, 'Porsche 911 RGT Rally Spec'],

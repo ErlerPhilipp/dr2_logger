@@ -45,6 +45,7 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
             fig.canvas.set_window_title('Map Basics' + title_post_fix)
             plot_height_over_dist(ax[0], plot_data)
             plot_gear_over_2d_pos(ax[1], plot_data)
+            # save_plot('Map Basics', title_post_fix, fig)
 
         if additional_plots:
             # see the car's energy on the track.
@@ -54,6 +55,7 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
             fig.canvas.set_window_title('Energy and Power' + title_post_fix)
             energy_over_time(ax[0], plot_data)
             power_over_time(ax[1], plot_data)
+            # save_plot('Energy and Power', title_post_fix, fig)
 
         # see the car's energy on the track. this is pretty much the same as velocity + height so not much insight here.
         # fig, ax = plt.subplots(1, 1)
@@ -64,11 +66,13 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
         fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('RPM Histogram per Gear' + title_post_fix)
         gear_rpm_bars(ax, plot_data)
+        # save_plot('RPM Histogram per Gear', title_post_fix, fig)
 
         # overlaps on the y axis mean the driver shifts too early or too late and/or that the gears are too close.
         fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('Speed over RPM' + title_post_fix)
         plot_v_over_rpm(ax, plot_data)
+        # save_plot('Speed over RPM', title_post_fix, fig)
 
         if additional_plots:
             # show the power output over RPM and velocity.
@@ -77,6 +81,7 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
             fig.canvas.set_window_title('Power Output' + title_post_fix)
             plot_p_over_rpm(ax, plot_data)
             # plot_p_over_vel(ax[1], plot_data)
+            # save_plot('Power Output', title_post_fix, fig)
 
         if additional_plots:
             # the benefits of this plot are unclear. the idea is to see the max turning rate.
@@ -84,6 +89,7 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
             fig.canvas.set_window_title('Forward G-Force' + title_post_fix)
             plot_g_over_rpm(ax, plot_data)
             # plot_g_over_throttle(ax[1], plot_data)
+            # save_plot('Forward G-Force', title_post_fix, fig)
 
         if additional_plots:
             # see the typical drift angle.
@@ -95,12 +101,14 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
             drift_angle_bars(ax[1], plot_data)
             drift_angle_change_bars(ax[2], plot_data)
             # drift_over_speed(ax[1][1], plot_data)
+            # save_plot('Drift at 2D positions', title_post_fix, fig)
 
         # key plot for tuning the suspension height, dampers and springs
         fig, ax = plt.subplots(1, 1)
         fig.canvas.set_window_title('Suspension' + title_post_fix)
         suspension_bars(ax, plot_data)
         # suspension_l_r_f_r_bars(ax[1], plot_data)
+        # save_plot('Suspension', title_post_fix, fig)
 
         if additional_plots:
             # mostly interesting to check slip caused by differentials.
@@ -108,6 +116,7 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
             fig.canvas.set_window_title('Wheel Speed' + title_post_fix)
             wheel_speed_over_time(ax[0], plot_data)
             inputs_over_time(ax[1], plot_data)
+            # save_plot('Wheel Speed', title_post_fix, fig)
 
         # this shows how much the car's body rotates because of track irregularities
         fig, ax = plt.subplots(3, 1, sharex='all')
@@ -115,6 +124,7 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
         rotation_over_time(ax[0], plot_data)
         suspension_lr_fr_angles_over_time(ax[1], plot_data)
         suspension_l_r_f_r_over_time(ax[2], plot_data)
+        # save_plot('Rotation vs Suspension', title_post_fix, fig)
 
         # mostly for tuning the dampers, but also springs and stabilizers
         fig, ax = plt.subplots(3, 1, sharex='all')
@@ -122,9 +132,9 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
         ground_contact_over_time(ax[0], plot_data)
         suspension_over_time(ax[1], plot_data)
         suspension_vel_over_time(ax[2], plot_data)
+        # save_plot('Ground Contact', title_post_fix, fig)
 
         # TODO: find maximum turn rate over velocity, depending on full steering, ground contact
-
         plt.show()
 
 
@@ -202,11 +212,11 @@ def scatter_plot(ax: plt.axes, x_points: List, y_points: List, title: str, label
                 x_min = np.min(x_points[i])
                 x_max = np.max(x_points[i])
                 try:
-                poly_coefficients = np.polyfit(x_points[i], y_points[i], 3)
-                poly = np.poly1d(poly_coefficients)
-                x_poly = np.linspace(x_min, x_max, 500)
-                y_poly = poly(x_poly)
-                ax.plot(x_poly, y_poly, '-', c=colors[i])
+                    poly_coefficients = np.polyfit(x_points[i], y_points[i], 3)
+                    poly = np.poly1d(poly_coefficients)
+                    x_poly = np.linspace(x_min, x_max, 500)
+                    y_poly = poly(x_poly)
+                    ax.plot(x_poly, y_poly, '-', c=colors[i])
                 except np.linalg.LinAlgError as _:
                     pass  # sometimes LinAlgError("SVD did not converge in Linear Least Squares"), maybe first gear
 
