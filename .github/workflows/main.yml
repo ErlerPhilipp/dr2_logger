@@ -34,7 +34,7 @@ jobs:
       with:
         path: .
 
-    - name Upload Artifact
+    - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
         name: dr2_logger_test.exe
