@@ -77,9 +77,6 @@ jobs:
     - name: Copy readme
       run: |
         cp README.md dist/README.md
-      with:
-        source: "README.md"
-        target: "dist/README.md"
     - name: Copy docs
       run: |
         cp docs dist/docs
