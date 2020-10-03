@@ -177,8 +177,8 @@ class LoggerBackend:
             self.udp_socket = networking.open_port(settings.settings['general']['ip_in'],
                                                    int(settings.settings['general']['port_in']))
             if self.udp_socket is None:
-                print('Failed to open socket on {}. Is another program already listening on this socket?'.format(
-                    self.udp_socket.getsockname()))
+                print('Failed to open socket on {}:{}. Is another program already listening on this socket?'.format(
+                    settings.settings['general']['ip_in'], int(settings.settings['general']['port_in'])))
             else:
                 print('Listening on socket {}'.format(self.udp_socket.getsockname()))
 
@@ -293,4 +293,5 @@ class LoggerBackend:
         return message_str
 
     def end_logging(self):
-        self.udp_socket.close()
+        if self.udp_socket is not None:
+            self.udp_socket.close()
