@@ -11,33 +11,75 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
-    runs-on: ubuntu-latest
-    # runs-on: windows-latest
+    # runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    #- name: Set up Python 3.8
-    #  uses: actions/setup-python@v1
-    #  with:
-    #    python-version: 3.8
-
-    #- uses: s-weigand/setup-conda@v1
-    #  with:
-    #    update-conda: true
-    #    activate-conda: false
-    #- run: conda --version
-    #- run: which python
-
-    - name: PyInstaller Windows
-      uses: JackMcKew/pyinstaller-action-windows@v0.1.2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
       with:
-        path: .
+        python-version: 3.7
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requirements.txt
+
+    # - uses: s-weigand/setup-conda@v1
+    #   with:
+    #     update-conda: true
+    #     activate-conda: false
+    # - run: conda --version
+    # - run: which python
+
+    - name: build with pyinstaller
+      run: |
+        pyinstaller dr2_logger.py
+
+    # - name: PyInstaller
+    #   uses: pyinstaller timerecord.spec --noconfirm --name timerecorder-dr2
+
+    # - name: PyInstaller Windows
+    #   uses: JackMcKew/pyinstaller-action-windows@v0.1.2
+    #   with:
+    #     path: .
+
+    # https://github.com/marketplace/actions/copy-file
+    - name: Copy license
+      uses: canastro/copy-file-action@master
+      with:
+        source: "license"
+        target: "dist/license"
+    - name: Copy readme
+      uses: canastro/copy-file-action@master
+      with:
+        source: "README.md"
+        target: "dist/README.md"
+    - name: Copy docs
+      uses: canastro/copy-file-action@master
+      with:
+        source: "docs"
+        target: "dist/docs"
+    - name: Copy images for docs
+      uses: canastro/copy-file-action@master
+      with:
+        source: "img"
+        target: "dist/img"
+
+    # https://github.com/marketplace/actions/zip-release
+    - name: Zip release
+      uses: thedoctor0/zip-release@master
+      with:
+        filename: 'dr2_logger.zip'
+        directory: 'dist'
+        # exclusions: '*.git* /*node_modules/* .editorconfig'
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
-        name: dr2_logger_test.exe
-        path: dist/windows
+        name: dr2_logger.zip
+        path: dist
 
