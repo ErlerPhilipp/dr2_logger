@@ -71,17 +71,17 @@ jobs:
         target: "dist/img"
         flags: '-r'
 
-    # https://github.com/marketplace/actions/zip-release
-    - name: Zip release
-      uses: thedoctor0/zip-release@master
-      with:
-        filename: 'dr2_logger.zip'
-        directory: 'dist'
-        # exclusions: '*.git* /*node_modules/* .editorconfig'
+    # # https://github.com/marketplace/actions/zip-release
+    # - name: Zip release
+    #   uses: thedoctor0/zip-release@master
+    #   with:
+    #     filename: 'dr2_logger.zip'
+    #     directory: 'dist'
+    #     # exclusions: '*.git* /*node_modules/* .editorconfig'
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v2
       with:
         name: dr2_logger.zip
-        path: dist/dr2_logger.zip
+        path: dist
 
