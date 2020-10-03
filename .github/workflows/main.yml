@@ -11,8 +11,8 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
-    runs-on: ubuntu-latest
-    # runs-on: windows-latest
+    # runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - name: Checkout repository
@@ -47,29 +47,47 @@ jobs:
     #   with:
     #     path: .
 
-    # https://github.com/marketplace/actions/copy-file
+    # # https://github.com/marketplace/actions/copy-file
+    # - name: Copy license
+    #   uses: canastro/copy-file-action@master
+    #   with:
+    #     source: "LICENSE"
+    #     target: "dist/LICENSE"
+    # - name: Copy readme
+    #   uses: canastro/copy-file-action@master
+    #   with:
+    #     source: "README.md"
+    #     target: "dist/README.md"
+    # - name: Copy docs
+    #   uses: canastro/copy-file-action@master
+    #   with:
+    #     source: "docs"
+    #     target: "dist/docs"
+    #     flags: '-r'
+    # - name: Copy images for docs
+    #   uses: canastro/copy-file-action@master
+    #   with:
+    #     source: "img"
+    #     target: "dist/img"
+    #     flags: '-r'
+
     - name: Copy license
-      uses: canastro/copy-file-action@master
-      with:
-        source: "LICENSE"
-        target: "dist/LICENSE"
+      run: |
+        cp LICENSE dist/LICENSE
     - name: Copy readme
-      uses: canastro/copy-file-action@master
+      run: |
+        cp README.md dist/README.md
       with:
         source: "README.md"
         target: "dist/README.md"
     - name: Copy docs
-      uses: canastro/copy-file-action@master
-      with:
-        source: "docs"
-        target: "dist/docs"
-        flags: '-r'
+      run: |
+        cp docs dist/docs
+    # -r
     - name: Copy images for docs
-      uses: canastro/copy-file-action@master
-      with:
-        source: "img"
-        target: "dist/img"
-        flags: '-r'
+      run: |
+        cp "img" "dist/img"
+    # -r
 
     # # https://github.com/marketplace/actions/zip-release
     # - name: Zip release
