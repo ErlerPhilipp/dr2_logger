@@ -73,7 +73,7 @@ class GameDirtRally(GameBase):
         progress = last_sample[udp_data.Fields.progress.value]
         filled_length = int(round(bar_length * progress))
         progress_str = '|' + f'{"█" * filled_length}{"-" * (bar_length - filled_length)}' + '|'
-        eta = 0.0 if progress == 0.0 else current_time * (1.0 / progress)
+        eta = 0.0 if progress <= 0.0 else current_time * (1.0 / progress)
         eta_str = time.strftime('%M:%S', time.gmtime(eta))
         speed = last_sample[udp_data.Fields.speed_ms.value]
         rpm = last_sample[udp_data.Fields.rpm.value]
@@ -158,10 +158,13 @@ class GameDirtRally(GameBase):
 
         return car_name
 
-    def get_race_duration(self, session_collection):
-        race_time = session_collection[udp_data.Fields.run_time.value, -1] - \
-                    session_collection[udp_data.Fields.run_time.value, 0]
-        return race_time
+    def get_race_duration(self, session_collection: np.ndarray):
+        if session_collection.shape[1] == 0:
+            return 0.0
+        else:
+            race_time = session_collection[udp_data.Fields.run_time.value, -1] - \
+                        session_collection[udp_data.Fields.run_time.value, 0]
+            return race_time
 
     def get_progress(self, session_collection):
         if session_collection.shape[1] == 0:

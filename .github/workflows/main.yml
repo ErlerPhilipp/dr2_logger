@@ -1,0 +1,55 @@
+name: CI
+
+# Controls when the action will run.
+on:
+  push:
+    branches: '**'
+    tags: '**'
+  pull_request:
+    branches: '**'
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Copy license
+      run: |
+        copy LICENSE dist/LICENSE
+    - name: Copy readme
+      run: |
+        copy README.md dist/README.md
+    - name: Copy docs
+      run: |
+        xcopy /e docs dist\docs\
+    - name: Copy images for docs
+      run: |
+        xcopy /e img dist\img\
+    - name: Check copied files
+      run: |
+        dir dist
+
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.7
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: build with pyinstaller
+      run: |
+        pyinstaller dr2_logger.py
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: dr2_logger.zip
+        path: dist
+
