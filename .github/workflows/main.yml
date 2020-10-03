@@ -11,7 +11,6 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
-    # runs-on: ubuntu-latest
     runs-on: windows-latest
 
     steps:
@@ -20,16 +19,16 @@ jobs:
 
     - name: Copy license
       run: |
-        cp LICENSE dist/LICENSE
+        copy LICENSE dist/LICENSE
     - name: Copy readme
       run: |
-        cp README.md dist/README.md
+        copy README.md dist/README.md
     - name: Copy docs
       run: |
-        xcopy /E /I docs dist/docs
+        xcopy /e docs dist\docs\
     - name: Copy images for docs
       run: |
-        xcopy /E /I img dist/img
+        xcopy /e img dist\img\
     - name: Check copied files
       run: |
         dir
