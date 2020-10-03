@@ -83,5 +83,5 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: dr2_logger.zip
-        path: dist
+        path: dist/dr2_logger.zip
 
