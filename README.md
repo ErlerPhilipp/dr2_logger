@@ -1,10 +1,9 @@
 # Dirt Rally 2.0 Logger #
 
 Dirt Rally 2.0 Logger is a logging and analysis tool for car setups in [Dirt Rally 1 and 2 by Codemasters](https://dirtrally2.com/). 
-This is a free and open-source software written by Philipp Erler.
+This is a free and open-source software.
 
-- [Executable (Version 1.8.1, 2020-05-15)](https://philipperler.net/dr2_logger_1_8_1/)
-- [Source Code, Documentation and Support](https://github.com/ErlerPhilipp/dr2_logger)
+[Get the executables, source code, documentation and support on Github.](https://github.com/ErlerPhilipp/dr2_logger)
 
 
 ## How to Use ##
@@ -54,8 +53,11 @@ When you share (parts of) this repository, please mention or link my work. If yo
 
 ## Change Log ##
 
-- 1.8.2 (TBD):
+- 1.8.2 (2020-10-03):
     - Add guidelines for tuning.
+    - Fix some crashes.
+    - Add continuous integration.
+    - Add new Ford Ibiza R5 MKII.
 - 1.8.1 (2020-05-15):
     - Prevent several crashes and other bugfixes.
     - Add country code and region to track names.
@@ -96,6 +98,7 @@ When you share (parts of) this repository, please mention or link my work. If yo
 
 ## Older Releases ##
 
+- [Executable (Version 1.8.1, 2020-05-15)](https://philipperler.net/dr2_logger_1_8_1/)
 - [Executable (Version 1.8, 2020-05-11)](https://philipperler.net/dr2_logger_1_8/)
 - [Executable (Version 1.7, 2020-03-25)](https://philipperler.net/dr2logger_1_7/)
 - [Executable (Version 1.6, 2019-10-14)](https://philipperler.net/dr2logger_1_6/)

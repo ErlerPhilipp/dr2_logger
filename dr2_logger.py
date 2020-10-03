@@ -8,7 +8,7 @@ from source.logger_backend import LoggerBackend
 
 log_raw_data = False
 debugging = False
-version_string = '(Version 1.8.1, 2020-05-15)'
+version_string = '(Version 1.8.2, 2020-10-03)'
 # TODO: update date
 
 intro_text = '''
