@@ -63,11 +63,13 @@ jobs:
       with:
         source: "docs"
         target: "dist/docs"
+        flags: '-r'
     - name: Copy images for docs
       uses: canastro/copy-file-action@master
       with:
         source: "img"
         target: "dist/img"
+        flags: '-r'
 
     # https://github.com/marketplace/actions/zip-release
     - name: Zip release
