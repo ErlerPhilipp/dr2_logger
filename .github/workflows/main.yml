@@ -51,8 +51,8 @@ jobs:
     - name: Copy license
       uses: canastro/copy-file-action@master
       with:
-        source: "license"
-        target: "dist/license"
+        source: "LICENSE"
+        target: "dist/LICENSE"
     - name: Copy readme
       uses: canastro/copy-file-action@master
       with:
