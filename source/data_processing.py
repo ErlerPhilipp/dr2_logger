@@ -175,21 +175,24 @@ def get_optimal_rpm(plot_data: pd.PlotData):
 
         rpm_min = np.min(rpm_gear)
         rpm_max = np.max(rpm_gear)
-        # poly_coefficients = np.polyfit(rpm_gear, acc_gear, 3)
-        poly_coefficients = np.polyfit(rpm_gear, vel_gear, 3)
-        poly = np.poly1d(poly_coefficients)
-        poly_derived = np.polyder(poly)
-        x_poly = np.linspace(rpm_min, rpm_max, 500)
-        y_poly = poly_derived(x_poly)
-        optimal_y_per_gear.append(np.max(y_poly))
-        optimal_x_per_gear.append(x_poly[np.argmax(y_poly)])
+        try:
+            # poly_coefficients = np.polyfit(rpm_gear, acc_gear, 3)
+            poly_coefficients = np.polyfit(rpm_gear, vel_gear, 3)
+            poly = np.poly1d(poly_coefficients)
+            poly_derived = np.polyder(poly)
+            x_poly = np.linspace(rpm_min, rpm_max, 500)
+            y_poly = poly_derived(x_poly)
+            optimal_y_per_gear.append(np.max(y_poly))
+            optimal_x_per_gear.append(x_poly[np.argmax(y_poly)])
 
-        y_90_percentile = np.percentile(y_poly, 90, interpolation='nearest')
-        y_90_percentile_mask = y_poly > y_90_percentile
-        optimal_rpm_min_gear = np.min(x_poly[y_90_percentile_mask])
-        optimal_rpm_max_gear = np.max(x_poly[y_90_percentile_mask])
-        optimal_rpm_range_min_per_gear.append(optimal_rpm_min_gear)
-        optimal_rpm_range_max_per_gear.append(optimal_rpm_max_gear)
+            y_90_percentile = np.percentile(y_poly, 90, interpolation='nearest')
+            y_90_percentile_mask = y_poly > y_90_percentile
+            optimal_rpm_min_gear = np.min(x_poly[y_90_percentile_mask])
+            optimal_rpm_max_gear = np.max(x_poly[y_90_percentile_mask])
+            optimal_rpm_range_min_per_gear.append(optimal_rpm_min_gear)
+            optimal_rpm_range_max_per_gear.append(optimal_rpm_max_gear)
+        except np.linalg.LinAlgError as _:
+            pass  # sometimes LinAlgError("SVD did not converge in Linear Least Squares"), maybe first gear
 
     # optimal_y_per_gear = np.array(optimal_y_per_gear)
     optimal_x_per_gear = np.array(optimal_x_per_gear)
