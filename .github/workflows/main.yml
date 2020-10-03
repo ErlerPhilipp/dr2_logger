@@ -18,6 +18,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Copy license
+      run: |
+        cp LICENSE dist/LICENSE
+    - name: Copy readme
+      run: |
+        cp README.md dist/README.md
+    - name: Copy docs
+      run: |
+        xcopy /E /I docs dist/docs
+    - name: Copy images for docs
+      run: |
+        xcopy /E /I img dist/img
+    - name: Check copied files
+      run: |
+        dir
+
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
       with:
@@ -70,21 +86,6 @@ jobs:
     #     source: "img"
     #     target: "dist/img"
     #     flags: '-r'
-
-    - name: Copy license
-      run: |
-        cp LICENSE dist/LICENSE
-    - name: Copy readme
-      run: |
-        cp README.md dist/README.md
-    - name: Copy docs
-      run: |
-        cp docs dist/docs
-    # -r
-    - name: Copy images for docs
-      run: |
-        cp "img" "dist/img"
-    # -r
 
     # # https://github.com/marketplace/actions/zip-release
     # - name: Zip release
