@@ -41,7 +41,7 @@ Due to ambiguous data (exactly the same idle/max RPM and number of gears), the f
 - Skoda Fabia Rally and Subaru WRX STI RX
 - Skoda Fabia R5 and Volkswagen Polo GTI R5
 
-[Here are more details for developers covering hwo to run the Python code directly, how to build an executable and which information is available.](docs/implementation.md)
+[Here are more details for developers covering how to run the Python code directly, how to build an executable and which information is available.](docs/implementation.md)
 
 
 ## License ##
