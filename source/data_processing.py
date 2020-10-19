@@ -1,3 +1,5 @@
+import functools
+
 import numpy as np
 
 from source import plot_data as pd
@@ -101,7 +103,7 @@ def get_forward_vel_2d(plot_data: pd.PlotData):
     return vxy_normalized
 
 
-def get_drift_angle(plot_data: pd.PlotData):
+def get_drift_angle_deg(plot_data: pd.PlotData):
 
     pxy_normalized = get_forward_dir_2d(plot_data)
     vxy_normalized = get_forward_vel_2d(plot_data)
@@ -205,6 +207,8 @@ def get_optimal_rpm(plot_data: pd.PlotData):
     optimal_rpm_range_min = optimal_rpm_range_min_per_gear[gear_at_optimal_rpm]
     optimal_rpm_range_max = optimal_rpm_range_max_per_gear[gear_at_optimal_rpm]
 
+    # TODO: optimal_rpm_range_min and optimal_rpm_range_max fail sometimes
+
     return optimal_rpm[0, 0], optimal_rpm_range_min[0, 0], optimal_rpm_range_max[0, 0]
 
 
@@ -218,20 +222,29 @@ def get_full_acceleration_mask(plot_data: pd.PlotData):
     no_clutch = plot_data.clutch <= 0.01
 
     # take only times without a lot of drifting
-    no_drift = np.abs(get_drift_angle(plot_data=plot_data)) <= 5.0  # degree
+    no_drift = np.abs(get_drift_angle_deg(plot_data=plot_data)) <= 5.0  # degree
 
     # take only times without a lot of slip
     car_vel = plot_data.speed_ms
-    no_slip_fl = np.abs(plot_data.wsp_fl - car_vel) <= 15.0
-    no_slip_fr = np.abs(plot_data.wsp_fr - car_vel) <= 15.0
-    no_slip_rl = np.abs(plot_data.wsp_rl - car_vel) <= 15.0
-    no_slip_rr = np.abs(plot_data.wsp_rr - car_vel) <= 15.0
+    no_slip_fl = np.abs(plot_data.wsp_fl - car_vel) <= 5.0
+    no_slip_fr = np.abs(plot_data.wsp_fr - car_vel) <= 5.0
+    no_slip_rl = np.abs(plot_data.wsp_rl - car_vel) <= 5.0
+    no_slip_rr = np.abs(plot_data.wsp_rr - car_vel) <= 5.0
 
     # # take only mostly flat parts of the track
     # small_susp_vel_fl = np.abs(plot_data.susp_vel_fl) <= 0.01
     # small_susp_vel_fr = np.abs(plot_data.susp_vel_fr) <= 0.01
     # small_susp_vel_rl = np.abs(plot_data.susp_vel_rl) <= 0.01
     # small_susp_vel_rr = np.abs(plot_data.susp_vel_rr) <= 0.01
+
+    # take samples only when all wheels are on the ground
+    susp_vel = [plot_data.susp_vel_fl, plot_data.susp_vel_fr, plot_data.susp_vel_rl, plot_data.susp_vel_rr]
+    in_air_masks = [get_in_air_mask(
+        susp_vel_arr=susp, time_steps=plot_data.run_time,
+        susp_vel_lim=100.0, susp_vel_var_max=100.0, filter_length=6)
+        for susp in susp_vel]
+    on_ground_masks = [np.logical_not(am) for am in in_air_masks]
+    on_ground_mask = functools.reduce(np.logical_and, on_ground_masks)
 
     not_close_to_gear_changes = np.logical_not(get_gear_shift_mask(plot_data=plot_data, shift_time_ms=100.0))
     forward_gear = plot_data.gear >= 1.0
@@ -242,6 +255,52 @@ def get_full_acceleration_mask(plot_data: pd.PlotData):
         no_drift,
         no_slip_fl, no_slip_fr, no_slip_rl, no_slip_rr,
         # small_susp_vel_fl, small_susp_vel_fr, small_susp_vel_rl, small_susp_vel_rr,
+        on_ground_mask,
     ))
 
     return full_acceleration_mask
+
+
+def get_in_air_mask(susp_vel_arr: np.ndarray, time_steps: np.ndarray,
+                    susp_vel_lim=100.0, susp_vel_var_max=100.0, filter_length=6):
+    # filter_length = 6 -> 100 ms (0.1 s) at 60 FPS
+    box_filter = np.array([1.0] * filter_length)  # filter_length = 6 -> 100 ms at 60 FPS
+
+    def get_variance_convolved(data: np.ndarray):
+        sum_conv = np.convolve(data, box_filter, mode='same')
+        mean_conv = sum_conv / float(filter_length)
+        var_sqr_conv = data - mean_conv
+        var_conv = var_sqr_conv * var_sqr_conv
+        return var_conv
+
+    # check if the suspension velocity is declining continuously over a certain time
+    susp_acc = derive_no_nan(susp_vel_arr, time_steps)
+    susp_acc_pos = (susp_acc > -10.0).astype(np.float)
+    susp_acc_pos_conv = np.convolve(susp_acc_pos, box_filter, mode='same') == float(filter_length)
+
+    # check if the suspension velocity is negative for a certain time
+    susp_vel_neg = (susp_vel_arr < 10.0).astype(np.float)
+    susp_vel_neg_conv = np.convolve(susp_vel_neg, box_filter, mode='same') == float(filter_length)
+
+    # # check approximately monotonously increasing suspension velocity (less fast extension over time)
+    # susp_vel_arr_next = np.concatenate([susp_vel_arr[1:], np.full((1,), susp_vel_arr[-1])], axis=0)
+    # susp_vel_increasing = susp_vel_arr_next - susp_vel_arr > -0.1
+    # susp_vel_inc_conv = np.convolve(susp_vel_increasing, box_filter, mode='same') == float(filter_length)
+
+    # # extending by max x mm/s
+    # susp_vel_lim = np.logical_and(susp_vel_arr < 0.0, susp_vel_arr > -susp_vel_lim)
+    # susp_vel_lim_conv = np.convolve(susp_vel_lim, box_filter, mode='same') == float(filter_length)
+    # susp_var = get_variance_convolved(susp_vel_arr) < susp_vel_var_max
+
+    # and of all conditions
+    # in_air_mask = np.logical_and(susp_var, susp_vel_lim_conv)
+    # in_air_mask = np.logical_and(in_air_mask, susp_vel_inc_conv)
+
+    in_air_mask = functools.reduce(np.logical_and, (
+        susp_acc_pos_conv, susp_vel_neg_conv  # susp_var, susp_vel_lim_conv, susp_vel_inc_conv,
+    ))
+
+    # previous convolutions shrunk the masks, now extending again
+    in_air_mask = np.convolve(in_air_mask, box_filter, mode='same') >= float(filter_length * 0.5)
+
+    return in_air_mask

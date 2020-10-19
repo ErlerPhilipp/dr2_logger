@@ -12,7 +12,7 @@ version_string = '(Version 1.8.2, 2020-10-03)'
 # TODO: update date
 
 intro_text = '''
-Dirt Rally 2.0 Logger {} by Philipp Erler
+Dirt Rally 2.0 Logger {}
 https://github.com/ErlerPhilipp/dr2_logger
 
 Make sure, UDP data is enabled in the hardware_settings_config.xml 
@@ -20,7 +20,6 @@ Default: C:\\Users\\ [username] \\Documents\\My Games\\DiRT Rally 2.0\\hardwares
 <motion_platform>
     <dbox enabled="false" />
     <udp enabled="true" extradata="3" ip="127.0.0.1" port="20777" delay="1" />
-    <udp enabled="true" extradata="3" ip="127.0.0.1" port="10001" delay="1" />
     <custom_udp enabled="False" filename="packet_data.xml" ip="127.0.0.1" port="20777" delay="1" />
     <fanatec enabled="false" pedalVibrationScale="1.0" wheelVibrationScale="1.0" ledTrueForGearsFalseForSpeed="true" />
 </motion_platform>

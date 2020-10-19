@@ -4,13 +4,12 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - matplotlib=3.2.1
-  - numpy=1.18.3
-  - pip=20.0.0
-  - pyqt=5.14.2
-  - python=3.8
-  - scipy=1.4.1
-  - setuptools=40.8.0
+  - matplotlib>=3.2.1
+  - numpy>=1.18.3
+  - pip>=20.0.0
+  - python>=3.8
+  - scipy>=1.4.1
+  - setuptools>=40.8.0
   - pip:
-    - pyinstaller==3.6
+    - pyinstaller>=3.6
 
