@@ -656,7 +656,7 @@ def suspension_l_r_f_r_bars(ax, plot_data: pd.PlotData):
 
 def plot_height_over_dist(ax, plot_data: pd.PlotData):
     distance = plot_data.distance
-    height = np.abs(plot_data.pos_y)
+    height = np.abs(plot_data.pos_z)
     ax.plot(distance, height, label='Height')
     ax.set(xlabel='Distance (m)', ylabel='Height (m)',
            title='Track Elevation')
