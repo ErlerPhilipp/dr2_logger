@@ -212,7 +212,7 @@ def scatter_plot(ax: plt.axes, x_points: List, y_points: List, title: str, label
                 x_min = np.min(x_points[i])
                 x_max = np.max(x_points[i])
                 try:
-                    poly_coefficients = np.polyfit(x_points[i], y_points[i], 3)
+                    poly_coefficients = np.polyfit(x_points[i], y_points[i], 2)
                     poly = np.poly1d(poly_coefficients)
                     x_poly = np.linspace(x_min, x_max, 500)
                     y_poly = poly(x_poly)
@@ -783,8 +783,7 @@ def plot_v_over_rpm(ax, plot_data: pd.PlotData):
     range_gears = np.unique(plot_data.gear)
     range_gears = np.sort(range_gears)
     range_gears = range_gears[range_gears > 0.0]
-    not_close_to_gear_changes = np.logical_not(
-        data_processing.get_gear_shift_mask(plot_data=plot_data, shift_time_ms=100.0))
+    full_acc_mask = data_processing.get_full_acceleration_mask(plot_data=plot_data)
 
     labels = ['Gear {}'.format(str(g)) for g in range_gears]
     colors = [static_colors[i] for i, g in enumerate(range_gears)]
@@ -795,19 +794,16 @@ def plot_v_over_rpm(ax, plot_data: pd.PlotData):
     y_points = []
     for i, g in enumerate(range_gears):
         current_gear = plot_data.gear == g
-        full_in_current_gear = np.logical_and(not_close_to_gear_changes, current_gear)
-        full_throttle = plot_data.throttle == 1.0
-        interesting = np.logical_and(full_in_current_gear, full_throttle)
-
-        rpm = plot_data.rpm[interesting]
-        speed_ms = plot_data.speed_ms[interesting]
+        interesting_samples = np.logical_and(current_gear, full_acc_mask)
+        rpm = plot_data.rpm[interesting_samples]
+        speed_ms = plot_data.speed_ms[interesting_samples]
 
         x_points += [rpm]
         y_points += [speed_ms]
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='Speed over RPM (full throttle)',
                  labels=labels, colors=colors, scales=scales, alphas=alphas,
-                 x_label='RPM', y_label='Speed (m/s)', plot_mean=True, plot_polynomial=True)
+                 x_label='RPM', y_label='Speed (m/s)', plot_mean=False, plot_polynomial=True)
     plot_optimal_rpm_region(ax=ax, plot_data=plot_data)
 
 
