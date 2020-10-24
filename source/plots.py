@@ -315,7 +315,8 @@ def bar_plot(ax, data, weights, num_bins=20,
         tick_labels = ['{:.0f} to\n {:.0f}'.format(bin_edges[0 + i], bin_edges[1 + i])
                        for i in range(bin_edges.shape[0] - 1)]
 
-        ax.bar(x + (0.5 + i - float(num_series) * 0.5) * width, data_bin_sum, width, label=series_labels[i])
+        ax.bar(x + (0.5 + i - float(num_series) * 0.5) * width, data_bin_sum, width,
+               label=series_labels[i], color=static_colors[i])
 
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
@@ -326,20 +327,20 @@ def bar_plot(ax, data, weights, num_bins=20,
     ax.set_title(title)
 
     if highlight_value is not None:
-        bin_edges_smaller = bin_edges <= highlight_value
-        highlight_bin = np.sum(bin_edges_smaller) - 1
-        highlight_bin_left_edge = highlight_bin + (-float(num_series) * 0.5) * width
-        highlight_bin_right_edge = highlight_bin + (float(num_series) * 0.5) * width
-        ax.axvspan(highlight_bin_left_edge, highlight_bin_right_edge, color='green', alpha=0.25)
+        for gear_id, gear in enumerate(highlight_value):
+            optimal_rpm_for_gear = highlight_value[gear]
+            bin_edges_smaller = bin_edges <= optimal_rpm_for_gear
+            highlight_bin = (np.sum(bin_edges_smaller) - 1) - (float(num_series) * 0.5) * width
+            highlight_bin_left_edge = highlight_bin + gear_id * width
+            highlight_bin_right_edge = highlight_bin_left_edge + width
+            ax.axvspan(highlight_bin_left_edge, highlight_bin_right_edge, color=static_colors[gear_id], alpha=0.25)
 
 
 def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData):
 
-    optimal_rpm, optimal_rpm_range_min, optimal_rpm_range_max = data_processing.get_optimal_rpm(plot_data=plot_data)
-    if optimal_rpm is not None:
-        ax.axvline(optimal_rpm, color='green', alpha=0.5)
-    if optimal_rpm_range_min is not None and optimal_rpm_range_max is not None:
-        ax.axvspan(optimal_rpm_range_min, optimal_rpm_range_max, color='green', alpha=0.25)
+    optimal_rpm_per_gear, optimal_vel_per_gear = data_processing.get_optimal_rpm(plot_data=plot_data)
+    for gear_id, rpm in enumerate(optimal_rpm_per_gear):
+        ax.axvline(optimal_rpm_per_gear[rpm], color=static_colors[gear_id], alpha=0.5, linewidth=5)
 
 
 def plot_gear_over_3d_pos(ax, plot_data: pd.PlotData):
@@ -421,10 +422,10 @@ def gear_rpm_bars(ax, plot_data: pd.PlotData):
     series_labels = ['Gear {0}: {1:.1f}%'.format(
         int(g), gear_ratio[gi] * 100.0) for gi, g in enumerate(range_gears)]
 
-    optimal_rpm, optimal_rpm_range_min, optimal_rpm_range_max = data_processing.get_optimal_rpm(plot_data=plot_data)
+    optimal_rpm_per_gear, optimal_vel_per_gear = data_processing.get_optimal_rpm(plot_data=plot_data)
     bar_plot(ax, data=gear_rpms, weights=gear_times, num_bins=16,
              title='Gear RPM', x_label='RPM', y_label='Accumulated Time (s)', series_labels=series_labels,
-             highlight_value=optimal_rpm)
+             highlight_value=optimal_rpm_per_gear)
 
 
 def energy_over_time(ax, plot_data: pd.PlotData):
