@@ -1,3 +1,6 @@
+import sys
+import functools
+
 import numpy as np
 
 from source import plot_data as pd
@@ -6,6 +9,8 @@ from source import plot_data as pd
 def normalize_2d_vectors(x, y):
     xy = np.array([x, y])
     xy_len = np.linalg.norm(xy, axis=0, keepdims=True)
+    zero_vectors = xy_len == 0.0
+    xy_len[zero_vectors] = sys.float_info.epsilon
     xy_normalized = xy / xy_len
     return xy_normalized
 
@@ -41,12 +46,27 @@ def convert_coordinate_system_2d(x, z):
 
 
 def get_min_middle_max(x):
-
     x_min = x.min()
     x_max = x.max()
     x_middle = (x_max + x_min) * 0.5
-
     return x_min, x_middle, x_max
+
+
+def no_outlier_mask(arr: np.ndarray, outlier_limit: float):
+    if arr.size == 0:
+        return np.array([])
+
+    arr_min = arr.min()
+    arr_max = arr.max()
+    dist = arr_max - arr_min
+    new_arr_min = arr_min + dist * outlier_limit
+    new_arr_max = arr_min + dist * (1.0 - outlier_limit)
+    large_enough = arr >= new_arr_min
+    small_enough = arr <= new_arr_max
+    mask = functools.reduce(np.logical_and, (
+        large_enough, small_enough,
+    ))
+    return mask
 
 
 def differences(x, fix_negative_dt=False):
@@ -126,6 +146,7 @@ def get_energy(plot_data: pd.PlotData):
     potential_energy = mass * gravity * height_relative
     # TODO: add rotational energy
     # TODO: add rotational energy of wheels
+    # TODO: add potential energy of springs
     # TODO: add heat energy in brakes? lol
 
     energy = kinetic_energy + potential_energy
@@ -133,20 +154,46 @@ def get_energy(plot_data: pd.PlotData):
     return energy, kinetic_energy, potential_energy
 
 
-def get_gear_shift_mask(plot_data: pd.PlotData, shift_time_ms=100.0):
-
+def grow_mask(arr: np.ndarray, grow_time_ms: float):
     # exclude times ~0.1 sec around gear shifts and gears < 1
     # assuming 1 UDP sample is 10 ms (delay=1 in Dirt Rally)
+    box_filter_length = int(round(grow_time_ms / 2.0 / 10.0))
+    box_filter = np.array([1.0] * box_filter_length)
+    close_to_true = np.convolve(arr, box_filter, mode='same')
+    return close_to_true > 0.0
+
+
+def shrink_mask(arr: np.ndarray, shrink_time_ms: float):
+    arr[arr >= 1.0] = 1.0
+    arr[arr < 1.0] = 0.0
+    # exclude times ~0.1 sec around gear shifts and gears < 1
+    # assuming 1 UDP sample is 10 ms (delay=1 in Dirt Rally)
+    box_filter_length = int(round(shrink_time_ms / 2.0 / 10.0))
+    box_filter = np.array([1.0] * box_filter_length)
+    close_to_true = np.convolve(arr, box_filter, mode='same')
+    return close_to_true >= float(box_filter_length - sys.float_info.epsilon * 100.0)
+
+
+def get_gear_shift_mask(plot_data: pd.PlotData, shift_time_ms=100.0):
     time_steps = plot_data.run_time
     gear_changes = derive_no_nan(plot_data.gear, time_steps=time_steps)
     gear_changes[gear_changes != 0.0] = 1.0  # 1.0 if the gear changed, 0.0 otherwise
-    box_filter_length = int(round(shift_time_ms / 2.0 / 10.0))
-    box_filter = np.array([1.0] * box_filter_length)
-    close_to_gear_changes = np.convolve(gear_changes, box_filter, mode='same') > 0.0
+    close_to_gear_changes = grow_mask(arr=gear_changes, grow_time_ms=shift_time_ms)
     return close_to_gear_changes
 
 
 def get_optimal_rpm(plot_data: pd.PlotData):
+    # from sklearn.linear_model import HuberRegressor
+    from sklearn.linear_model import RANSACRegressor
+    from sklearn.preprocessing import PolynomialFeatures
+    from sklearn.pipeline import make_pipeline
+
+    # # strange strong acc debug
+    # interesting_samples = plot_data.g_force_lon > 1.2
+    # interesting_samples = np.logical_and(get_full_acceleration_mask(plot_data=plot_data), interesting_samples)
+    # interesting_samples = grow_mask(arr=interesting_samples, grow_time_ms=3000.0)
+    # debug_test = np.stack((plot_data.lap_time, plot_data.g_force_lat, plot_data.g_force_lon, plot_data.throttle), axis=1)
+    # debug_test = debug_test[interesting_samples]
 
     # the first gear is rather unreliable because the wheels usually spin freely at the start
     # median makes it more robust
@@ -155,7 +202,9 @@ def get_optimal_rpm(plot_data: pd.PlotData):
         return None, None, None
     # energy, kinetic_energy, potential_energy = get_energy(plot_data=plot_data)
 
-    optimal_vel_per_gear = {}
+    polynome_degree = 2
+
+    optimal_acc_per_gear = {}
     optimal_rpm_per_gear = {}
     data_gear = plot_data.gear
     range_gears = list(set(data_gear))
@@ -164,63 +213,74 @@ def get_optimal_rpm(plot_data: pd.PlotData):
     for g in range_gears:
         current_gear = plot_data.gear == g
         not_close_to_gear_changes = np.logical_not(get_gear_shift_mask(plot_data=plot_data, shift_time_ms=100.0))
-        full_in_current_gear = np.logical_and(not_close_to_gear_changes, current_gear)
-        interesting = np.logical_and(full_in_current_gear, full_acceleration_mask)
-        # acc_gear = plot_data.g_force_lon[interesting]  # optimal RPM prediction is noisy with acceleration
-        vel_gear = plot_data.speed_ms[interesting]
-        # acc_gear = kinetic_energy[interesting]
-        rpm_gear = plot_data.rpm[interesting]
+        interesting = functools.reduce(np.logical_and, (
+            not_close_to_gear_changes, current_gear, full_acceleration_mask
+        ))
+        if np.count_nonzero(interesting) == 0:
+            continue
 
-        rpm_min = np.min(rpm_gear)
-        rpm_max = np.max(rpm_gear)
-        try:
-            poly_coefficients = np.polyfit(x=rpm_gear, y=vel_gear, deg=3)
-            poly = np.poly1d(poly_coefficients)
-            poly_derived = np.polyder(poly)
-            rpm_poly = np.linspace(rpm_min, rpm_max, 500)
-            vel_poly = poly_derived(rpm_poly)
-            optimal_vel_per_gear[int(g)] = np.max(vel_poly)
-            optimal_rpm_per_gear[int(g)] = rpm_poly[np.argmax(vel_poly)]
-        except np.linalg.LinAlgError as _:
-            pass  # sometimes LinAlgError("SVD did not converge in Linear Least Squares"), maybe first gear
+        no_outliers = no_outlier_mask(arr=plot_data.rpm[interesting], outlier_limit=0.05)
+        acc_gear = plot_data.g_force_lon[interesting][no_outliers]  # optimal RPM prediction is noisy with acceleration
+        # vel_gear = plot_data.speed_ms[interesting][no_outliers]
+        # acc_gear = energy[interesting][no_outliers]
+        rpm_gear = plot_data.rpm[interesting][no_outliers]
 
-    return optimal_rpm_per_gear, optimal_vel_per_gear
+        if rpm_gear.size > polynome_degree + 1:
+            rpm_min = np.min(rpm_gear)
+            rpm_max = np.max(rpm_gear)
+            try:
+                # model = make_pipeline(PolynomialFeatures(degree=polynome_degree), HuberRegressor())
+                model = make_pipeline(PolynomialFeatures(degree=polynome_degree), RANSACRegressor(random_state=42))
+                model.fit(X=np.expand_dims(rpm_gear, axis=2), y=acc_gear)
+                rpm_poly = np.linspace(rpm_min, rpm_max, 500)
+                acc_poly = model.predict(rpm_poly[:, np.newaxis])
+                # poly_coefficients = np.polyfit(x=rpm_gear, y=acc_gear, deg=2)
+                # poly = np.poly1d(poly_coefficients)
+                # # poly_derived = np.polyder(poly)
+                # # acc_poly = poly_derived(rpm_poly)
+                # acc_poly = poly(rpm_poly)
+                optimal_acc_per_gear[int(g)] = np.max(acc_poly)
+                optimal_rpm_per_gear[int(g)] = rpm_poly[np.argmax(acc_poly)]
+            except np.linalg.LinAlgError as _:
+                pass  # sometimes LinAlgError("SVD did not converge in Linear Least Squares"), maybe first gear
+
+    return optimal_rpm_per_gear, optimal_acc_per_gear
 
 
 def get_full_acceleration_mask(plot_data: pd.PlotData):
 
-    import functools
-
     # full throttle inputs
-    full_throttle = plot_data.throttle >= 0.99
-    no_brakes = plot_data.brakes <= 0.01
-    no_clutch = plot_data.clutch <= 0.01
+    # ignore possible ramp-up of turbo
+    # ignore sudden release of handbreak (clutch also released)
+    full_throttle = shrink_mask(arr=plot_data.throttle >= 0.9, shrink_time_ms=500.0)
+    no_brakes = plot_data.brakes <= 0.1
+    no_steering = np.abs(plot_data.steering) <= 0.1
+    no_clutch = shrink_mask(arr=plot_data.clutch <= 0.1, shrink_time_ms=3000.0)
 
     # take only times without a lot of drifting
     no_drift = np.abs(get_drift_angle(plot_data=plot_data)) <= 5.0  # degree
 
     # take only times without a lot of slip
+    # threshold is unclear, maybe different for every car / tyre
+    # 3 would probably be sufficient for soft tyres on gravel
+    slip_threshold = 5.0
     car_vel = plot_data.speed_ms
-    no_slip_fl = np.abs(plot_data.wsp_fl - car_vel) <= 15.0
-    no_slip_fr = np.abs(plot_data.wsp_fr - car_vel) <= 15.0
-    no_slip_rl = np.abs(plot_data.wsp_rl - car_vel) <= 15.0
-    no_slip_rr = np.abs(plot_data.wsp_rr - car_vel) <= 15.0
-
-    # # take only mostly flat parts of the track
-    # small_susp_vel_fl = np.abs(plot_data.susp_vel_fl) <= 0.01
-    # small_susp_vel_fr = np.abs(plot_data.susp_vel_fr) <= 0.01
-    # small_susp_vel_rl = np.abs(plot_data.susp_vel_rl) <= 0.01
-    # small_susp_vel_rr = np.abs(plot_data.susp_vel_rr) <= 0.01
+    no_slip_fl = np.abs(plot_data.wsp_fl - car_vel) <= slip_threshold
+    no_slip_fr = np.abs(plot_data.wsp_fr - car_vel) <= slip_threshold
+    no_slip_rl = np.abs(plot_data.wsp_rl - car_vel) <= slip_threshold
+    no_slip_rr = np.abs(plot_data.wsp_rr - car_vel) <= slip_threshold
+    no_slip_f = np.abs(plot_data.wsp_fl - plot_data.wsp_fr) <= slip_threshold
+    no_slip_r = np.abs(plot_data.wsp_rl - plot_data.wsp_rr) <= slip_threshold
 
     not_close_to_gear_changes = np.logical_not(get_gear_shift_mask(plot_data=plot_data, shift_time_ms=100.0))
     forward_gear = plot_data.gear >= 1.0
 
     full_acceleration_mask = functools.reduce(np.logical_and, (
-        full_throttle, no_brakes, no_clutch,
+        full_throttle, no_brakes, no_steering, no_clutch,
         forward_gear, not_close_to_gear_changes,
         no_drift,
         no_slip_fl, no_slip_fr, no_slip_rl, no_slip_rr,
-        # small_susp_vel_fl, small_susp_vel_fr, small_susp_vel_rl, small_susp_vel_rr,
+        no_slip_f, no_slip_r,
     ))
 
     return full_acceleration_mask

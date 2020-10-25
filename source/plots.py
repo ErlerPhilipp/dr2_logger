@@ -192,6 +192,10 @@ def plot_over_2d_pos(ax, plot_data: pd.PlotData, lines_x, lines_y, scale, alpha,
 def scatter_plot(ax: plt.axes, x_points: List, y_points: List, title: str, labels: List[str],
                  colors: List, scales: List, alphas: List,
                  x_label, y_label, plot_mean=True, plot_polynomial=True):
+    from sklearn.linear_model import HuberRegressor
+    from sklearn.linear_model import RANSACRegressor
+    from sklearn.preprocessing import PolynomialFeatures
+    from sklearn.pipeline import make_pipeline
 
     for i in range(len(x_points)):
         ax.scatter(x=x_points[i], y=y_points[i], c=colors[i], s=scales[i], alpha=alphas[i], label=labels[i])
@@ -207,15 +211,21 @@ def scatter_plot(ax: plt.axes, x_points: List, y_points: List, title: str, label
         ax.scatter(x_series_mean, y_series_mean, c=colors, s=200.0, alpha=1.0, marker='X', edgecolors='k')
 
     if plot_polynomial:
+        polynome_degree = 2
         for i in range(len(x_points)):
-            if x_points[i].shape[0] > 0:
+            if x_points[i].shape[0] > polynome_degree + 1:
                 x_min = np.min(x_points[i])
                 x_max = np.max(x_points[i])
+
                 try:
-                    poly_coefficients = np.polyfit(x_points[i], y_points[i], 2)
-                    poly = np.poly1d(poly_coefficients)
+                    # model = make_pipeline(PolynomialFeatures(degree=polynome_degree), HuberRegressor())
+                    model = make_pipeline(PolynomialFeatures(degree=polynome_degree), RANSACRegressor(random_state=42))
+                    model.fit(X=np.expand_dims(x_points[i], axis=2), y=y_points[i])
+                    # poly_coefficients = np.polyfit(x_points[i], y_points[i], 2)
+                    # poly = np.poly1d(poly_coefficients)
                     x_poly = np.linspace(x_min, x_max, 500)
-                    y_poly = poly(x_poly)
+                    # y_poly = poly(x_poly)
+                    y_poly = model.predict(x_poly[:, np.newaxis])
                     ax.plot(x_poly, y_poly, '-', c=colors[i])
                 except np.linalg.LinAlgError as _:
                     pass  # sometimes LinAlgError("SVD did not converge in Linear Least Squares"), maybe first gear
@@ -333,14 +343,14 @@ def bar_plot(ax, data, weights, num_bins=20,
             highlight_bin = (np.sum(bin_edges_smaller) - 1) - (float(num_series) * 0.5) * width
             highlight_bin_left_edge = highlight_bin + gear_id * width
             highlight_bin_right_edge = highlight_bin_left_edge + width
-            ax.axvspan(highlight_bin_left_edge, highlight_bin_right_edge, color=static_colors[gear_id], alpha=0.25)
+            ax.axvspan(highlight_bin_left_edge, highlight_bin_right_edge, color=static_colors[gear-1], alpha=0.25)
 
 
 def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData):
 
     optimal_rpm_per_gear, optimal_vel_per_gear = data_processing.get_optimal_rpm(plot_data=plot_data)
-    for gear_id, rpm in enumerate(optimal_rpm_per_gear):
-        ax.axvline(optimal_rpm_per_gear[rpm], color=static_colors[gear_id], alpha=0.5, linewidth=5)
+    for gear_id, gear in enumerate(optimal_rpm_per_gear):
+        ax.axvline(optimal_rpm_per_gear[gear], color=static_colors[gear-1], alpha=0.5, linewidth=5)
 
 
 def plot_gear_over_3d_pos(ax, plot_data: pd.PlotData):
@@ -670,15 +680,21 @@ def plot_g_over_rpm(ax: matplotlib.axes, plot_data: pd.PlotData):
             data_processing.get_gear_shift_mask(plot_data=plot_data, shift_time_ms=100.0))
         full_in_current_gear = np.logical_and(not_close_to_gear_changes, current_gear)
         interesting = np.logical_and(full_in_current_gear, full_acceleration_mask)
+        if np.count_nonzero(interesting) == 0:
+            x_points += [np.array([])]
+            y_points += [np.array([])]
+            scales += [np.array([])]
+        else:
+            no_outliers = data_processing.no_outlier_mask(arr=plot_data.rpm[interesting], outlier_limit=0.05)
 
-        g_force_lon = plot_data.g_force_lon[interesting]
-        rpm = plot_data.rpm[interesting]
-        throttle = plot_data.throttle[interesting]
-        throttle_scaled = [t * scale for t in throttle]
+            g_force_lon = plot_data.g_force_lon[interesting][no_outliers]
+            rpm = plot_data.rpm[interesting][no_outliers]
+            throttle = plot_data.throttle[interesting][no_outliers]
+            throttle_scaled = [t * scale for t in throttle]
 
-        x_points += [rpm]
-        y_points += [g_force_lon]
-        scales += [throttle_scaled]
+            x_points += [rpm]
+            y_points += [g_force_lon]
+            scales += [throttle_scaled]
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='G-force over RPM (full throttle)',
                  labels=labels, colors=colors, scales=scales, alphas=alphas,
@@ -709,10 +725,15 @@ def plot_p_over_rpm(ax, plot_data: pd.PlotData):
     for gear in range_gears:
         current_gear = plot_data.gear == gear
         interesting = np.logical_and(current_gear, full_acceleration_mask)
-
-        x_points += [rpm[interesting]]
-        y_points += [power[interesting]]
-        scales += [np.ones_like(rpm[interesting]) * scale]
+        if np.count_nonzero(interesting) == 0:
+            x_points += [np.array([])]
+            y_points += [np.array([])]
+            scales += [np.array([])]
+        else:
+            no_outliers = data_processing.no_outlier_mask(arr=plot_data.rpm[interesting], outlier_limit=0.05)
+            x_points += [rpm[interesting][no_outliers]]
+            y_points += [power[interesting][no_outliers]]
+            scales += [np.ones_like(rpm[interesting][no_outliers]) * scale]
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='Power over RPM (full throttle)',
                  labels=labels, colors=colors, scales=scales, alphas=alphas,
@@ -795,12 +816,16 @@ def plot_v_over_rpm(ax, plot_data: pd.PlotData):
     y_points = []
     for i, g in enumerate(range_gears):
         current_gear = plot_data.gear == g
-        interesting_samples = np.logical_and(current_gear, full_acc_mask)
-        rpm = plot_data.rpm[interesting_samples]
-        speed_ms = plot_data.speed_ms[interesting_samples]
-
-        x_points += [rpm]
-        y_points += [speed_ms]
+        interesting = np.logical_and(current_gear, full_acc_mask)
+        if np.count_nonzero(interesting) == 0:
+            x_points += [np.array([])]
+            y_points += [np.array([])]
+        else:
+            no_outliers = data_processing.no_outlier_mask(arr=plot_data.rpm[interesting], outlier_limit=0.05)
+            rpm = plot_data.rpm[interesting][no_outliers]
+            speed_ms = plot_data.speed_ms[interesting][no_outliers]
+            x_points += [rpm]
+            y_points += [speed_ms]
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='Speed over RPM (full throttle)',
                  labels=labels, colors=colors, scales=scales, alphas=alphas,
@@ -853,9 +878,10 @@ def forward_over_2d_pos(ax, plot_data: pd.PlotData):
 def wheel_speed_over_time(ax, plot_data: pd.PlotData):
 
     race_time = plot_data.run_time
-    wsp_data = np.array([plot_data.wsp_fl, plot_data.wsp_fr, plot_data.wsp_rl, plot_data.wsp_rr])
+    wsp_data = np.array([plot_data.wsp_fl, plot_data.wsp_fr, plot_data.wsp_rl, plot_data.wsp_rr,
+                         plot_data.speed_ms])
 
-    labels = ['Front left', 'Front right', 'Rear left', 'Rear right']
+    labels = ['Front left', 'Front right', 'Rear left', 'Rear right', 'Car speed']
     x_points = np.array([race_time] * len(wsp_data))
     y_points = np.array(wsp_data)
 

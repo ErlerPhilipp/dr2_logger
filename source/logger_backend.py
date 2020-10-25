@@ -134,8 +134,21 @@ class LoggerBackend:
         import tkinter as tk
         from tkinter import filedialog
 
+        # https://stackoverflow.com/questions/3375227/how-to-give-tkinter-file-dialog-focus
+        # Make a top-level instance and hide since it is ugly and big.
         root = tk.Tk()
         root.withdraw()
+
+        # Make it almost invisible - no decorations, 0 size, top left corner.
+        root.overrideredirect(True)
+        root.geometry('0x0+0+0')
+
+        # Show window again and lift it to top so it can get focus,
+        # otherwise dialogs will end up behind the terminal.
+        root.deiconify()
+        root.lift()
+        root.focus_force()
+
         file_path = filedialog.askopenfilename(
             initialdir=settings.settings['general']['session_path'],
             title='Load race log',
@@ -153,6 +166,9 @@ class LoggerBackend:
                     self.last_sample = self.session_collection[:, -1]
             else:
                 print('"{}" is no valid file!'.format(file_path))
+
+        # Get rid of the top-level instance once to make it actually invisible.
+        root.destroy()
 
     def get_game_state_str(self):
         return self.game.get_game_state_str(self.new_state, self.last_sample, self.session_collection.shape[1])

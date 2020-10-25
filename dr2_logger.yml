@@ -11,6 +11,7 @@ dependencies:
   - python=3.8
   - scipy=1.4.1
   - setuptools=40.8.0
+  - scikit-learn=0.23.2
   - pip:
     - pyinstaller==3.6
 
