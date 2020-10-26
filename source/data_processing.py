@@ -1,7 +1,9 @@
 import sys
 import functools
+import typing
 
 import numpy as np
+import sklearn.pipeline
 
 from source import plot_data as pd
 
@@ -182,30 +184,43 @@ def get_gear_shift_mask(plot_data: pd.PlotData, shift_time_ms=100.0):
     return close_to_gear_changes
 
 
-def get_optimal_rpm(plot_data: pd.PlotData):
-    # from sklearn.linear_model import HuberRegressor
+def add_boundary_samples_enforce_parabola(x: np.ndarray, y: np.ndarray):
+    num_extra_samples = int(x.shape[0] / 2)
+
+    y_arg_max = np.argmax(y)
+    x_max = x[y_arg_max]
+    y_max = np.percentile(a=y, q=95)  # max without possible outliers
+    x_high = 1.3 * np.max(x)
+    y_high = 2.0 * y_max
+
+    x_low_extra_samples = np.linspace(start=0.0, stop=x_max * 0.1, num=num_extra_samples)
+    x_high_extra_samples = np.linspace(start=x_high * 0.9, stop=x_high, num=num_extra_samples)
+
+    y_low_extra_samples = np.linspace(start=0.0, stop=y_high * 0.1, num=num_extra_samples)
+    y_high_extra_samples = np.linspace(start=y_high * 0.1, stop=0.0, num=num_extra_samples)
+
+    x_extended = np.concatenate((x, x_low_extra_samples, x_high_extra_samples), axis=0)
+    y_extended = np.concatenate((y, y_low_extra_samples, y_high_extra_samples), axis=0)
+
+    return x_extended, y_extended
+
+
+def get_acc_rpm_regressor(plot_data: pd.PlotData):
     from sklearn.linear_model import RANSACRegressor
     from sklearn.preprocessing import PolynomialFeatures
     from sklearn.pipeline import make_pipeline
-
-    # # strange strong acc debug
-    # interesting_samples = plot_data.g_force_lon > 1.2
-    # interesting_samples = np.logical_and(get_full_acceleration_mask(plot_data=plot_data), interesting_samples)
-    # interesting_samples = grow_mask(arr=interesting_samples, grow_time_ms=3000.0)
-    # debug_test = np.stack((plot_data.lap_time, plot_data.g_force_lat, plot_data.g_force_lon, plot_data.throttle), axis=1)
-    # debug_test = debug_test[interesting_samples]
 
     # the first gear is rather unreliable because the wheels usually spin freely at the start
     # median makes it more robust
     full_acceleration_mask = get_full_acceleration_mask(plot_data=plot_data)
     if not np.any(full_acceleration_mask):
         return None, None, None
-    # energy, kinetic_energy, potential_energy = get_energy(plot_data=plot_data)
 
-    polynome_degree = 2
+    polynome_degree = 3
 
     optimal_acc_per_gear = {}
     optimal_rpm_per_gear = {}
+    acc_rpm_regressor = {}
     data_gear = plot_data.gear
     range_gears = list(set(data_gear))
     range_gears.sort()
@@ -219,32 +234,89 @@ def get_optimal_rpm(plot_data: pd.PlotData):
         if np.count_nonzero(interesting) == 0:
             continue
 
-        no_outliers = no_outlier_mask(arr=plot_data.rpm[interesting], outlier_limit=0.05)
-        acc_gear = plot_data.g_force_lon[interesting][no_outliers]  # optimal RPM prediction is noisy with acceleration
-        # vel_gear = plot_data.speed_ms[interesting][no_outliers]
-        # acc_gear = energy[interesting][no_outliers]
-        rpm_gear = plot_data.rpm[interesting][no_outliers]
+        # add some zero samples at RPM 0 and high RPM to enforce a parabola with opening to the bottom
+        rpm_gear_interesting = plot_data.rpm[interesting]
+        acc_gear_interesting = plot_data.g_force_lon[interesting]
+
+        no_outliers = no_outlier_mask(arr=rpm_gear_interesting, outlier_limit=0.05)
+        acc_gear = acc_gear_interesting[no_outliers]  # optimal RPM prediction is noisy with acceleration
+        rpm_gear = rpm_gear_interesting[no_outliers]
+
+        rpm_gear, acc_gear = add_boundary_samples_enforce_parabola(
+            x=rpm_gear, y=acc_gear)
 
         if rpm_gear.size > polynome_degree + 1:
             rpm_min = np.min(rpm_gear)
             rpm_max = np.max(rpm_gear)
             try:
-                # model = make_pipeline(PolynomialFeatures(degree=polynome_degree), HuberRegressor())
                 model = make_pipeline(PolynomialFeatures(degree=polynome_degree), RANSACRegressor(random_state=42))
                 model.fit(X=np.expand_dims(rpm_gear, axis=2), y=acc_gear)
                 rpm_poly = np.linspace(rpm_min, rpm_max, 500)
                 acc_poly = model.predict(rpm_poly[:, np.newaxis])
-                # poly_coefficients = np.polyfit(x=rpm_gear, y=acc_gear, deg=2)
-                # poly = np.poly1d(poly_coefficients)
-                # # poly_derived = np.polyder(poly)
-                # # acc_poly = poly_derived(rpm_poly)
-                # acc_poly = poly(rpm_poly)
                 optimal_acc_per_gear[int(g)] = np.max(acc_poly)
                 optimal_rpm_per_gear[int(g)] = rpm_poly[np.argmax(acc_poly)]
+                acc_rpm_regressor[int(g)] = model
             except np.linalg.LinAlgError as _:
                 pass  # sometimes LinAlgError("SVD did not converge in Linear Least Squares"), maybe first gear
 
-    return optimal_rpm_per_gear, optimal_acc_per_gear
+    return acc_rpm_regressor
+
+
+def get_optimal_rpm(acc_rpm_regressor: typing.Dict[int, sklearn.pipeline.Pipeline], evaluation_range: np.ndarray):
+    gears_sorted = np.sort(tuple(acc_rpm_regressor.keys()))
+    acc_eval_per_gear = {}
+    for gear in gears_sorted:
+        model = acc_rpm_regressor[gear]
+        acc_eval = model.predict(evaluation_range[:, np.newaxis])
+        acc_eval_per_gear[gear] = acc_eval
+
+    def get_next_gear(this_gear: int):
+        next_gear = this_gear + 1
+        while next_gear < np.max(gears_sorted):
+            if next_gear in acc_rpm_regressor.keys():
+                return next_gear
+            else:
+                next_gear += 1
+        return next_gear
+
+    def get_prev_gear(this_gear: int):
+        prev_gear = this_gear - 1
+        while prev_gear > np.min(gears_sorted):
+            if prev_gear in acc_rpm_regressor.keys():
+                return prev_gear
+            else:
+                prev_gear -= 1
+        return prev_gear
+
+    optimal_rpm_max_per_gear = {}
+    for gear in gears_sorted:
+        acc_this_gear = acc_eval_per_gear[gear]
+        next_gear = get_next_gear(gear)
+        if next_gear > np.max(gears_sorted):
+            optimal_rpm_max = evaluation_range[-1]
+        else:
+            acc_next_gear = acc_eval_per_gear[next_gear]
+            acc_this_gear_better = acc_this_gear > np.max(acc_next_gear)
+            # argmax from back to get last index
+            optimal_rpm_max_id = acc_this_gear_better.shape - np.argmax(acc_this_gear_better[::-1]) - 1
+            optimal_rpm_max = evaluation_range[optimal_rpm_max_id]
+
+        optimal_rpm_max_per_gear[gear] = optimal_rpm_max
+
+    optimal_rpm_min_per_gear = {}
+    for gear in gears_sorted:
+        acc_this_gear = acc_eval_per_gear[gear]
+        prev_gear = get_prev_gear(gear)
+        if prev_gear < np.min(gears_sorted):
+            optimal_rpm_min = evaluation_range[0]
+        else:
+            acc_prev_gear = acc_eval_per_gear[prev_gear]
+            acc_this_gear_better = acc_this_gear > np.max(acc_prev_gear)
+            optimal_rpm_min_id = np.argmax(acc_this_gear_better)
+            optimal_rpm_min = evaluation_range[optimal_rpm_min_id]
+        optimal_rpm_min_per_gear[gear] = optimal_rpm_min
+
+    return optimal_rpm_min_per_gear, optimal_rpm_max_per_gear
 
 
 def get_full_acceleration_mask(plot_data: pd.PlotData):
@@ -255,7 +327,7 @@ def get_full_acceleration_mask(plot_data: pd.PlotData):
     full_throttle = shrink_mask(arr=plot_data.throttle >= 0.9, shrink_time_ms=500.0)
     no_brakes = plot_data.brakes <= 0.1
     no_steering = np.abs(plot_data.steering) <= 0.1
-    no_clutch = shrink_mask(arr=plot_data.clutch <= 0.1, shrink_time_ms=3000.0)
+    no_clutch = shrink_mask(arr=plot_data.clutch <= 0.1, shrink_time_ms=500.0)
 
     # take only times without a lot of drifting
     no_drift = np.abs(get_drift_angle(plot_data=plot_data)) <= 5.0  # degree
@@ -263,7 +335,7 @@ def get_full_acceleration_mask(plot_data: pd.PlotData):
     # take only times without a lot of slip
     # threshold is unclear, maybe different for every car / tyre
     # 3 would probably be sufficient for soft tyres on gravel
-    slip_threshold = 5.0
+    slip_threshold = 10.0
     car_vel = plot_data.speed_ms
     no_slip_fl = np.abs(plot_data.wsp_fl - car_vel) <= slip_threshold
     no_slip_fr = np.abs(plot_data.wsp_fr - car_vel) <= slip_threshold

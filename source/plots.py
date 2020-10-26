@@ -192,7 +192,6 @@ def plot_over_2d_pos(ax, plot_data: pd.PlotData, lines_x, lines_y, scale, alpha,
 def scatter_plot(ax: plt.axes, x_points: List, y_points: List, title: str, labels: List[str],
                  colors: List, scales: List, alphas: List,
                  x_label, y_label, plot_mean=True, plot_polynomial=True):
-    from sklearn.linear_model import HuberRegressor
     from sklearn.linear_model import RANSACRegressor
     from sklearn.preprocessing import PolynomialFeatures
     from sklearn.pipeline import make_pipeline
@@ -211,14 +210,13 @@ def scatter_plot(ax: plt.axes, x_points: List, y_points: List, title: str, label
         ax.scatter(x_series_mean, y_series_mean, c=colors, s=200.0, alpha=1.0, marker='X', edgecolors='k')
 
     if plot_polynomial:
-        polynome_degree = 2
+        polynome_degree = 3
         for i in range(len(x_points)):
             if x_points[i].shape[0] > polynome_degree + 1:
                 x_min = np.min(x_points[i])
                 x_max = np.max(x_points[i])
 
                 try:
-                    # model = make_pipeline(PolynomialFeatures(degree=polynome_degree), HuberRegressor())
                     model = make_pipeline(PolynomialFeatures(degree=polynome_degree), RANSACRegressor(random_state=42))
                     model.fit(X=np.expand_dims(x_points[i], axis=2), y=y_points[i])
                     # poly_coefficients = np.polyfit(x_points[i], y_points[i], 2)
@@ -336,21 +334,41 @@ def bar_plot(ax, data, weights, num_bins=20,
     ax.set_xticklabels(tick_labels)
     ax.set_title(title)
 
-    if highlight_value is not None:
-        for gear_id, gear in enumerate(highlight_value):
-            optimal_rpm_for_gear = highlight_value[gear]
-            bin_edges_smaller = bin_edges <= optimal_rpm_for_gear
-            highlight_bin = (np.sum(bin_edges_smaller) - 1) - (float(num_series) * 0.5) * width
-            highlight_bin_left_edge = highlight_bin + gear_id * width
-            highlight_bin_right_edge = highlight_bin_left_edge + width
-            ax.axvspan(highlight_bin_left_edge, highlight_bin_right_edge, color=static_colors[gear-1], alpha=0.25)
+    # if highlight_value is not None:
+    #     for gear_id, gear in enumerate(highlight_value):
+    #         optimal_rpm_for_gear = highlight_value[gear]
+    #         bin_edges_smaller = bin_edges <= optimal_rpm_for_gear
+    #         highlight_bin = (np.sum(bin_edges_smaller) - 1) - (float(num_series) * 0.5) * width
+    #         highlight_bin_left_edge = highlight_bin + gear_id * width
+    #         highlight_bin_right_edge = highlight_bin_left_edge + width
+    #         ax.axvspan(highlight_bin_left_edge, highlight_bin_right_edge, color=static_colors[gear-1], alpha=0.25)
 
 
 def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData):
+    from matplotlib.collections import LineCollection
 
-    optimal_rpm_per_gear, optimal_vel_per_gear = data_processing.get_optimal_rpm(plot_data=plot_data)
-    for gear_id, gear in enumerate(optimal_rpm_per_gear):
-        ax.axvline(optimal_rpm_per_gear[gear], color=static_colors[gear-1], alpha=0.5, linewidth=5)
+    acc_rpm_regressor = data_processing.get_acc_rpm_regressor(plot_data=plot_data)
+    evaluation_range = np.linspace(start=plot_data.rpm.min(), stop=plot_data.rpm.max(), num=500)
+    optimal_rpm_min_per_gear, optimal_rpm_max_per_gear = data_processing.get_optimal_rpm(
+        acc_rpm_regressor=acc_rpm_regressor, evaluation_range=evaluation_range)
+
+    labels = []
+    gears_sorted = np.sort(tuple(acc_rpm_regressor.keys()))
+    for gi, gear in enumerate(gears_sorted):
+        model = acc_rpm_regressor[gear]
+        acc_eval = model.predict(evaluation_range[:, np.newaxis])
+        rpm_optimal = np.logical_and(evaluation_range > optimal_rpm_min_per_gear[gear],
+                                     evaluation_range < optimal_rpm_max_per_gear[gear])
+        line_width = np.full_like(a=acc_eval, fill_value=3)
+        line_width[rpm_optimal] = 10
+
+        points = np.array([evaluation_range, acc_eval]).T.reshape(-1, 1, 2)
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
+        lc = LineCollection(segments, linewidths=line_width[:-1], color=static_colors[gi], alpha=0.5)
+        ax.add_collection(lc)
+        labels.append('Gear {}: shift up at {} RPM, shift down at {} RPM, fitted polynomial: {}'.format(
+            gear, optimal_rpm_max_per_gear[gear], optimal_rpm_min_per_gear[gear], model.steps[0]['polynomialfeatures']))
+    ax.legend(labels)
 
 
 def plot_gear_over_3d_pos(ax, plot_data: pd.PlotData):
@@ -432,7 +450,8 @@ def gear_rpm_bars(ax, plot_data: pd.PlotData):
     series_labels = ['Gear {0}: {1:.1f}%'.format(
         int(g), gear_ratio[gi] * 100.0) for gi, g in enumerate(range_gears)]
 
-    optimal_rpm_per_gear, optimal_vel_per_gear = data_processing.get_optimal_rpm(plot_data=plot_data)
+    acc_rpm_regressor = data_processing.get_acc_rpm_regressor(plot_data=plot_data)
+    optimal_rpm_per_gear = data_processing.get_optimal_rpm
     bar_plot(ax, data=gear_rpms, weights=gear_times, num_bins=16,
              title='Gear RPM', x_label='RPM', y_label='Accumulated Time (s)', series_labels=series_labels,
              highlight_value=optimal_rpm_per_gear)
@@ -685,20 +704,16 @@ def plot_g_over_rpm(ax: matplotlib.axes, plot_data: pd.PlotData):
             y_points += [np.array([])]
             scales += [np.array([])]
         else:
-            no_outliers = data_processing.no_outlier_mask(arr=plot_data.rpm[interesting], outlier_limit=0.05)
+            rpm_gear_interesting = plot_data.rpm[interesting]
+            acc_gear_interesting = plot_data.g_force_lon[interesting]
 
-            g_force_lon = plot_data.g_force_lon[interesting][no_outliers]
-            rpm = plot_data.rpm[interesting][no_outliers]
-            throttle = plot_data.throttle[interesting][no_outliers]
-            throttle_scaled = [t * scale for t in throttle]
-
-            x_points += [rpm]
-            y_points += [g_force_lon]
-            scales += [throttle_scaled]
+            x_points += [rpm_gear_interesting]
+            y_points += [acc_gear_interesting]
+            scales += [scale] * rpm_gear_interesting.shape[0]
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='G-force over RPM (full throttle)',
                  labels=labels, colors=colors, scales=scales, alphas=alphas,
-                 x_label='RPM', y_label='G-force X')
+                 x_label='RPM', y_label='G-force X', plot_polynomial=False)
     plot_optimal_rpm_region(ax=ax, plot_data=plot_data)
 
 
