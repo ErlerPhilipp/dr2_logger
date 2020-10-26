@@ -218,46 +218,39 @@ def get_acc_rpm_regressor(plot_data: pd.PlotData):
 
     polynome_degree = 3
 
-    optimal_acc_per_gear = {}
-    optimal_rpm_per_gear = {}
     acc_rpm_regressor = {}
     data_gear = plot_data.gear
     range_gears = list(set(data_gear))
     range_gears.sort()
-    range_gears = [g for g in range_gears if g > 0.0]
     for g in range_gears:
         current_gear = plot_data.gear == g
         not_close_to_gear_changes = np.logical_not(get_gear_shift_mask(plot_data=plot_data, shift_time_ms=100.0))
         interesting = functools.reduce(np.logical_and, (
             not_close_to_gear_changes, current_gear, full_acceleration_mask
         ))
-        if np.count_nonzero(interesting) == 0:
-            continue
+        if g <= 0 or np.count_nonzero(interesting) == 0:
+            acc_rpm_regressor[int(g)] = None
+        else:
+            # add some zero samples at RPM 0 and high RPM to enforce a parabola with opening to the bottom
+            rpm_gear_interesting = plot_data.rpm[interesting]
+            acc_gear_interesting = plot_data.g_force_lon[interesting]
 
-        # add some zero samples at RPM 0 and high RPM to enforce a parabola with opening to the bottom
-        rpm_gear_interesting = plot_data.rpm[interesting]
-        acc_gear_interesting = plot_data.g_force_lon[interesting]
+            no_outliers = no_outlier_mask(arr=rpm_gear_interesting, outlier_limit=0.05)
+            acc_gear = acc_gear_interesting[no_outliers]  # optimal RPM prediction is noisy with acceleration
+            rpm_gear = rpm_gear_interesting[no_outliers]
 
-        no_outliers = no_outlier_mask(arr=rpm_gear_interesting, outlier_limit=0.05)
-        acc_gear = acc_gear_interesting[no_outliers]  # optimal RPM prediction is noisy with acceleration
-        rpm_gear = rpm_gear_interesting[no_outliers]
-
-        rpm_gear, acc_gear = add_boundary_samples_enforce_parabola(
-            x=rpm_gear, y=acc_gear)
-
-        if rpm_gear.size > polynome_degree + 1:
-            rpm_min = np.min(rpm_gear)
-            rpm_max = np.max(rpm_gear)
-            try:
-                model = make_pipeline(PolynomialFeatures(degree=polynome_degree), RANSACRegressor(random_state=42))
-                model.fit(X=np.expand_dims(rpm_gear, axis=2), y=acc_gear)
-                rpm_poly = np.linspace(rpm_min, rpm_max, 500)
-                acc_poly = model.predict(rpm_poly[:, np.newaxis])
-                optimal_acc_per_gear[int(g)] = np.max(acc_poly)
-                optimal_rpm_per_gear[int(g)] = rpm_poly[np.argmax(acc_poly)]
-                acc_rpm_regressor[int(g)] = model
-            except np.linalg.LinAlgError as _:
-                pass  # sometimes LinAlgError("SVD did not converge in Linear Least Squares"), maybe first gear
+            if rpm_gear.size <= polynome_degree + 1:
+                acc_rpm_regressor[int(g)] = None
+            else:
+                rpm_gear, acc_gear = add_boundary_samples_enforce_parabola(
+                    x=rpm_gear, y=acc_gear)
+                try:
+                    model = make_pipeline(PolynomialFeatures(degree=polynome_degree), RANSACRegressor(random_state=42))
+                    model.fit(X=rpm_gear[:, np.newaxis], y=acc_gear)
+                    acc_rpm_regressor[int(g)] = model
+                except np.linalg.LinAlgError as _:
+                    # sometimes LinAlgError("SVD did not converge in Linear Least Squares"), maybe first gear
+                    acc_rpm_regressor[int(g)] = None
 
     return acc_rpm_regressor
 
@@ -266,57 +259,44 @@ def get_optimal_rpm(acc_rpm_regressor: typing.Dict[int, sklearn.pipeline.Pipelin
     gears_sorted = np.sort(tuple(acc_rpm_regressor.keys()))
     acc_eval_per_gear = {}
     for gear in gears_sorted:
-        model = acc_rpm_regressor[gear]
-        acc_eval = model.predict(evaluation_range[:, np.newaxis])
-        acc_eval_per_gear[gear] = acc_eval
-
-    def get_next_gear(this_gear: int):
-        next_gear = this_gear + 1
-        while next_gear < np.max(gears_sorted):
-            if next_gear in acc_rpm_regressor.keys():
-                return next_gear
-            else:
-                next_gear += 1
-        return next_gear
-
-    def get_prev_gear(this_gear: int):
-        prev_gear = this_gear - 1
-        while prev_gear > np.min(gears_sorted):
-            if prev_gear in acc_rpm_regressor.keys():
-                return prev_gear
-            else:
-                prev_gear -= 1
-        return prev_gear
-
-    optimal_rpm_max_per_gear = {}
-    for gear in gears_sorted:
-        acc_this_gear = acc_eval_per_gear[gear]
-        next_gear = get_next_gear(gear)
-        if next_gear > np.max(gears_sorted):
-            optimal_rpm_max = evaluation_range[-1]
+        if acc_rpm_regressor[gear] is None:
+            acc_eval_per_gear[gear] = None
         else:
-            acc_next_gear = acc_eval_per_gear[next_gear]
-            acc_this_gear_better = acc_this_gear > np.max(acc_next_gear)
-            # argmax from back to get last index
-            optimal_rpm_max_id = acc_this_gear_better.shape - np.argmax(acc_this_gear_better[::-1]) - 1
-            optimal_rpm_max = evaluation_range[optimal_rpm_max_id]
+            model = acc_rpm_regressor[gear]
+            acc_eval = model.predict(evaluation_range[:, np.newaxis])
+            acc_eval_per_gear[gear] = acc_eval
 
-        optimal_rpm_max_per_gear[gear] = optimal_rpm_max
-
-    optimal_rpm_min_per_gear = {}
+    rpm_shift_up_point_per_gear = {}
     for gear in gears_sorted:
-        acc_this_gear = acc_eval_per_gear[gear]
-        prev_gear = get_prev_gear(gear)
-        if prev_gear < np.min(gears_sorted):
-            optimal_rpm_min = evaluation_range[0]
+        if acc_eval_per_gear[gear] is None:
+            rpm_shift_up_point_per_gear[gear] = np.nan
         else:
-            acc_prev_gear = acc_eval_per_gear[prev_gear]
-            acc_this_gear_better = acc_this_gear > np.max(acc_prev_gear)
-            optimal_rpm_min_id = np.argmax(acc_this_gear_better)
-            optimal_rpm_min = evaluation_range[optimal_rpm_min_id]
-        optimal_rpm_min_per_gear[gear] = optimal_rpm_min
+            acc_this_gear = acc_eval_per_gear[gear]
+            next_gear = gear + 1
+            if next_gear > np.max(gears_sorted):
+                rpm_next_gear_is_better = evaluation_range[-1]
+            else:
+                acc_next_gear = acc_eval_per_gear[next_gear]
+                if acc_next_gear is None:
+                    acc_next_gear = 0.0
+                acc_this_gear_better = acc_this_gear > np.max(acc_next_gear)
+                # argmax from back to get last index
+                optimal_rpm_max_id = acc_this_gear_better.shape - np.argmax(acc_this_gear_better[::-1]) - 1
+                rpm_next_gear_is_better = evaluation_range[np.asscalar(optimal_rpm_max_id)]
 
-    return optimal_rpm_min_per_gear, optimal_rpm_max_per_gear
+            rpm_shift_up_point_per_gear[gear] = rpm_next_gear_is_better
+
+    rpm_optimum_per_gear = {}
+    for gear in gears_sorted:
+        if acc_eval_per_gear[gear] is None:
+            rpm_optimum_per_gear[gear] = np.nan
+        else:
+            acc_this_gear = acc_eval_per_gear[gear]
+            rpm_optimum_id = np.argmax(acc_this_gear)
+            rpm_optimum = evaluation_range[rpm_optimum_id]
+            rpm_optimum_per_gear[gear] = rpm_optimum
+
+    return rpm_shift_up_point_per_gear, rpm_optimum_per_gear
 
 
 def get_full_acceleration_mask(plot_data: pd.PlotData):

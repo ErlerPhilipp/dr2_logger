@@ -68,11 +68,12 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
         gear_rpm_bars(ax, plot_data)
         # save_plot('RPM Histogram per Gear', title_post_fix, fig)
 
-        # overlaps on the y axis mean the driver shifts too early or too late and/or that the gears are too close.
-        fig, ax = plt.subplots(1, 1)
-        fig.canvas.set_window_title('Speed over RPM' + title_post_fix)
-        plot_v_over_rpm(ax, plot_data)
-        # save_plot('Speed over RPM', title_post_fix, fig)
+        if additional_plots:
+            # overlaps on the y axis mean the driver shifts too early or too late and/or that the gears are too close.
+            fig, ax = plt.subplots(1, 1)
+            fig.canvas.set_window_title('Speed over RPM' + title_post_fix)
+            plot_v_over_rpm(ax, plot_data)
+            # save_plot('Speed over RPM', title_post_fix, fig)
 
         if additional_plots:
             # show the power output over RPM and velocity.
@@ -80,16 +81,14 @@ def plot_main(plot_data: pd.PlotData, car_name: str, track_name: str, additional
             fig, ax = plt.subplots(1, 1, sharey='all')
             fig.canvas.set_window_title('Power Output' + title_post_fix)
             plot_p_over_rpm(ax, plot_data)
-            # plot_p_over_vel(ax[1], plot_data)
             # save_plot('Power Output', title_post_fix, fig)
 
-        if additional_plots:
-            # the benefits of this plot are unclear. the idea is to see the max turning rate.
-            fig, ax = plt.subplots(1, 1)
-            fig.canvas.set_window_title('Forward G-Force' + title_post_fix)
-            plot_g_over_rpm(ax, plot_data)
-            # plot_g_over_throttle(ax[1], plot_data)
-            # save_plot('Forward G-Force', title_post_fix, fig)
+        # see the optimal RPM with shift points here
+        fig, ax = plt.subplots(1, 1)
+        fig.canvas.set_window_title('Forward G-Force' + title_post_fix)
+        plot_g_over_rpm(ax, plot_data)
+        # plot_g_over_throttle(ax[1], plot_data)
+        # save_plot('Forward G-Force', title_post_fix, fig)
 
         if additional_plots:
             # see the typical drift angle.
@@ -218,7 +217,7 @@ def scatter_plot(ax: plt.axes, x_points: List, y_points: List, title: str, label
 
                 try:
                     model = make_pipeline(PolynomialFeatures(degree=polynome_degree), RANSACRegressor(random_state=42))
-                    model.fit(X=np.expand_dims(x_points[i], axis=2), y=y_points[i])
+                    model.fit(X=x_points[i][:, np.newaxis], y=y_points[i])
                     # poly_coefficients = np.polyfit(x_points[i], y_points[i], 2)
                     # poly = np.poly1d(poly_coefficients)
                     x_poly = np.linspace(x_min, x_max, 500)
@@ -303,7 +302,8 @@ def histogram_plot(ax, samples, title, x_label, y_label, labels=None,
 
 
 def bar_plot(ax, data, weights, num_bins=20,
-             title=None, x_label=None, y_label=None, series_labels=None, tick_labels=None, highlight_value=None):
+             title=None, x_label=None, y_label=None, series_labels=None, tick_labels=None,
+             highlight_range=None, highlight_value=None):
 
     if len(data) == 0 or data[0].size == 0:
         return
@@ -317,13 +317,12 @@ def bar_plot(ax, data, weights, num_bins=20,
 
     default_width = 0.8
     width = default_width / (float(num_series) + 1)
+    data_bin_sum = [binned_statistic(data[i], weights[i], statistic='sum', bins=bin_edges)[0]
+                    for i in range(num_series)]
     for i in range(num_series):
-        data_bin_sum, _, _ = \
-            binned_statistic(data[i], weights[i], statistic='sum', bins=bin_edges)
         tick_labels = ['{:.0f} to\n {:.0f}'.format(bin_edges[0 + i], bin_edges[1 + i])
                        for i in range(bin_edges.shape[0] - 1)]
-
-        ax.bar(x + (0.5 + i - float(num_series) * 0.5) * width, data_bin_sum, width,
+        ax.bar(x + (0.5 + i - float(num_series) * 0.5) * width, data_bin_sum[i], width,
                label=series_labels[i], color=static_colors[i])
 
     ax.set_xlabel(x_label)
@@ -334,14 +333,26 @@ def bar_plot(ax, data, weights, num_bins=20,
     ax.set_xticklabels(tick_labels)
     ax.set_title(title)
 
-    # if highlight_value is not None:
-    #     for gear_id, gear in enumerate(highlight_value):
-    #         optimal_rpm_for_gear = highlight_value[gear]
-    #         bin_edges_smaller = bin_edges <= optimal_rpm_for_gear
-    #         highlight_bin = (np.sum(bin_edges_smaller) - 1) - (float(num_series) * 0.5) * width
-    #         highlight_bin_left_edge = highlight_bin + gear_id * width
-    #         highlight_bin_right_edge = highlight_bin_left_edge + width
-    #         ax.axvspan(highlight_bin_left_edge, highlight_bin_right_edge, color=static_colors[gear-1], alpha=0.25)
+    if highlight_range is not None:
+        for gear_id, gear in enumerate(highlight_range):
+            rpm_shift_up = highlight_range[gear]
+            bin_edges_smaller = bin_edges <= rpm_shift_up
+            for bin in range(np.asscalar(np.sum(bin_edges_smaller)) - 1):
+                highlight_bin = bin - (float(num_series) * 0.5) * width
+                highlight_bin_left_edge = highlight_bin + gear_id * width
+                highlight_bin_right_edge = highlight_bin_left_edge + width
+                ax.axvspan(highlight_bin_left_edge, highlight_bin_right_edge, color=static_colors[gear_id], alpha=0.25)
+
+    if highlight_value is not None:
+        for gear_id, gear in enumerate(highlight_value):
+            optimal_rpm_for_gear = highlight_value[gear]
+            if np.isnan(optimal_rpm_for_gear):
+                continue
+            bin_edges_smaller = bin_edges <= optimal_rpm_for_gear
+            highlight_bin = np.sum(bin_edges_smaller) - (float(num_series) * 0.5) * width
+            highlight_bin_series_center = highlight_bin + (gear_id + 0.5) * width
+            ax.arrow(highlight_bin_series_center, 0.0, 0.0, np.max(data_bin_sum) * 1.05,
+                     head_width=0.05, head_length=0.2, fc=static_colors[gear_id], ec=static_colors[gear_id])
 
 
 def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData):
@@ -349,16 +360,17 @@ def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData):
 
     acc_rpm_regressor = data_processing.get_acc_rpm_regressor(plot_data=plot_data)
     evaluation_range = np.linspace(start=plot_data.rpm.min(), stop=plot_data.rpm.max(), num=500)
-    optimal_rpm_min_per_gear, optimal_rpm_max_per_gear = data_processing.get_optimal_rpm(
+    rpm_shift_up_point_per_gear, rpm_optimum_per_gear = data_processing.get_optimal_rpm(
         acc_rpm_regressor=acc_rpm_regressor, evaluation_range=evaluation_range)
 
     labels = []
     gears_sorted = np.sort(tuple(acc_rpm_regressor.keys()))
     for gi, gear in enumerate(gears_sorted):
         model = acc_rpm_regressor[gear]
+        if model is None:
+            continue
         acc_eval = model.predict(evaluation_range[:, np.newaxis])
-        rpm_optimal = np.logical_and(evaluation_range > optimal_rpm_min_per_gear[gear],
-                                     evaluation_range < optimal_rpm_max_per_gear[gear])
+        rpm_optimal = evaluation_range < rpm_shift_up_point_per_gear[gear]
         line_width = np.full_like(a=acc_eval, fill_value=3)
         line_width[rpm_optimal] = 10
 
@@ -366,8 +378,8 @@ def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData):
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
         lc = LineCollection(segments, linewidths=line_width[:-1], color=static_colors[gi], alpha=0.5)
         ax.add_collection(lc)
-        labels.append('Gear {}: shift up at {} RPM, shift down at {} RPM, fitted polynomial: {}'.format(
-            gear, optimal_rpm_max_per_gear[gear], optimal_rpm_min_per_gear[gear], model.steps[0]['polynomialfeatures']))
+        labels.append('Gear {}: Optimum at {:.0f}, shift up at {:.0f} RPM'.format(
+            gear, rpm_optimum_per_gear[gear], rpm_shift_up_point_per_gear[gear]))
     ax.legend(labels)
 
 
@@ -447,14 +459,18 @@ def gear_rpm_bars(ax, plot_data: pd.PlotData):
         gear_ratio = [0.0] * len(gear_time_sums)
     else:
         gear_ratio = [gts / total_time for gts in gear_time_sums]
-    series_labels = ['Gear {0}: {1:.1f}%'.format(
-        int(g), gear_ratio[gi] * 100.0) for gi, g in enumerate(range_gears)]
 
     acc_rpm_regressor = data_processing.get_acc_rpm_regressor(plot_data=plot_data)
-    optimal_rpm_per_gear = data_processing.get_optimal_rpm
-    bar_plot(ax, data=gear_rpms, weights=gear_times, num_bins=16,
+    evaluation_range = np.linspace(start=plot_data.rpm.min(), stop=plot_data.rpm.max(), num=500)
+    rpm_shift_up_point_per_gear, rpm_optimum_per_gear = data_processing.get_optimal_rpm(
+        acc_rpm_regressor=acc_rpm_regressor, evaluation_range=evaluation_range)
+
+    series_labels = ['Gear {0}: {1:.1f}%, Optimum {2:.0f} RPM, Shift at {3:.0f} RPM'.format(
+        int(g), gear_ratio[gi] * 100.0, rpm_optimum_per_gear[g], rpm_shift_up_point_per_gear[g])
+        for gi, g in enumerate(range_gears)]
+    bar_plot(ax, data=gear_rpms, weights=gear_times, num_bins=10,
              title='Gear RPM', x_label='RPM', y_label='Accumulated Time (s)', series_labels=series_labels,
-             highlight_value=optimal_rpm_per_gear)
+             highlight_range=rpm_shift_up_point_per_gear, highlight_value=rpm_optimum_per_gear)
 
 
 def energy_over_time(ax, plot_data: pd.PlotData):
