@@ -37,19 +37,22 @@ Improved:
 
 In the default setup, the first gear was only used at the start and therefore pretty useless. I used the other gears very differently: I used the third and fourth much more than the second gear and fifth gears. This depends on my manual shifting, of course. I tried to shift at the optimal RPM or at least before the RPM meter turns red.
 
-In my improved setup, I used the gears much more equally. The first gear is a bit special because I tuned it so that I can use it through the sharpest corners, which is still less than the other gears. I spent significantly more time near the optimal RPM range.
+In my improved setup, I used the gears much more equally. The first gear is a bit special because I tuned it so that I can use it through the sharpest corners, which results in less usage overall than the other gears. I spent significantly more time near the optimal RPM range. Remember that the true optima have usually a slightly higher RPM value than predicted.
 
 
-
-## Speed over RPM ##
+## Acceleration over RPM ##
 
 Default:
-![RPM](../img/plots/default/Speed_over_RPM_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+![RPM](../img/plots/default/Forward_G-Force_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 Improved:
-![RPM](../img/plots/final/Speed_over_RPM_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+![RPM](../img/plots/final/Forward_G-Force_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
-With the default setup, you can see again that I didn't use the first gear after the start anymore and it didn't cover the optimal RPM range. Also, I couldn't use the 5th gear in the optimal RPM range because I couldn't reach the necessary speed. The other gears span the optimal RPM range but overlap to some degree. The improved setup is much more regular and more centered around the optimal RPM.
+Since most samples are filtered out in this plot, it's not really meaningful on its own. However, it indicates how accurate the predictions of the optimal shift point and maximum power output are.
+
+In the default setup, there are no samples of gear 1, which indicates that it is hardly used and has too much slip. Also, the curve of gear 2 is very different than the others, which indicates many noisy samples.
+
+In the optimized setup, the predicted curves are quite similar, except for the first gear, which is still much more plausible than the first two gears in the default setup.
 
 
 ## Suspension ##
@@ -87,6 +90,17 @@ Improved:
 The car rotations have much lower frequencies than the suspension angles, as it should probably be. With the improved setup, the body rotation is reduced a lot, which improves stability and control. As shown with the increased variance, the suspension absorbs more bumps now than with the default setup.
 
 
+## Bonus: Speed over RPM ##
+
+Default:
+![RPM](../img/plots/default/Speed_over_RPM_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+Improved:
+![RPM](../img/plots/final/Speed_over_RPM_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+
+With the default setup, you can see again that I didn't use the first gear after the start anymore and it didn't cover the optimal RPM range. Also, I couldn't use the 5th gear in the optimal RPM range because I couldn't reach the necessary speed. The other gears span the optimal RPM range but overlap to some degree. The improved setup is much more regular and more centered around the optimal RPM.
+
+
 ## Bonus: Power over RPM ##
 
 Default:
@@ -96,17 +110,6 @@ Improved:
 ![RPM](../img/plots/final/Power_Output_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
 In the improved setup, you can see clusters that are more centered around the predicted optimal RPM value.
-
-
-## Bonus: Acceleration over RPM ##
-
-Default:
-![RPM](../img/plots/default/Forward_G-Force_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-Improved:
-![RPM](../img/plots/final/Forward_G-Force_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
-
-In the default setup, you can see rather distinct clusters for the gears, and the polynomials are quite irregular, which indicates that the gears are tuned unequally. In the optimized setup, the clusters are mostly overlapping, and the maxima are almost at the same RPM value, which is assumed to be the optimum.
 
 
 ## Bonus: Drift Angles ##

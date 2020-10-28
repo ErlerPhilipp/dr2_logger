@@ -349,7 +349,7 @@ def bar_plot(ax, data, weights, num_bins=20,
             if np.isnan(optimal_rpm_for_gear):
                 continue
             bin_edges_smaller = bin_edges <= optimal_rpm_for_gear
-            highlight_bin = np.sum(bin_edges_smaller) - (float(num_series) * 0.5) * width
+            highlight_bin = np.sum(bin_edges_smaller) - 1 - (float(num_series) * 0.5) * width
             highlight_bin_series_center = highlight_bin + (gear_id + 0.5) * width
             ax.arrow(highlight_bin_series_center, 0.0, 0.0, np.max(data_bin_sum) * 1.05,
                      head_width=0.05, head_length=0.2, fc=static_colors[gear_id], ec=static_colors[gear_id])
@@ -367,6 +367,8 @@ def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData):
     gears_sorted = np.sort(tuple(acc_rpm_regressor.keys()))
     for gi, gear in enumerate(gears_sorted):
         model = acc_rpm_regressor[gear]
+        labels.append('Gear {}: Optimum at {:.0f}, shift up at {:.0f} RPM'.format(
+            gear, rpm_optimum_per_gear[gear], rpm_shift_up_point_per_gear[gear]))
         if model is None:
             continue
         acc_eval = model.predict(evaluation_range[:, np.newaxis])
@@ -378,8 +380,6 @@ def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData):
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
         lc = LineCollection(segments, linewidths=line_width[:-1], color=static_colors[gi], alpha=0.5)
         ax.add_collection(lc)
-        labels.append('Gear {}: Optimum at {:.0f}, shift up at {:.0f} RPM'.format(
-            gear, rpm_optimum_per_gear[gear], rpm_shift_up_point_per_gear[gear]))
     ax.legend(labels)
 
 

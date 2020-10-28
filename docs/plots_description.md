@@ -6,16 +6,20 @@ This document describes the plots available in the logger.
 
 ![RPM](../img/plots/final/RPM_Histogram_per_Gear_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
-This plot shows how much time you spent in which gear at which RPM. The predicted optimal RPM range is highlighted in green.
+This plot shows how much time you spent in which gear at which RPM. The predicted optimal RPM range is highlighted with a transparent colored background, meaning that staying in RPM ranges with white background should be avoided. The arrows show the RPM point with the highest predicted power output. You should maximize the time near these points.
 
 A note on my data analysis: There can be too much shifting as each shift costs around 0.1 s where the engine can't transfer power to the wheels. That's if you use modern cars. Older cars have longer times.
 
 
-## Speed over RPM ##
+## Acceleration over RPM ##
 
-![RPM](../img/plots/final/Speed_over_RPM_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+![RPM](../img/plots/final/Forward_G-Force_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
-This plot shows the speed at varying RPM. The predicted optimal RPM value is marked with a green bar. The mean values of the gear samples are marked as crosses. The lines are polynomials of degree 3 fitted into the samples. The optimal RPM is the median of their derivatives' maxima location.
+This plot shows the forward acceleration over RPM. Only samples with full throttle and without breaking factors are shown here. This filters out, e.g. samples close to gear changes, during drifts and with notable slip. As the data is very noisy these conditions need to be very strict, which in turn may filter out all samples of a gear. This happens often to the first gear, especially on gravel because there is usually a lot of slip involved and little time without shifting. When the fitting and optima prediction is not possible 'nan' is displayed. The mean values of the gear samples are marked as crosses. 
+
+The lines are polynomials of degree 3 fitted into the samples and forced to zero power at zero RPM. To get cleaner curves and more reliable predictions, you should do a test run and accelerate in each gear from the lowest to the highest possible RPM value. Samples tend to be missing more often in lower RPM regions, which also skews the predicted optima. So, the true maximal power output and optimal shift points are probably a bit higher than the predicted ones.
+
+The optimal shift point is shown where the thick lines turn into thin ones. The predicted power output after this point is lower than the maximum output in the next gear. It's unlikely to immediately hit the maximum in the next gear so it's usually better to shift up a bit later than indicated here.
 
 
 ## Suspension ##
@@ -66,11 +70,11 @@ This plot shows your car's kinetic and potential energy over time. It also shows
 This plot shows the power output (change of kinetic energy) of your car depending on the RPM. In the improved setup, you can see clusters that are more centered around the predicted optimal RPM value.
 
 
-## Acceleration over RPM ##
+## Speed over RPM ##
 
-![RPM](../img/plots/final/Forward_G-Force_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
+![RPM](../img/plots/final/Speed_over_RPM_-_Renault_5_Turbo_on_AU,_Monaro,_Noorinbee_Ridge_Descent.png)
 
-This plot shows the forward acceleration over RPM. The mean values of the gear samples are marked as crosses. The lines are polynomials of degree 3 fitted into the samples.
+This plot shows the speed at varying RPM. The predicted optimal RPM value is marked with a green bar. The mean values of the gear samples are marked as crosses. The lines are polynomials of degree 3 fitted into the samples.
 
 
 ## Drift Angles ##
