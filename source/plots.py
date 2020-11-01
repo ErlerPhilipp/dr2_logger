@@ -355,7 +355,7 @@ def bar_plot(ax, data, weights, num_bins=20,
                      head_width=0.05, head_length=0.2, fc=static_colors[gear_id], ec=static_colors[gear_id])
 
 
-def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData):
+def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData, only_positive=True):
     from matplotlib.collections import LineCollection
 
     acc_rpm_regressor = data_processing.get_acc_rpm_regressor(plot_data=plot_data)
@@ -365,6 +365,8 @@ def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData):
 
     labels = []
     gears_sorted = np.sort(tuple(acc_rpm_regressor.keys()))
+    if only_positive:
+        gears_sorted = gears_sorted[gears_sorted > 0]
     for gi, gear in enumerate(gears_sorted):
         model = acc_rpm_regressor[gear]
         labels.append('Gear {}: Optimum at {:.0f}, shift up at {:.0f} RPM'.format(
@@ -378,7 +380,7 @@ def plot_optimal_rpm_region(ax: matplotlib.axes, plot_data: pd.PlotData):
 
         points = np.array([evaluation_range, acc_eval]).T.reshape(-1, 1, 2)
         segments = np.concatenate([points[:-1], points[1:]], axis=1)
-        lc = LineCollection(segments, linewidths=line_width[:-1], color=static_colors[gi], alpha=0.5)
+        lc = LineCollection(segments, linewidths=line_width[:-1], color=static_colors[gi], alpha=0.75)
         ax.add_collection(lc)
     ax.legend(labels)
 
@@ -468,7 +470,7 @@ def gear_rpm_bars(ax, plot_data: pd.PlotData):
     series_labels = ['Gear {0}: {1:.1f}%, Optimum {2:.0f} RPM, Shift at {3:.0f} RPM'.format(
         int(g), gear_ratio[gi] * 100.0, rpm_optimum_per_gear[g], rpm_shift_up_point_per_gear[g])
         for gi, g in enumerate(range_gears)]
-    bar_plot(ax, data=gear_rpms, weights=gear_times, num_bins=10,
+    bar_plot(ax, data=gear_rpms, weights=gear_times, num_bins=13,
              title='Gear RPM', x_label='RPM', y_label='Accumulated Time (s)', series_labels=series_labels,
              highlight_range=rpm_shift_up_point_per_gear, highlight_value=rpm_optimum_per_gear)
 
@@ -656,7 +658,7 @@ def suspension_bars(ax, plot_data: pd.PlotData):
     series_labels = [l + ', bump stops hit: {:.1f} s'.format(time_differences[susp_max_ids[li]].sum())
               for li, l in enumerate(series_labels)]
 
-    bar_plot(ax, data=susp_data, weights=time_data, num_bins=20,
+    bar_plot(ax, data=susp_data, weights=time_data, num_bins=10,
              title='Suspension compression, min: {:.1f} mm, max: {:.1f} mm'.format(susp_min, susp_max),
              x_label='Suspension compression (mm)', y_label='Accumulated Time (s)', series_labels=series_labels)
 
@@ -729,7 +731,8 @@ def plot_g_over_rpm(ax: matplotlib.axes, plot_data: pd.PlotData):
 
     scatter_plot(ax, x_points=x_points, y_points=y_points, title='G-force over RPM (full throttle)',
                  labels=labels, colors=colors, scales=scales, alphas=alphas,
-                 x_label='RPM', y_label='G-force X', plot_polynomial=False)
+                 x_label='RPM', y_label='G-force X', plot_mean=False, plot_polynomial=False)
+    ax.set_xlim(left=np.concatenate(x_points).max() * 0.5, right=np.concatenate(x_points).max() * 1.1)
     plot_optimal_rpm_region(ax=ax, plot_data=plot_data)
 
 

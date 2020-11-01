@@ -274,7 +274,7 @@ def get_optimal_rpm(acc_rpm_regressor: typing.Dict[int, sklearn.pipeline.Pipelin
             acc_this_gear = acc_eval_per_gear[gear]
             next_gear = gear + 1
             if next_gear > np.max(gears_sorted):
-                rpm_next_gear_is_better = evaluation_range[-1]
+                rpm_next_gear_is_better = np.inf
             else:
                 acc_next_gear = acc_eval_per_gear[next_gear]
                 if acc_next_gear is None:
