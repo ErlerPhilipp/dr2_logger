@@ -342,6 +342,7 @@ def get_full_acceleration_mask(plot_data: pd.PlotData):
         no_drift,
         no_slip_fl, no_slip_fr, no_slip_rl, no_slip_rr,
         no_slip_f, no_slip_r,
+        on_ground_mask
     ))
 
     return full_acceleration_mask
