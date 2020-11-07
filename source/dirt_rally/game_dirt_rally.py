@@ -70,7 +70,9 @@ class GameDirtRally(GameBase):
 
         current_time = last_sample[udp_data.Fields.lap_time.value]
         current_time_str = time.strftime('%M:%S', time.gmtime(current_time))
-        progress = last_sample[udp_data.Fields.progress.value]
+        progress_raw = last_sample[udp_data.Fields.progress.value]
+        num_laps = max(1, last_sample[udp_data.Fields.total_laps.value])
+        progress = progress_raw / num_laps
         filled_length = int(round(bar_length * progress))
         progress_str = '|' + f'{"█" * filled_length}{"-" * (bar_length - filled_length)}' + '|'
         eta = 0.0 if progress <= 0.0 else current_time * (1.0 / progress)

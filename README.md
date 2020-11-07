@@ -57,7 +57,7 @@ When you share (parts of) this repository, please mention or link my work. If yo
     - Add guidelines for tuning.
     - Fix some crashes.
     - Add continuous integration.
-    - Add new Ford Ibiza R5 MKII.
+    - Add new Ford Fiesta R5 MKII.
 - 1.8.1 (2020-05-15):
     - Prevent several crashes and other bugfixes.
     - Add country code and region to track names.

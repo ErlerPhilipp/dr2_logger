@@ -17,6 +17,22 @@ static_colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
                  'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
 
 
+# TODO: - correlation between power output and wheel speed (slip)
+# TODO: - show oversteer vs understeer
+# TODO: - check all correlations
+# TODO: - show crashes in track overview (num crashes as legend) -> track overview in essential plots
+# TODO: - continuous integration
+# TODO: - put socket I/O in extra thread (add all those things in the message queue?)
+# TODO: - add rotation energy to power plots?
+# TODO: - add wheel rotation energy to power plots?
+# TODO: - analyze slip
+# TODO: - Fourier transform on suspension to check dampers?
+# TODO: - estimate limit and Linear Region of Tire Force (https://www.paradigmshiftracing.com/racing-basics/racing-and-motorsports-terms-glossary#/)
+# TODO: - https://www.youtube.com/watch?v=5xw8DJY7aZQ
+# TODO: - https://www.youtube.com/watch?v=5U2t_2yberY
+# TODO: - https://www.youtube.com/watch?v=Y6f4ar0IHwQ
+
+
 def save_plot(title: str, title_post_fix: str, fig):
 
     path = r'.'
@@ -688,7 +704,7 @@ def suspension_l_r_f_r_bars(ax, plot_data: pd.PlotData):
 
 def plot_height_over_dist(ax, plot_data: pd.PlotData):
     distance = plot_data.distance
-    height = np.abs(plot_data.pos_y)
+    height = np.abs(plot_data.pos_z)
     ax.plot(distance, height, label='Height')
     ax.set(xlabel='Distance (m)', ylabel='Height (m)',
            title='Track Elevation')
@@ -983,54 +999,11 @@ def slip_over_time(ax, plot_data: pd.PlotData):
 
 def ground_contact_over_time(ax, plot_data: pd.PlotData):
 
-    def get_in_air_mask(susp_vel_arr: np.ndarray, time_steps: np.ndarray,
-                        susp_vel_lim=100.0, susp_vel_var_max=100.0, filter_length=6):
-        # filter_length = 6 -> 100 ms (0.1 s) at 60 FPS
-        box_filter = np.array([1.0] * filter_length)  # filter_length = 6 -> 100 ms at 60 FPS
-
-        def get_variance_convolved(data: np.ndarray):
-            sum_conv = np.convolve(data, box_filter, mode='same')
-            mean_conv = sum_conv / float(filter_length)
-            var_sqr_conv = data - mean_conv
-            var_conv = var_sqr_conv * var_sqr_conv
-            return var_conv
-
-        # check if the suspension velocity is declining continuously over a certain time
-        susp_acc = data_processing.derive_no_nan(susp_vel_arr, time_steps)
-        susp_acc_pos = (susp_acc > -10.0).astype(np.float)
-        susp_acc_pos_conv = np.convolve(susp_acc_pos, box_filter, mode='same') == float(filter_length)
-
-        # check if the suspension velocity is negative for a certain time
-        susp_vel_neg = (susp_vel_arr < 10.0).astype(np.float)
-        susp_vel_neg_conv = np.convolve(susp_vel_neg, box_filter, mode='same') == float(filter_length)
-
-        # # check approximately monotonously increasing suspension velocity (less fast extension over time)
-        # susp_vel_arr_next = np.concatenate([susp_vel_arr[1:], np.full((1,), susp_vel_arr[-1])], axis=0)
-        # susp_vel_increasing = susp_vel_arr_next - susp_vel_arr > -0.1
-        # susp_vel_inc_conv = np.convolve(susp_vel_increasing, box_filter, mode='same') == float(filter_length)
-
-        # # extending by max x mm/s
-        # susp_vel_lim = np.logical_and(susp_vel_arr < 0.0, susp_vel_arr > -susp_vel_lim)
-        # susp_vel_lim_conv = np.convolve(susp_vel_lim, box_filter, mode='same') == float(filter_length)
-        # susp_var = get_variance_convolved(susp_vel_arr) < susp_vel_var_max
-
-        # and of all conditions
-        # in_air_mask = np.logical_and(susp_var, susp_vel_lim_conv)
-        # in_air_mask = np.logical_and(in_air_mask, susp_vel_inc_conv)
-
-        in_air_mask = functools.reduce(np.logical_and, (
-            susp_acc_pos_conv, susp_vel_neg_conv  # susp_var, susp_vel_lim_conv, susp_vel_inc_conv,
-        ))
-
-        # previous convolutions shrunk the masks, now extending again
-        in_air_mask = np.convolve(in_air_mask, box_filter, mode='same') >= float(filter_length * 0.5)
-
-        return in_air_mask
-
     susp_vel = [plot_data.susp_vel_fl, plot_data.susp_vel_fr, plot_data.susp_vel_rl, plot_data.susp_vel_rr]
-    in_air_masks = [get_in_air_mask(susp_vel_arr=susp, time_steps=plot_data.run_time,
-                                    susp_vel_lim=100.0, susp_vel_var_max=100.0, filter_length=6)
-                    for susp in susp_vel]
+    in_air_masks = [data_processing.get_in_air_mask(
+        susp_vel_arr=susp, time_steps=plot_data.run_time,
+        susp_vel_lim=100.0, susp_vel_var_max=100.0, filter_length=6)
+        for susp in susp_vel]
 
     # boolean mask to 0.0 or 1.0, also take sum
     in_air_masks = [gc.astype(np.float) for gc in in_air_masks]
@@ -1059,7 +1032,7 @@ def drift_over_speed(ax, plot_data: pd.PlotData):
 
     steering = np.abs(plot_data.steering)
     speed_ms = plot_data.speed_ms
-    drift_angle_deg = data_processing.get_drift_angle(plot_data)
+    drift_angle_deg = data_processing.get_drift_angle_deg(plot_data)
     race_time = plot_data.run_time
     drift_angle_deg_der = data_processing.derive_no_nan(
         drift_angle_deg, time_steps=race_time)
@@ -1091,7 +1064,7 @@ def drift_angle_bars(ax, plot_data: pd.PlotData):
     race_time = plot_data.run_time
     time_differences = data_processing.differences(race_time, True)
     speed_ms = plot_data.speed_ms
-    drift_angle_deg = data_processing.get_drift_angle(plot_data)
+    drift_angle_deg = data_processing.get_drift_angle_deg(plot_data)
 
     # filter very slow parts
     fast_enough = speed_ms > 1.0  # m/s
@@ -1115,7 +1088,7 @@ def drift_angle_change_bars(ax, plot_data: pd.PlotData):
     race_time = plot_data.run_time
     time_differences = data_processing.differences(race_time, True)
     speed_ms = plot_data.speed_ms
-    drift_angle_deg = data_processing.get_drift_angle(plot_data)
+    drift_angle_deg = data_processing.get_drift_angle_deg(plot_data)
     drift_angle_deg_der = data_processing.derive_no_nan(
         drift_angle_deg, time_steps=race_time)
 
